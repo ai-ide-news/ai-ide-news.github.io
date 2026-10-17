@@ -265,7 +265,7 @@ async function discover(prev, report) {
   // Only tools that still pass the niche filter are kept (a deny-list entry removes one at once).
   const stillCandidates = new Set(candidates.map((r) => toTool(r).id));
   const kept = [...prevById.values()].filter((d) => !ids.has(d.id) && stillCandidates.has(d.id) && NOW - Date.parse(d.lastQualified) < DISCOVERY.keepDays * DAY);
-  const out = [...qualified.sort((a, b) => b.score - a.score).slice(0, DISCOVERY.maxTools), ...kept];
+  const out = [...qualified.sort((a, b) => b.score - a.score), ...kept];
   report.push(`✓ Discovery              ${qualified.length} trending tools qualified (${candidates.length} candidates, ${kept.length} kept)`);
   return out;
 }

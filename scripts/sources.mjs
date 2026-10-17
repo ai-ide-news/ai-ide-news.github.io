@@ -212,7 +212,6 @@ export const TOOLS = [
 // Auto-discovery of trending open-source tools in the same niche (see discover.mjs).
 // allow: repos to always include if they ship releases · deny: repos to never include.
 export const DISCOVERY = {
-  maxTools: 40,          // cap on discovered tools shown alongside the curated list
   minStars: 1000,
   maxIdleDays: 30,       // must have been pushed to recently
   maxReleaseAgeDays: 60, // must have shipped a stable GitHub Release recently
