@@ -4,9 +4,9 @@ import { TOOLS, CATEGORIES } from './sources.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
-const SITE_URL = (process.env.SITE_URL || 'https://abdullaheltiby.github.io/ai-ide-news').replace(/\/$/, '');
+const SITE_URL = (process.env.SITE_URL || 'https://ai-ide-news.github.io').replace(/\/$/, '');
 const SITE_NAME = 'Patchwire';
-const REPO_URL = 'https://github.com/AbdullahElTiby/ai-ide-news';
+const REPO_URL = 'https://github.com/ai-ide-news/ai-ide-news.github.io';
 const VERIFY = process.env.GOOGLE_SITE_VERIFICATION || '';
 const DAY = 86400e3;
 
@@ -81,7 +81,7 @@ function layout({ root, path, title, description, body, jsonld, active = '' }) {
 <meta property="og:url" content="${canonical}">
 <meta property="og:image" content="${SITE_URL}/og.png">
 <meta name="twitter:card" content="summary_large_image">
-${VERIFY ? `<meta name="google-site-verification" content="${esc(VERIFY)}">` : ''}
+${VERIFY.split(',').filter(Boolean).map((v) => `<meta name="google-site-verification" content="${esc(v.trim())}">`).join('')}
 <link rel="icon" href="${root}favicon.svg" type="image/svg+xml">
 <link rel="alternate" type="application/rss+xml" title="${SITE_NAME} — all AI IDE & CLI updates" href="${root}feed.xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -7,7 +7,7 @@ import sanitizeHtml from 'sanitize-html';
 import { TOOLS, HN_MATCH, HN_QUERIES } from './sources.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
-const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://github.com/AbdullahElTiby/ai-ide-news)';
+const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
 const GH_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
 const DAY = 86400e3;
 const NOW = Date.now();
