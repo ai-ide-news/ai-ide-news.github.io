@@ -23,3 +23,7 @@ npm run dev   # fetch → build → serve on http://localhost:4173
 ```
 
 Add a tool in `scripts/sources.mjs`. Outputs: HTML pages, `feed.xml` (RSS), `data.json` (JSON API), `sitemap.xml`.
+
+---
+
+Made by [Abdullah ElTiby](https://github.com/AbdullahElTiby).

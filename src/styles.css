@@ -293,3 +293,5 @@ h2 { font-size: clamp(26px, 3.2vw, 38px); letter-spacing: -.035em; line-height: 
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
 }
+.foot-in p.credit { color: var(--ink); font-weight: 550; }
+.foot-in p.credit a { font-weight: 600; }

@@ -6,6 +6,7 @@ const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
 const SITE_URL = (process.env.SITE_URL || 'https://ai-ide-news.github.io').replace(/\/$/, '');
 const SITE_NAME = 'Patchwire';
+const AUTHOR = { name: 'Abdullah ElTiby', url: 'https://github.com/AbdullahElTiby' };
 const REPO_URL = 'https://github.com/ai-ide-news/ai-ide-news.github.io';
 const VERIFY = process.env.GOOGLE_SITE_VERIFICATION || '';
 const DAY = 86400e3;
@@ -72,6 +73,7 @@ function layout({ root, path, title, description, body, jsonld, active = '' }) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
+<meta name="author" content="${AUTHOR.name}">
 <link rel="canonical" href="${canonical}">
 <meta name="theme-color" content="#09090b">
 <meta property="og:type" content="website">
@@ -124,6 +126,7 @@ ${body}
     <div class="foot-meta">
       <p>Last refreshed ${time(snap.generatedAt, 'live-ago')}</p>
       <p><a href="${root}feed.xml">RSS</a> · <a href="${root}data.json">JSON API</a> · <a href="${REPO_URL}" rel="noopener">GitHub</a></p>
+      <p class="credit">Made by <a href="${AUTHOR.url}" rel="author noopener">${AUTHOR.name}</a> · <a href="${AUTHOR.url}" rel="noopener">github.com/AbdullahElTiby</a></p>
       <p class="muted">Not affiliated with any of the tools listed. All trademarks belong to their owners.</p>
     </div>
   </div>
@@ -269,7 +272,7 @@ function indexPage() {
     description: `Live tracker of the latest releases, patches and changelogs for AI IDEs and coding CLIs: Cursor, Claude Code, Codex CLI, Gemini CLI, GitHub Copilot, Kiro, Zed, Windsurf, OpenCode, Cline and more. Real data, updated automatically.`,
     jsonld: {
       '@context': 'https://schema.org', '@graph': [
-        { '@type': 'WebSite', name: SITE_NAME, url: `${SITE_URL}/`, description: 'Latest news, releases and changelogs for AI IDEs and AI coding CLIs.' },
+        { '@type': 'WebSite', name: SITE_NAME, url: `${SITE_URL}/`, description: 'Latest news, releases and changelogs for AI IDEs and AI coding CLIs.', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url } },
         { '@type': 'ItemList', name: 'AI coding tools tracked', itemListElement: tools.map((t, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}/tools/${t.id}/`, name: t.name })) },
       ],
     },
