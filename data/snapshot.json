@@ -20315,5 +20315,2313 @@
    "comments": 0,
    "source": "Hacker News"
   }
+ ],
+ "x": {
+  "posts": [
+   {
+    "id": "2111152183240511640",
+    "handle": "AnthropicAI",
+    "text": "New from our STEM Fellows Program: Designing more efficient quantum circuits with Claude.\n\nGiven plain-language instructions, Claude Mythos 5 designed quantum circuits that improve on the best published ones, sometimes by an order of magnitude or more.\n\nMore efficient circuits reduce the resources needed by quantum algorithms, which could bring quantum computing applications in chemistry and materials science within reach sooner.\n\nRead more: https://t.co/QCvoJLDmBo",
+    "date": "2026-10-16T17:47:58.000Z",
+    "likes": 5083
+   },
+   {
+    "id": "2110846112152105136",
+    "handle": "AnthropicAI",
+    "text": "Working out how best to use AI in mathematics research—and in science more generally—will take time, effort, and resources. We’re eager to support mathematicians as they drive scientific progress and define the future of their field.\n\nWe’ve committed $5 million of funding, compute, and Claude access to help the math community navigate the massive changes that AI brings. We’re partnering with @SimonsFdn, who will manage the award through a community-driven approach, supporting workshops, conferences, and lectures by domain experts.\n\nhttps://t.co/GzFchwMukC",
+    "date": "2026-10-15T21:31:45.000Z",
+    "likes": 2457
+   },
+   {
+    "id": "2110784662071398807",
+    "handle": "AnthropicAI",
+    "text": "We’ve committed to having evaluators assess our safety practices. We're in discussions with multiple organizations, and have now given employee-like access to a team from @METR_Evals.\n\nIn this post, we describe how we work with third-party evaluators: https://t.co/8CLQnMVg4X",
+    "date": "2026-10-15T17:27:34.000Z",
+    "likes": 3787
+   },
+   {
+    "id": "2110720940665372825",
+    "handle": "AnthropicAI",
+    "text": "Applications are now open for two new Anthropic Fellowships.\n\nSTEM Fellows (science and engineering) and Conceptual Reasoning Fellows (philosophy, cognitive science, economics, policy, and law) will spend four months at Anthropic from January 2027, working to help Claude reason well about some of the hardest problems in those fields.\n\nFor more information, see the descriptions below. The application deadline is October 28.\n\nConceptual Reasoning Fellows: https://t.co/kTaBPqttbK\n\nSTEM Fellows: https://t.co/KkD5ruJkjq",
+    "date": "2026-10-15T13:14:22.000Z",
+    "likes": 6795
+   },
+   {
+    "id": "2110289695888511368",
+    "handle": "AnthropicAI",
+    "text": "We’ve opened an office in Singapore—our fifth in the Asia-Pacific region. We’ve also signed an MOU with the Government of Singapore on AI safety and responsible adoption.\n\nYou can read more about our new office here: https://t.co/125mBgHLkM",
+    "date": "2026-10-14T08:40:45.000Z",
+    "likes": 3465
+   },
+   {
+    "id": "2110047081414987957",
+    "handle": "AnthropicAI",
+    "text": "New on our Engineering blog: Creating in-house source control. \n\nIn May, we merged around 2,500 code changes per day. In September, we merged more than 30,000 per day. As a result, we became bottlenecked by developer infrastructure built for human (rather than agent) scale.  \n\nHere, we share how we built a new version control system—and fully migrated our monorepo from git—in five months: https://t.co/wzNkwHs7IN",
+    "date": "2026-10-13T16:36:41.000Z",
+    "likes": 25626
+   },
+   {
+    "id": "2109795898909950247",
+    "handle": "AnthropicAI",
+    "text": "Over the last few months, we’ve made significant progress in reducing the effectiveness of distillation attacks against Claude.\n\nIn this post, we explain how: https://t.co/uWiRSLBuOS",
+    "date": "2026-10-12T23:58:35.000Z",
+    "likes": 6552
+   },
+   {
+    "id": "2108680150556737819",
+    "handle": "AnthropicAI",
+    "text": "We’re beginning a process of publishing more frequent reports on model behavior, beyond what appears in our system cards and regular risk reports.\n\nToday’s report describes four types of behaviors we’ve identified during evaluations and internal use. In each, Claude acted on real websites or systems in ways we didn’t intend, sometimes by working around a restriction instead of stopping. \n\nAll cases had minimal real-world impact. From an alignment and security perspective, we consider these behaviors significantly less severe than the cybersecurity incidents we reported in July and September.\n\nRead the full report: https://t.co/mGeVIBgdou",
+    "date": "2026-10-09T22:04:59.000Z",
+    "likes": 4586
+   },
+   {
+    "id": "2108302539498414208",
+    "handle": "AnthropicAI",
+    "text": "We’re launching the Anthropic Cyber Mission, a new effort to secure critical infrastructure and open-source software.\n\nhttps://t.co/0tz0ARAEMj",
+    "date": "2026-10-08T21:04:30.000Z",
+    "likes": 2696
+   },
+   {
+    "id": "2108290395599667700",
+    "handle": "AnthropicAI",
+    "text": "An astrophysicist worked with Claude Science to create the first complete ultraviolet map of the sky. Astronomers have already created complete sky maps from radio to gamma rays. But large regions of the sky have never been observed in UV.\n\nIn today’s science blog, Brice Ménard explains how he guided Claude to find existing datasets, combine them, and fill in the gaps with statistical inference. The work would have taken humans weeks of work, but, with Claude, just took a few days while Ménard worked on other projects.\n\nThe resulting map is a useful teaching tool and an example of exactly the sort of slow, low-priority work which scientists never quite get around to, but which AI now makes feasible.\n\nRead more: https://t.co/1B3NDPNa13",
+    "date": "2026-10-08T20:16:15.000Z",
+    "likes": 4722
+   },
+   {
+    "id": "2108226292235809081",
+    "handle": "AnthropicAI",
+    "text": "We're deepening our commitment to scientific research and technological discovery by committing $150 million to the Genesis Mission.\n\nWe'll also make Claude and our technical support available to more than 15 federal agencies.\n\nhttps://t.co/MUmQBiC6MF",
+    "date": "2026-10-08T16:01:31.000Z",
+    "likes": 3032
+   },
+   {
+    "id": "2107894208547983705",
+    "handle": "AnthropicAI",
+    "text": "Claude Haiku 5.5, our latest model:",
+    "date": "2026-10-07T18:01:56.000Z",
+    "likes": 7513
+   },
+   {
+    "id": "2107546569654636883",
+    "handle": "AnthropicAI",
+    "text": "We’re expanding our Cyber Verification Program to give security professionals broader access to our most capable models.\n\nThrough this program, verified security professionals can access Claude Mythos 5.1, Opus 5.5, and Sonnet 5.5 with safeguards designed for defensive work.\n\nWe’re also opening up new tiers to allow for authorized offensive work, like penetration testing and red-teaming. \n\nhttps://t.co/blaJtvxhJh",
+    "date": "2026-10-06T19:00:33.000Z",
+    "likes": 5820
+   },
+   {
+    "id": "2105733864152858919",
+    "handle": "AnthropicAI",
+    "text": "In physics, an “impedance mismatch” occurs when two systems each work well but are poorly matched.\n\nIn this Science Blog guest post, Harvard physicist Matthew Schwartz argues that something similar is happening with AI and science. LLMs are capable at many things, but working with them as you would with a human collaborator isn’t currently the best way to elicit their scientific strengths.\n\nTo address this mismatch, Schwartz created a toolkit for exact calculations in quantitative science. Because similar calculations often emerge in very different areas of science, Claude found connections to ecology, population genetics, and a dozen other fields, and Schwartz worked with domain experts to steer it towards interesting questions.\n\nRead more about these projects here: https://t.co/UpgSwMCz7h",
+    "date": "2026-10-01T18:57:30.000Z",
+    "likes": 3728
+   },
+   {
+    "id": "2104982629884063840",
+    "handle": "AnthropicAI",
+    "text": "What do you want from AI?\n\nWe’re launching a new study with Anthropic Interviewer to learn more about your experiences using AI, what role you want it to play in your life and the world, and what you want from the companies building it.\n\nLast December, 81,000 people told us about their hopes and fears about AI in the largest qualitative study ever done. This time, we’re giving participants the option to make their responses public so that anyone, not just Anthropic, can learn from them.\n\nWhat you tell us will shape The Anthropic Institute’s research and inform the decisions we make. If many people say companies like Anthropic should be doing something differently, that will be on the record, where anyone can point to it.\n\nThe study runs Sept 29 to Oct 6 and is open to Free, Pro, and Max users on Claude and Claude Code.\n\nTake part here: https://t.co/MtdU7MZbeY",
+    "date": "2026-09-29T17:12:22.000Z",
+    "likes": 2149
+   },
+   {
+    "id": "2104633259925630995",
+    "handle": "AnthropicAI",
+    "text": "Claude Sonnet 5.5 is now available:",
+    "date": "2026-09-28T18:04:06.000Z",
+    "likes": 12068
+   },
+   {
+    "id": "2107894997538525580",
+    "handle": "OpenAI",
+    "text": "GPT-6 and Intelligent UI, now rolling out in ChatGPT for everyone.\n\nIntelligent UI in ChatGPT delivers fast, interactive answers that make everyday questions more visual, complex topics easier to grasp, and interactive tools for your task available on the spot. https://t.co/XL2gDCPBwG",
+    "date": "2026-10-07T18:05:04.000Z",
+    "likes": 23838
+   },
+   {
+    "id": "2111192259073094035",
+    "handle": "OpenAI",
+    "text": "GPT-6 Astra Pro in ChatGPT got an upgrade with faster responses and improved use of plugins and tools.\n\nAnd now, multiple agents can tackle different parts of a task in parallel. You can follow each agent’s progress and open completed tasks to review their work.\n\nNow available to Pro users in the Chat tab.",
+    "date": "2026-10-16T20:27:13.000Z",
+    "likes": 11335
+   },
+   {
+    "id": "2110841898076418336",
+    "handle": "OpenAI",
+    "text": "We're expanding access to GPT-Rosalind for academic research.\n\nThe new Rosalind Academic Plan helps scientific labs bring AI into the work of understanding biology, exploring ideas, and deciding what to test next—with sponsored access for eligible labs at U.S. universities.\n\nAcademic research starts with questions whose impact may take years to impact human health.",
+    "date": "2026-10-15T21:15:00.000Z",
+    "likes": 3242
+   },
+   {
+    "id": "2110797830361436604",
+    "handle": "OpenAI",
+    "text": "New voices. Better accents. And less \"checking...\"\n\nGPT-Live-1.1 brings these updates to Voice in ChatGPT, Codex, and dots, with new voices in French, German, Hindi, Mexican Spanish, Korean, and Japanese.\n\nRolling out today to all users. Coming soon to the API. https://t.co/L6K8ZUC1xm",
+    "date": "2026-10-15T18:19:54.000Z",
+    "likes": 11175
+   },
+   {
+    "id": "2110741355739963884",
+    "handle": "OpenAI",
+    "text": "We want to support the mathematics community in turning progress in AI into deeper human understanding and new discoveries. To support that goal, we are contributing $5 million to a new Simons Foundation initiative to help mathematicians examine, understand, and build on results produced by AI, including the results we recently published.\n\nThe funding, managed and awarded by the @SimonsFdn will support workshops, conferences, and special programs. We will also provide access to our models and computing resources to Simons Foundation-supported researchers.",
+    "date": "2026-10-15T14:35:29.000Z",
+    "likes": 6185
+   },
+   {
+    "id": "2110442001749659890",
+    "handle": "OpenAI",
+    "text": "European businesses are rapidly expanding their use of AI agents. More than half of the AI use among our EU enterprise and business customers now involves these tools, and the number of small business users has grown 8x across the region.\n\nOur latest Economic Research report explores Europe’s shift toward agentic AI—and the opportunity to turn broader adoption into deeper use.\n\nhttps://t.co/jUjCF5sW0B",
+    "date": "2026-10-14T18:45:57.000Z",
+    "likes": 2884
+   },
+   {
+    "id": "2107909792945832070",
+    "handle": "OpenAI",
+    "text": "We're sharing progress on ChatGPT for Teens, our ChatGPT experience for people under 18, alongside a preview of College Planner, new study tools, and support for college advisers and teen voices.\n\nChatGPT for Teens applies automatically to accounts identified as belonging to someone under 18, with protections on by default.\n\nComing soon: College Planner brings application requirements, deadlines, tasks and financial-aid steps together for high school students in the U.S. planning to attend a four-year college.\n\nWe'll keep building these tools, evaluating how they and their protections work in practice, and sharing what we learn.\n\nhttps://t.co/wtiMeor5yh",
+    "date": "2026-10-07T19:03:52.000Z",
+    "likes": 3414
+   },
+   {
+    "id": "2111211411766399288",
+    "handle": "OpenAIDevs",
+    "text": "Put your dot on call.\n\nAli, an engineer at OpenAI, used his dot to triage an on-call incident at 3am.\n\nHis dot investigated the issue and started a Codex thread, so he could steer the work from his phone in the ChatGPT app. https://t.co/xLhtGUSzsx",
+    "date": "2026-10-16T21:43:19.000Z",
+    "likes": 1426
+   },
+   {
+    "id": "2110039274922131792",
+    "handle": "GoogleDeepMind",
+    "text": "Gemini 4 Argon is now globally available.\n\nBuilt to solve your hardest problems from start to finish, the model brings frontier capabilities across coding, enterprise workflows, and cyber defense. https://t.co/N8tOQjwk0x",
+    "date": "2026-10-13T16:05:40.000Z",
+    "likes": 6430
+   },
+   {
+    "id": "2111127991401247033",
+    "handle": "GoogleDeepMind",
+    "text": "Four Gemini 4 Argon agents beat Minecraft from scratch in 27 hours.\n\nOperating in a sandbox using only code and text, they wrote 2,783 programs, divided up jobs over chat, shared notes, and debugged errors together - all with no human help ↓\nhttps://t.co/uyIhDOQXGT",
+    "date": "2026-10-16T16:11:50.000Z",
+    "likes": 2401
+   },
+   {
+    "id": "2111038207240388770",
+    "handle": "GoogleDeepMind",
+    "text": "Together with scientists around the world, our models and tools are helping make disease more detectable, treatable, and preventable. 🧬\n\nFrom pinpointing rare genetic variants to speeding up drug discovery, here’s how we’re helping turn lab breakthroughs into real-world care → https://t.co/sM5G0CLcKJ",
+    "date": "2026-10-16T10:15:04.000Z",
+    "likes": 681
+   },
+   {
+    "id": "2110715601454784965",
+    "handle": "GoogleDeepMind",
+    "text": "SynthID has been named one of @TIME's Best Inventions of 2026.\n\nWith over 180 billion images and videos already watermarked, it’s making it easier for people to distinguish AI-generated content from other media → https://t.co/ClIEdQLgV1 https://t.co/STbjqj9iUu",
+    "date": "2026-10-15T12:53:09.000Z",
+    "likes": 622
+   },
+   {
+    "id": "2110421861435879476",
+    "handle": "GoogleDeepMind",
+    "text": "Gemini 4 Argon is already unlocking new scientific breakthroughs in quantum computing, nuclear fusion, protein design and beyond. 🧵",
+    "date": "2026-10-14T17:25:56.000Z",
+    "likes": 2458
+   },
+   {
+    "id": "2110190101707858039",
+    "handle": "GoogleDeepMind",
+    "text": "Over half of reported crimes in Singapore use sophisticated social engineering.\n\nWith @GovTechSG, we’re building on-device fraud detection using our open model Gemma.\n\nBy fine-tuning it on local scam tactics, it identifies threats in real time without compromising personal privacy → https://t.co/VdCio2nrHC",
+    "date": "2026-10-14T02:05:00.000Z",
+    "likes": 633
+   },
+   {
+    "id": "2110078384617464201",
+    "handle": "GoogleDeepMind",
+    "text": "Gemini 4 Argon taught a robot to play cornhole just by watching a video.\n\nIt mapped the physics, coded its own simulation, and taught @Apptronik's Apollo humanoid to sink 7 throws in a row. https://t.co/JIyoKnVc4q",
+    "date": "2026-10-13T18:41:04.000Z",
+    "likes": 3403
+   },
+   {
+    "id": "2110034327111131168",
+    "handle": "GoogleDeepMind",
+    "text": "https://t.co/oADallGYuR",
+    "date": "2026-10-13T15:46:00.000Z",
+    "likes": 3885
+   },
+   {
+    "id": "2107834249680499136",
+    "handle": "GoogleDeepMind",
+    "text": "SynthID Detector is now available to everyone. 🌐\n\nCheck whether online content was generated using @GoogleAI, or with tools from our industry partners – including @OpenAI, @NVIDIA, Kakao and coming soon, @Apple.\n\nTry it out → https://t.co/cPW2aNnqr6 https://t.co/TGYA0uZ0dx",
+    "date": "2026-10-07T14:03:41.000Z",
+    "likes": 1486
+   },
+   {
+    "id": "2111193957527146711",
+    "handle": "cursor_ai",
+    "text": "Cloud agents can now build interactive canvases.\n\nAsk for a dashboard or report while the agent works, then share the finished canvas with your team as a link. https://t.co/cLGgGLKrBT",
+    "date": "2026-10-16T20:33:58.000Z",
+    "likes": 2342
+   },
+   {
+    "id": "2110867556693430293",
+    "handle": "cursor_ai",
+    "text": "Muse Wonder from Meta Superintelligence Labs is now available in Cursor!\n\nIt scores 46.1% on CursorBench at default effort, the highest of any Muse model.\n\nPriced at $4/M input and $20/M output tokens. https://t.co/NGEnvB43LN",
+    "date": "2026-10-15T22:56:58.000Z",
+    "likes": 2162
+   },
+   {
+    "id": "2110087611763368271",
+    "handle": "cursor_ai",
+    "text": "Gemini 4 Argon is now available in Cursor!\n\nIt scores 52.8% on CursorBench at default effort, on par with Opus 5.5.\n\nPriced at $2/M input and $10/M output tokens. https://t.co/1wOk4NvgFJ",
+    "date": "2026-10-13T19:17:44.000Z",
+    "likes": 4443
+   },
+   {
+    "id": "2110075611633074295",
+    "handle": "cursor_ai",
+    "text": "Origin, Cursor’s code hosting platform, now supports over 20 integrations.\n\nConnect your repos to tools for CI, deployments, code review, security, monitoring, and project management. https://t.co/Xq8LpS6Fa7",
+    "date": "2026-10-13T18:30:03.000Z",
+    "likes": 2097
+   },
+   {
+    "id": "2109783879490191502",
+    "handle": "cursor_ai",
+    "text": "Cursor is now part of The X Subscription.\n\nCurrent Cursor subscribers can keep their plan or switch to The X Subscription.\n\nPaid plans share one usage pool across Cursor, Grok Build, and other Grok products, with twice the coding usage on Grok models as the equivalent Cursor plan. Premium, Super, and Ultra also include Grok Bot.\n\nTo make room for more Grok usage, third-party models in Cursor move to API pricing on the new plans. We'll keep working to make your usage go further, with more compute, better inference, and more token-efficient models.\n\nThe X Subscription is available at https://t.co/KIM9X7FZrq.",
+    "date": "2026-10-12T23:10:49.000Z",
+    "likes": 6467
+   },
+   {
+    "id": "2108289748628566496",
+    "handle": "cursor_ai",
+    "text": "The first chart usually raises the next question.\n\nAsk it in the same chat and /visualize answers with a new chart. https://t.co/NPdqP4c46r",
+    "date": "2026-10-08T20:13:40.000Z",
+    "likes": 1283
+   },
+   {
+    "id": "2107897245282799864",
+    "handle": "cursor_ai",
+    "text": "Claude Haiku 5.5 is now available in Cursor!\n\nOn shorter requests, it costs 10x less than Claude Haiku 4.5.\n\nTurn it on in Cursor Settings &gt; Models. https://t.co/dkYOvcxsLs",
+    "date": "2026-10-07T18:14:00.000Z",
+    "likes": 2750
+   },
+   {
+    "id": "2107618653701296162",
+    "handle": "cursor_ai",
+    "text": "You can now control agents on your computer from your phone.\n\nCheck in, reply, or start new tasks from the Cursor iOS app. https://t.co/11dcZhRyrx",
+    "date": "2026-10-06T23:46:59.000Z",
+    "likes": 2307
+   },
+   {
+    "id": "2107141004482793827",
+    "handle": "cursor_ai",
+    "text": "You can now steer Cursor SDK agents while they run.\n\nrun.steer() adds your message to the next turn. If a subagent is mid-task, it moves to the background and keeps working. https://t.co/1GHeV6kfKC",
+    "date": "2026-10-05T16:08:58.000Z",
+    "likes": 1342
+   },
+   {
+    "id": "2107896916595884177",
+    "handle": "github",
+    "text": "📣 Coming soon to GitHub Copilot: intelligent local model routing.\n\nWe are excited to announce the next step in our Project HydraFusion vision. GitHub Copilot will soon be able to automatically route tasks to a local model when it's most suitable, helping you save on AI credits. https://t.co/lvjtnBswex",
+    "date": "2026-10-07T18:12:42.000Z",
+    "likes": 554
+   },
+   {
+    "id": "2111515160766550057",
+    "handle": "github",
+    "text": "Your workflows have changed with AI. How about your setup?\n\nPhysical controls are back. Take the new Logitech MX Keypad, now directly integrated with the GitHub Copilot app.\n\nThis experience allows you to run agentic workflows with control, map a repeated prompt, start or resume a session, and help you stay in flow.\nhttps://t.co/zbcYD8xQKf",
+    "date": "2026-10-17T17:50:19.000Z",
+    "likes": 169
+   },
+   {
+    "id": "2111225205309780009",
+    "handle": "github",
+    "text": "What are your conference essentials? \n\nGrab a #GitHubUniverse pass to join us in-person October 28-29 or sign up to join us virtually ⬇️\nhttps://t.co/rBP7w7Mwjo https://t.co/wzF57AOtt2",
+    "date": "2026-10-16T22:38:08.000Z",
+    "likes": 146
+   },
+   {
+    "id": "2111156078293737607",
+    "handle": "github",
+    "text": "https://t.co/otZg9dIh7u has fully moved off CSS-in-JS to CSS Modules, resulting in 55% less server-side render time and 25% faster component init. https://t.co/0AV4Fr3RSo",
+    "date": "2026-10-16T18:03:27.000Z",
+    "likes": 582
+   },
+   {
+    "id": "2110885672081121424",
+    "handle": "github",
+    "text": "New in GitHub Transparency data: Learn about government takedown requests and reporting, and get a recap of 2026 state legislative sessions affecting open source.\nhttps://t.co/kLiA6Vw7XM https://t.co/VBICBl0l4G",
+    "date": "2026-10-16T00:08:57.000Z",
+    "likes": 228
+   },
+   {
+    "id": "2110511011862134980",
+    "handle": "github",
+    "text": "Psst, pass it around: We have a new and improved badge for GitHub Universe 2026 ✨\n\nGrab your in-person pass and secure a badge. Can't make it? Sign up to join us virtually. ⬇️\nhttps://t.co/D4axC8Oecn https://t.co/Jq3FFdcyQf",
+    "date": "2026-10-14T23:20:11.000Z",
+    "likes": 102
+   },
+   {
+    "id": "2110490847905272314",
+    "handle": "github",
+    "text": "⭐ We shaped our new repo star history API around production evidence and maintainer feedback. Now it provides trends without returning individual identities or requiring unbounded database work.\n\nThe practical engineering tradeoffs that made it happen ⬇️ https://t.co/WJ18vkYmdO",
+    "date": "2026-10-14T22:00:03.000Z",
+    "likes": 135
+   },
+   {
+    "id": "2110444288131690537",
+    "handle": "github",
+    "text": "Cake is always open source #NationalDessertDay https://t.co/rPMXEW3gHJ",
+    "date": "2026-10-14T18:55:03.000Z",
+    "likes": 103
+   },
+   {
+    "id": "2109707357857218667",
+    "handle": "github",
+    "text": "Rendering a million-line diff is the easy part. 👀\n\nComments are what break it. Their height depends on markdown wrapping, expanded details, open reply boxes, and images still loading (none of which you know until you render).\n\nHere's how we rebuilt the PR view in the GitHub Copilot app 🧵",
+    "date": "2026-10-12T18:06:45.000Z",
+    "likes": 377
+   },
+   {
+    "id": "2109364666237350135",
+    "handle": "github",
+    "text": "Continuous fuzzing finds real bugs, but it still needs someone to write harnesses, watch coverage, and triage every crash.\n\nThe GitHub Security Lab built the Fuzzing Taskflow to give that loop to an agent. You point it at a C or C++ repository, and it identifies entrypoints, analyzes the build, crafts harnesses, runs the AFL++ fuzzer, reads coverage, and creates a vulnerability report for each unique bug.\n\nCheck out how the pipeline works end to end 🔍\nhttps://t.co/IQhu6ZMmyh",
+    "date": "2026-10-11T19:25:01.000Z",
+    "likes": 269
+   },
+   {
+    "id": "2110454537496539186",
+    "handle": "code",
+    "text": "🚀 The latest @code release brings interactive canvases for agent workflows, chat handoffs without losing context, and new ways to edit Markdown.\n\n🧵 Here’s what’s new:\nhttps://t.co/kOo0CVRtEm",
+    "date": "2026-10-14T19:35:46.000Z",
+    "likes": 375
+   },
+   {
+    "id": "2111162764760694786",
+    "handle": "kirodotdev",
+    "text": "Kimi K3 model from Moonshot AI is available in Kiro.  \n\nIt's the first open-weight model with 2.8T parameters, and room to hold your entire repo and spec in a single pass. \n\nGet started here: https://t.co/lFAwyAttID https://t.co/sEGouvLOkJ",
+    "date": "2026-10-16T18:30:01.000Z",
+    "likes": 78
+   },
+   {
+    "id": "2110797922359026152",
+    "handle": "kirodotdev",
+    "text": "kiroween is back, and registration is now open. 🎃\n\nDon't build yet: only new projects count. hacking starts 10/30 with full rules and more tracks. $100,000 in cash prizes. \n\nSame categories as last year, so start dreaming up your worst nightmares.\nRegister → https://t.co/RoZz2nhfze",
+    "date": "2026-10-15T18:20:16.000Z",
+    "likes": 139
+   },
+   {
+    "id": "2110484370129670341",
+    "handle": "kirodotdev",
+    "text": "Local sandboxing is now generally available in Kiro IDE and CLI. \n\nAgent-run commands can now get scoped file and network access when they run locally. \n\nmacOS, Linux, and Windows. \n\nSee how it works ↓ https://t.co/oApPdT3ASC https://t.co/WQNS5aAqOO",
+    "date": "2026-10-14T21:34:19.000Z",
+    "likes": 42
+   },
+   {
+    "id": "2107871076990452160",
+    "handle": "kirodotdev",
+    "text": "Kiro 💜 Manufacturing\n\nA 113-year-old, third-generation family-owned manufacturer with 35 developers compressed years of planned software development into weeks, rewriting what a small engineering team can build. 8 production-ready outcomes were delivered in 2 days. \n\nRead the full story: https://t.co/3QFfTD97ZR",
+    "date": "2026-10-07T16:30:01.000Z",
+    "likes": 50
+   },
+   {
+    "id": "2107118899690967491",
+    "handle": "kirodotdev",
+    "text": "Claude Sonnet 5.5 is now available  \n\nIt is Anthropic's fastest Sonnet model to date and a clear upgrade over Claude Sonnet 5. \n\nBuilt for well-scoped coding and everyday work of building features, fixing bugs, and reviewing code. \n\nAvailable for Kiro Pro, Pro+, Pro Max, and Power tiers. \n\nFull breakdown here: https://t.co/eJ7mx70U6g",
+    "date": "2026-10-05T14:41:08.000Z",
+    "likes": 146
+   },
+   {
+    "id": "2105758155992879325",
+    "handle": "kirodotdev",
+    "text": "A closer look at Kiro workflows:\n• specialized agents\n• parallel branches\n• test/review gates\n• conditional loops\n• model + effort by step\n\nThe runtime carries the control flow. Each agent handles its part. https://t.co/xTZUhq5IMK https://t.co/LnQQx6Y5p5",
+    "date": "2026-10-01T20:34:02.000Z",
+    "likes": 99
+   },
+   {
+    "id": "2105408724655337626",
+    "handle": "kirodotdev",
+    "text": "Introducing Kiro workflows, now generally available. 👻\n\nTake complex agent orchestration beyond prompts and sessions.\n\nSequence work. Fan it out in parallel. Loop on results. Vary agents, models, and effort by step. All in the workflow itself.\n\nRefine it. Save it as a recipe. Run it again.\n\nFull breakdown: https://t.co/zq39VyQkNl",
+    "date": "2026-09-30T21:25:31.000Z",
+    "likes": 141
+   },
+   {
+    "id": "2104646075051102680",
+    "handle": "kirodotdev",
+    "text": "Claude Opus 5.5 is now available today \n\nAnthropic's most capable Opus model yet, delivering Fable 5.1-level performance on most work at 40% lower cost than Opus 5. \n\nDownload Kiro or restart the Kiro IDE, CLI, or Crew to check for the latest available models.\n\nLearn more here: https://t.co/6FyJO8NJwj",
+    "date": "2026-09-28T18:55:01.000Z",
+    "likes": 123
+   },
+   {
+    "id": "2103514889696227810",
+    "handle": "kirodotdev",
+    "text": "Class is dismissed. 📖 \nThis week, we opened the doors to the Kiro University Challenge: a crash course built for builders. \n\nWhat are you building? https://t.co/AdLbXifjUt",
+    "date": "2026-09-25T16:00:05.000Z",
+    "likes": 41
+   },
+   {
+    "id": "2103152492234072502",
+    "handle": "kirodotdev",
+    "text": "Kiro University Challenge, Day 4.  \nLesson 7: Powers\nInstall and use a Power so Kiro loads its tools and skills on demand.\n\nShare what you're building with #KiroUniversity. \n\nhttps://t.co/sAdHwHXep7 https://t.co/lLWmAV51Rx",
+    "date": "2026-09-24T16:00:03.000Z",
+    "likes": 19
+   },
+   {
+    "id": "2102842943933448356",
+    "handle": "kirodotdev",
+    "text": "Kiro University Challenge, Day 3. 📚 \n\nLesson 5 &amp; 6: MCP + Custom agents \nShare what you're building with Kiro University. \n\nSyllabus 📖 https://t.co/NMy93oi0Od\n\n#KiroUniversity https://t.co/ZwSQkAL1Ul",
+    "date": "2026-09-23T19:30:01.000Z",
+    "likes": 27
+   },
+   {
+    "id": "2102786319021658346",
+    "handle": "kirodotdev",
+    "text": "📚Halfway through the Kiro University Challenge, our one week Kiro crash course. \n\nTime for a check in on your build.  \n\nHow's your project coming along? Tell us in the comments 👇\nSyllabus:https://t.co/ec1m2RPXxI \n\n#KiroUniversity https://t.co/32XOkUPDwL",
+    "date": "2026-09-23T15:45:00.000Z",
+    "likes": 30
+   },
+   {
+    "id": "2102485730157064692",
+    "handle": "kirodotdev",
+    "text": "\"It's never been easier to build something than it is today.\" \n\nA UT Austin sophomore built a 3D explorer of Austin. Runs right in your browser. \nStarted as an idea in his notes app. He typed it into Kiro, reviewed each step as it built, and kept going. \n\nApply today: https://t.co/6DYOWCykwo",
+    "date": "2026-09-22T19:50:35.000Z",
+    "likes": 27
+   },
+   {
+    "id": "2102081961665744917",
+    "handle": "kirodotdev",
+    "text": "Class is back in session 🎓 \nThe Kiro University Challenge starts today. A one week crash course for Kiro. \n\n📚 7 lessons: steering, hooks, MCP, Powers + more \n🛠️ Build a project as you go \n🏆 Up to 5,250 credits \n\nSyllabus here: https://t.co/4SBgDApISq\n\n#KiroUniversity https://t.co/aLEac42kMM",
+    "date": "2026-09-21T17:06:09.000Z",
+    "likes": 187
+   },
+   {
+    "id": "2102064625474785741",
+    "handle": "kirodotdev",
+    "text": "Claude Fable 5.1 is now available to Kiro enterprise customers. \n\nIt holds context across long-running, context-heavy agentic sessions, and traces problems to the root causes in the code.  \n\nLearn more: https://t.co/atVFgpIDJe \nStay up to date with the latest models: https://t.co/5v7SRQuH3x",
+    "date": "2026-09-21T15:57:15.000Z",
+    "likes": 98
+   },
+   {
+    "id": "2100993298248651215",
+    "handle": "kirodotdev",
+    "text": "Back to school. 📚 \nNew semester, new lessons. Something exciting is coming to Kiro next week. \n\nBuild as you learn. Stay tuned. \nOpen to everyone. Not just students.\n\n#KiroUniversity https://t.co/5YUwtS0ssP",
+    "date": "2026-09-18T17:00:11.000Z",
+    "likes": 81
+   },
+   {
+    "id": "2110214931559899630",
+    "handle": "Alibaba_Qwen",
+    "text": "Congrats to @lightseekorg on the impressive TokenSpeed results! 🚀 Great to see Qwen3.8-Flash-Next reaching 685 output tokens/s per user on Nvida GPUs. Excited to see the community unlock more of Qwen’s inference potential!",
+    "date": "2026-10-14T03:43:40.000Z",
+    "likes": 1004
+   },
+   {
+    "id": "2109633085658808515",
+    "handle": "Alibaba_Qwen",
+    "text": "Introducing QwenGyre, bringing elastic RL to extreme-long-horizon (XLong) agent training. ✨\n\nIt launches with two core designs: 🥳\n- Elastic Scheduler: reallocates GPUs between rollout & training as demand shifts—live executions never interrupted. Up to 1.85× speedup over Colocate, 1.78× over Async.\n- Trajectory Processor: turns branching executions (compaction, sub-agents, retries) into prefix-shared trajectory trees with bounded, deduplicated training samples. Partial progress after timeout still gets scored.\n\nScaled to Qwen3.8-2.4T-A95B with ~700K tokens per rollout, QwenGyre lifts NL2RepoBench from 52.5% to 58.5% in 48 steps, cutting end-to-end training time by ~44% vs Async.\n\n🔗 Read the paper:\nhttps://t.co/gbKPIiqosk",
+    "date": "2026-10-12T13:11:37.000Z",
+    "likes": 3203
+   },
+   {
+    "id": "2108549075218120949",
+    "handle": "Alibaba_Qwen",
+    "text": "🚀 Meet Qwen-Image-2.1-Turbo — create and edit images in just 8 denoising steps! Open weights now available!\n\nBuilt on Qwen-Image-2.1, Turbo is an accelerated checkpoint on the same 7B visual generation architecture. \n\nFewer steps does not mean lower quality: it still generates strong 2K images from text, and supports continued creation through natural-language edits, from adding accessories to changing a scene.\n\nStart directly with Diffusers: load QwenImage21Pipeline and the checkpoint’s recommended 8-step sampling schedule is ready to go. \n\n🌐 Prefer an API? Qwen-Image-2.1 Pro and Turbo APIs are now officially live. Choose a hosted API for your application, or use the Turbo weights in your own workflow.\n\n🤖 ModelScope:\nhttps://t.co/Cixiro51v8\n🤗 Hugging Face:\nhttps://t.co/4GqXcYeAmB\n🔗 Pro API:\nhttps://t.co/fw2am7VCP7\n🔗 Turbo API:\nhttps://t.co/qmDvTqiVZK\n\nWhat will you create with 8 steps? Share your results with us!",
+    "date": "2026-10-09T13:24:09.000Z",
+    "likes": 5314
+   },
+   {
+    "id": "2108401307577090259",
+    "handle": "Alibaba_Qwen",
+    "text": "A week of free access to Qwen3.8-Max, Qwen3.8-Flash, and Wan3.0 on @gmi_cloudis live. Explore what you can build with us now. 🙌",
+    "date": "2026-10-09T03:36:58.000Z",
+    "likes": 1181
+   },
+   {
+    "id": "2105256053403508849",
+    "handle": "Alibaba_Qwen",
+    "text": "Qwen3.8-27B is now accessible via @nebiustf. Whether you are building agents or doing deep research, this 27B dense model is ready for your multi-step workflows! 🥳",
+    "date": "2026-09-30T11:18:51.000Z",
+    "likes": 345
+   },
+   {
+    "id": "2102727405198876753",
+    "handle": "Alibaba_Qwen",
+    "text": "Introducing Qwen Intelligence, bringing personal intelligence within everyone's reach. 📱✨\n\nIt launches with three SOTA agents: 🥳\n- Mobile Planner Agent: plans, decomposes & orchestrates complex tasks. #1 on MobilePA-Bench, MobilePA-Bench Business & Memory.\n- Mobile-Use Agent: gets things done, API-first with GUI fallback. MobileWorld 82.1, MobileWorld-Real 92.2, AndroidDaily 97.2, 90% end-to-end success rate.\n- Mobile Creative Agent: turns one sentence into ready-to-use creations. Image generated in 3s, about 2x faster than leading peers.\n\nWe're also opening up our benchmark suite: MobilePA-Bench, MobileWorld, MobileWorld-Real, and MobileWorld-Safety, covering planning, cross-app execution, real-device performance and safety.\n\n🔗 Learn more about the agents:\n- Qwen Intelligence official website: https://t.co/ZJJYJtmJIL\n- Mobile Planner Agent: https://t.co/M0Wxpoa00x\n- Mobile-Use Agent: https://t.co/vvQtbUAagJ\n- Mobile Creative Agent: https://t.co/gWWOmrSIqV\n\n🔗 Explore our open benchmark suite:\n- MobilePA-Bench: https://t.co/9nXxzG0Ygp\n- MobileWorld (GitHub): https://t.co/POvERSuCSJ\n- Leaderboard: https://t.co/YYOw8bmJ6H",
+    "date": "2026-09-23T11:50:54.000Z",
+    "likes": 2959
+   },
+   {
+    "id": "2102687258990026993",
+    "handle": "Alibaba_Qwen",
+    "text": "⚡ Meet Qwen-Audio-3.1! ASR, TTS & Realtime are fully upgraded, joined by two new models: TTS-Next for audio creation and ASR-Next for audio understanding.\n\nFive models, one complete audio stack: understanding, generation, interaction & creation. \n\nPlus big price cuts across the lineup: TTS ~70% off, Realtime ~85% off, and ASR up to 95% off.\n\nHighlights: 🥳\n- ASR: stronger multilingual & dialect recognition, plus native polishing that auto-removes fillers & repetitions for cleaner, more logical transcripts.\n- ASR-Next: supports multi-speaker ASR with speaker labels, timestamps & aligned transcripts, and understands emotions, ambient & machine sounds for sound captioning, event localization, audio QA & reasoning.\n- TTS: multilingual & dialect synthesis with natural cross-lingual voice transfer; control emotion, speed & style via simple instructions.\n- TTS-Next: unified LM + diffusion framework generating voice, sound effects & background audio in one pass for audiobooks, podcasts, games & ads. \n- Realtime: speak & listen at once with anytime interruption, just like a real call; it even slows down and responds empathetically when it senses a low mood.\n\nUnlock the full potential of Qwen-Audio-3.1! 👇\n- Blog: https://t.co/e0M8wvj8Kg\n- Qwen-Audio-3.1-ASR:\nhttps://t.co/88lPQTPxyz\n- Qwen-Audio-3.1-Realtime:\nhttps://t.co/Y63sdtK2AC\n- More APIs: coming soon @qwen_cloud",
+    "date": "2026-09-23T09:11:23.000Z",
+    "likes": 4042
+   },
+   {
+    "id": "2102569821997346912",
+    "handle": "Alibaba_Qwen",
+    "text": "Thanks @arena for the recognition! 🏆 Qwen-Image-2.1 is now the #1 open-source model in both the Image Edit and Text-to-Image Arenas. Try it now and show us what you create! 🎨",
+    "date": "2026-09-23T01:24:44.000Z",
+    "likes": 552
+   },
+   {
+    "id": "2102248609106514355",
+    "handle": "Alibaba_Qwen",
+    "text": "Day-0 OpenVINO support from @inteldevs! 🥳 Qwen-Image-2.1 is ready to run optimized on Intel hardware. One open-weight checkpoint for both generation and editing. 👇",
+    "date": "2026-09-22T04:08:20.000Z",
+    "likes": 277
+   },
+   {
+    "id": "2101866688425984233",
+    "handle": "Alibaba_Qwen",
+    "text": "Thanks @sgl_project for the day-0 support! 🙌 SGLang-Diffusion now serves Qwen-Image-2.1: text-to-image generation, multi-image editing, and transparent RGBA output. Try it out! 🎨",
+    "date": "2026-09-21T02:50:43.000Z",
+    "likes": 310
+   },
+   {
+    "id": "2101866671900401913",
+    "handle": "Alibaba_Qwen",
+    "text": "Qwen-Image-2.1 × @HuggingApps: live demo on Spaces! 🖼 One single checkpoint for generation and editing. Try it in your browser, no setup needed. 👇",
+    "date": "2026-09-21T02:50:40.000Z",
+    "likes": 351
+   },
+   {
+    "id": "2101670814953455780",
+    "handle": "Alibaba_Qwen",
+    "text": "Qwen-Image-2.1 is now supported in ComfyUI! Try it now and share your creations! 🖼️",
+    "date": "2026-09-20T13:52:24.000Z",
+    "likes": 1287
+   },
+   {
+    "id": "2107457414387622310",
+    "handle": "MistralAI",
+    "text": "Meet Mistral Large 4, aka Le Chonk. \n\n• 1T parameters, natively multimodal. 49B active.\nIt is the best open weights model from US or Europe on aggregated benchmarks.\n• State-of-the-art on critical workloads, including cyber defense, manufacturing and finance and it surpasses closed frontier models on visual grounding.\n• Forged in Europe end-to-end and is deployable from Europe via our own Mistral Cloud infrastructure.\n• Available to all via API today. Working with cybersecurity partners privately.\n\nOpen weights release end of October.",
+    "date": "2026-10-06T13:06:16.000Z",
+    "likes": 40649
+   },
+   {
+    "id": "2101011741379633446",
+    "handle": "googleaidevs",
+    "text": "POV: Building your first cyberdeck with no experience ⚒️‼️\n\nCheck out this demo using Gemini 3.8 Live Extended Thinking to create a workshop assistant that analyzes your workspace, reasons with you out loud, and guides you through the entire build process. https://t.co/5VdVTygGn0",
+    "date": "2026-09-18T18:13:28.000Z",
+    "likes": 61
+   },
+   {
+    "id": "2109649032931119362",
+    "handle": "opencode",
+    "text": "OpenCode 2.0\nhttps://t.co/xJrKUZjYtu",
+    "date": "2026-10-12T14:14:59.000Z",
+    "likes": 8215
+   },
+   {
+    "id": "2107561536784900256",
+    "handle": "ampcode",
+    "text": "“Planning is dead. Or it's going to change 99.99%.”\n\nThe hot take @sqs would add to @thorstenball’s list. https://t.co/oR9vnE5FIn",
+    "date": "2026-10-06T20:00:01.000Z",
+    "likes": 45
+   },
+   {
+    "id": "2107448286626054263",
+    "handle": "ampcode",
+    "text": "Imagine the collective hours lost to reading AI-generated Slack messages, PRDs, and slide decks.\n\n@thorstenball and @sqs discuss how AI can meaningfully accelerate product development -- just not by bolting it onto old rituals and processes. https://t.co/v2Ll2e51CD",
+    "date": "2026-10-06T12:30:00.000Z",
+    "likes": 40
+   },
+   {
+    "id": "2107139248738693574",
+    "handle": "ampcode",
+    "text": "Only care about writing the code?\n\n@thorstenball: “that game is over.” https://t.co/A1JP4taMEA",
+    "date": "2026-10-05T16:02:00.000Z",
+    "likes": 28
+   },
+   {
+    "id": "2106051833781227694",
+    "handle": "ampcode",
+    "text": "Is your agent still just the thing that writes code?\n\n@thorstenball says the latest models let you aim much higher:\n\n“Previously the agents went fully vertical in the stack… But now I think it's time to go horizontal, meaning the whole lifecycle.” https://t.co/KYGDZG12b9",
+    "date": "2026-10-02T16:01:00.000Z",
+    "likes": 38
+   },
+   {
+    "id": "2105916692912369900",
+    "handle": "ampcode",
+    "text": "Don't wait for your agent. Let it wait for you.\n\n@thorstenball on why he never watches agents work: let them take as long as they need to comprehensively test changes in orbs, and focus on something else.\n\nThey don’t take up resources, or cost anything while they wait. We get back to them once we’re ready.",
+    "date": "2026-10-02T07:04:00.000Z",
+    "likes": 30
+   },
+   {
+    "id": "2105916692866248803",
+    "handle": "ampcode",
+    "text": "“I thought you guys were all about non-local dev, so why do you have the runners?”\n\n@thorstenball on runners, which run Amp agents on machines you own: a Raspberry Pi at home, a lab of test hardware, GPU boxes, a macOS build machine.\n\n“I think runners on different machines are non-local too, you know?”",
+    "date": "2026-10-02T07:04:00.000Z",
+    "likes": 48
+   },
+   {
+    "id": "2105629551552532635",
+    "handle": "ampcode",
+    "text": "“Code review in so many companies, it's a farce now. Nobody can review the volume of code, and they're not even the best at reviewing it.”\n\n@sqs and @thorstenball on rethinking the old rules for working with agents:\n\n“I wish I could do this, but we don't have a monorepo… then get a monorepo.”",
+    "date": "2026-10-01T12:03:00.000Z",
+    "likes": 47
+   },
+   {
+    "id": "2105326808782512384",
+    "handle": "ampcode",
+    "text": "How do you make your codebase more agent-friendly?\n\n@thorstenball had an agent built a dev-only login route, documented it in AGENTS.md, then spawned three blank-slate agents (and a control group) to check they’d actually use it.\n\n“If you tell them, ‘This is the thing I want to test. Help me spawn and test other agents,’ they know how to write instructions.”",
+    "date": "2026-09-30T16:00:00.000Z",
+    "likes": 50
+   },
+   {
+    "id": "2105178613763207269",
+    "handle": "ampcode",
+    "text": "You don't need a PhD to run evals.\n\n@sqs had agents build fake shopfronts and permit sites, complete with annoying cookie banners, to improve browser use in orbs.\n\n“It's like with usability testing: you learn most of the insights from the first three people you talk to” https://t.co/u7S5BLrXYf",
+    "date": "2026-09-30T06:11:08.000Z",
+    "likes": 80
+   },
+   {
+    "id": "2103507774739214799",
+    "handle": "ampcode",
+    "text": "\"Just use a cheaper model\" sounds like saving money.\n\nBut fiber didn't just make your internet faster. It made whole new businesses possible. @thorstenball and @sqs discuss how the same is true with frontier models. https://t.co/aAVHI4gcSG",
+    "date": "2026-09-25T15:31:49.000Z",
+    "likes": 53
+   },
+   {
+    "id": "2103413577407517090",
+    "handle": "ampcode",
+    "text": "Would you prefer to save money with dial-up when your competitors are using fiber?\n\nRecorded on Hot Take Thursday, @sqs and @thorstenball are back with a new Raising An Agent. In this episode they discuss how cheaper models end up costing more, why they do not not wait for agents, running evals in Orbs, and the hot takes Thorsten left out of his X post last week.\n\n00:00 Intro: Engineers who forget the history of technology\n01:55 Hot Take Thursday & a €50-a-week token budget\n05:14 Why cheap models cost more than frontier models\n08:11 Token budgets & who gets priced out\n14:06 Disrupt yourself with small teams & unlimited tokens\n16:38 Agents go horizontal across the software lifecycle\n20:56 Rollouts, bug reports & \"I'm feeling Pucky\"\n23:53 Code review, monorepos & other walls around the agent\n25:30 How to show a cautious company what agents can do\n29:48 Why most people haven't seen what agents can do\n31:57 Don't wait for your agent\n33:38 Simple evals & agents testing agents in Orbs\n38:27 Why Amp has runners too\n40:47 Follow your energy & stay aligned\n46:33 The hot take Thorsten left out\n54:14 Do languages & frameworks still matter?",
+    "date": "2026-09-25T09:17:31.000Z",
+    "likes": 74
+   },
+   {
+    "id": "2104954018963374303",
+    "handle": "OpenHandsDev",
+    "text": "Running one coding agent is a developer workflow.\nRunning agents across an organization is an infrastructure challenge.\n\nNew in OpenHands Enterprise:\n• Org-level secrets\n• Usage + budget visibility\n• OAuth for MCP servers\n• Org-wide automation management\n• Git Sync for automations\n\nMore visibility and control as agents move from individual sessions to always-on systems. Read the blog for more details on the latest in OpenHands Enterprise: https://t.co/070CrL6Dtg",
+    "date": "2026-09-29T15:18:40.000Z",
+    "likes": 6
+   },
+   {
+    "id": "2110790097369010292",
+    "handle": "cognition",
+    "text": "Introducing Devin Oncall: Devin automatically investigates alerts and bugs, helping your team diagnose and resolve production incidents.\n\nDevin Oncall already handles thousands of alerts every day for some of the world’s largest companies. Let it become your SRE today. https://t.co/Nza88HwIKd",
+    "date": "2026-10-15T17:49:10.000Z",
+    "likes": 931
+   },
+   {
+    "id": "2111088395321831462",
+    "handle": "cognition",
+    "text": "We’ve partnered with @ndstudio to launch American Forge.\n\nIt’s a six-month residency for exceptional engineers to embed inside the government and build software that affects hundreds of millions of people. \n\nRight now, a small team can do more than ever - including in public service! Applications are now open.",
+    "date": "2026-10-16T13:34:30.000Z",
+    "likes": 206
+   },
+   {
+    "id": "2110408060799963471",
+    "handle": "cognition",
+    "text": "Pylon tickets now get fixed automatically by Devin\n\nNew Devin customers on @usepylon also get $15,000 in credits to get started\n\nJoin our webinar to see it in action\nhttps://t.co/UNwDFgYwWJ https://t.co/7vuzPQXFvt",
+    "date": "2026-10-14T16:31:05.000Z",
+    "likes": 113
+   },
+   {
+    "id": "2110068304383725720",
+    "handle": "cognition",
+    "text": "Introducing Devin in Pylon: Accelerate your Median Time to Fix (MTTF), with $15,000 in credits for new Devin customers. https://t.co/yKzJG3wufL",
+    "date": "2026-10-13T18:01:01.000Z",
+    "likes": 271
+   },
+   {
+    "id": "2110043605528408110",
+    "handle": "cognition",
+    "text": "Gemini 4 Argon is now available in Devin Desktop and CLI.\n\nOn FrontierCode 1.1, Gemini 4 Argon scores 60.5%, making it the highest performing Gemini model on the leaderboard.\n\nThrough October 27th it is available at 75% off for Devin users. https://t.co/rBP2Jtpkh1",
+    "date": "2026-10-13T16:22:52.000Z",
+    "likes": 486
+   },
+   {
+    "id": "2109729058745725037",
+    "handle": "cognition",
+    "text": "FrontierCode 1.1 is now on @ArtificialAnlys!\n\nBuilt with open-source maintainers, FrontierCode is the first benchmark to measure end-to-end code quality and mergeability: would the maintainer actually merge this PR?",
+    "date": "2026-10-12T19:32:59.000Z",
+    "likes": 317
+   },
+   {
+    "id": "2108692010056188048",
+    "handle": "cognition",
+    "text": "You can use any personal ChatGPT plan with Devin\n\nJust connect your Go, Plus, or Pro plan to Devin and all GPT model usage will draw down from you plan's quota https://t.co/7vVFQq3IAB",
+    "date": "2026-10-09T22:52:07.000Z",
+    "likes": 1072
+   },
+   {
+    "id": "2110736184951664758",
+    "handle": "jetbrains",
+    "text": "Your IDE already knows your codebase. What happens when coding agents can use that knowledge too?\n\nWe tested it with Netflix using Claude Code and Codex. One finding stood out: the strongest models gained the most from IntelliJ IDEA’s code intelligence.",
+    "date": "2026-10-15T14:14:56.000Z",
+    "likes": 120
+   },
+   {
+    "id": "2111126301377478935",
+    "handle": "jetbrains",
+    "text": "Junie Local now runs on @NVIDIARTXSpark from day one.\n\nGet a full-fledged coding agent on your PC. It reads your code, edits files, and runs tests. There are no tokens or quotas, and no code leaves the machine.\n\nWindows support is stable, too. All you need is a 24 GB Nvidia RTX card.\n\nTry it for free: https://t.co/Ii51de0aSE",
+    "date": "2026-10-16T16:05:07.000Z",
+    "likes": 69
+   },
+   {
+    "id": "2111050966615113999",
+    "handle": "jetbrains",
+    "text": "Long-term AI adoption depends on driving down token costs. Mellum2.1 is our contribution to that shift – bringing an open-source 12B MoE model into local PyCharm workflows to deliver 140+ T/S without cloud overhead.\n\nLearn more and see it in action:",
+    "date": "2026-10-16T11:05:46.000Z",
+    "likes": 77
+   },
+   {
+    "id": "2110711166905225368",
+    "handle": "jetbrains",
+    "text": "We're proud to see @junie_ai, the JetBrains AI coding agent, featured as an official partner in the @figma MCP Catalog! 🎉 \n\nAnother step toward bridging the gap between design and code, making developers' workflows smoother and more connected.\n\nExcited to be part of this!",
+    "date": "2026-10-15T12:35:31.000Z",
+    "likes": 55
+   },
+   {
+    "id": "2110651508089893019",
+    "handle": "jetbrains",
+    "text": "Try agentic coding with JetBrains Air and Junie Lite for free in PyCharm 2026.3 EAP 4 👇",
+    "date": "2026-10-15T08:38:28.000Z",
+    "likes": 54
+   },
+   {
+    "id": "2110364501841265031",
+    "handle": "jetbrains",
+    "text": "A few AI power users don’t automatically make a whole team more productive.\n\nAt @WorldSummitAI, Ciara Byrne of JetBrains shared how teams can make AI agents useful beyond a handful of power users: build skills across the team, agree on shared practices, and automate repetitive work.\n\nSee how JetBrains Air can help your team: https://t.co/abN8m3uCp4",
+    "date": "2026-10-14T13:38:00.000Z",
+    "likes": 28
+   },
+   {
+    "id": "2110113898552811722",
+    "handle": "jetbrains",
+    "text": "Gemini 4 Argon is officially live!\n\n@kristel_tech tasked two agents with building a web-swinging delivery game in a hyper-realistic night city:\n\n• Gemini 4 Argon: $54.41 | 23 mins \n• Opus 5.5: $56.97 | 2h 20 mins\n\nCompare their performance yourself in JetBrains Air or Junie. https://t.co/EnHuWgXr9M",
+    "date": "2026-10-13T21:02:12.000Z",
+    "likes": 140
+   },
+   {
+    "id": "2109974436464021545",
+    "handle": "jetbrains",
+    "text": "Companies are measuring lines of code again. \n\nWith flawed productivity metrics and spiraling AI spend, many leaders still don’t know what agentic development is actually costing them. Meri Williams (@Geek_Manager) calls metrics that look healthy while masking problems underneath “watermelon metrics”: green on the outside, red on the inside. That lack of visibility is one reason we made Air Governance, the organizational layer of JetBrains Air, our agentic development platform for engineering teams.\n\nGet Meri’s full take on October 14, 4:00 pm UTC: https://t.co/kspAcyARmD",
+    "date": "2026-10-13T11:48:01.000Z",
+    "likes": 28
+   },
+   {
+    "id": "2109637038580568139",
+    "handle": "jetbrains",
+    "text": "Better yet, try it yourself. \nFastest way: download the 26.3 IDEs EAP and press ⌘2 (Ctrl+2), or look for the Air icon. \n\nUsing JetBrains at work? Air Teams and Air Governance have early access links in the thread. 👇",
+    "date": "2026-10-12T13:27:19.000Z",
+    "likes": 32
+   },
+   {
+    "id": "2108546277432586281",
+    "handle": "jetbrains",
+    "text": "Financial institutions want agentic AI. Their reality is COBOL, legacy systems, and strict regulation.\n\nDaniel Wolff and Aaron Wanjala discuss how to innovate without losing control – part of the wider industry shift reflected in @getsome_air.  \n\nWatch: https://t.co/8E8ofKeI0d https://t.co/9kneknQ525",
+    "date": "2026-10-09T13:13:02.000Z",
+    "likes": 12
+   },
+   {
+    "id": "2108280000445297040",
+    "handle": "jetbrains",
+    "text": "Air in JetBrains IDEs, in action.\nRun your agent. Test the result. Verify the changes. All without leaving the IDE.\nhttps://t.co/uyglrhIIgZ",
+    "date": "2026-10-08T19:34:56.000Z",
+    "likes": 51
+   },
+   {
+    "id": "2108201850105184273",
+    "handle": "jetbrains",
+    "text": "Live from @WorldSummitAI 👇",
+    "date": "2026-10-08T14:24:24.000Z",
+    "likes": 34
+   },
+   {
+    "id": "2108091543844164052",
+    "handle": "jetbrains",
+    "text": "\"Just because you can build 100 things doesn't mean you should.\"\n\nEngineering teams shared with Gleb Malkov, AI Solutions Architect at JetBrains, what they're learning about building with AI agents.\n\nDive into the 3 key challenges: https://t.co/ih12FZEWCn https://t.co/3WdvgGJFFp",
+    "date": "2026-10-08T07:06:05.000Z",
+    "likes": 22
+   },
+   {
+    "id": "2107886396153245980",
+    "handle": "jetbrains",
+    "text": "This morning, our team breezed through the traffic and arrived at @WorldSummitAI the way many of us get around in Amsterdam: sure, it was a little windy, but that’s exactly how we like it!\n\nTomorrow at 3:30 pm, our CEO @kskrygan takes to the Marquee 1 stage with his keynote, “The AI Arms Race Was Only the Beginning.”\n\nYou’ll also find us at the JetBrains booth, where you can talk to the team and watch JetBrains Air demoed live.\n\nSee you there! 👋",
+    "date": "2026-10-07T17:30:54.000Z",
+    "likes": 13
+   },
+   {
+    "id": "2107785320586747960",
+    "handle": "jetbrains",
+    "text": "When AI can do more, what's left that's uniquely ours?10 things we said on the main stage about AI 🧵",
+    "date": "2026-10-07T10:49:15.000Z",
+    "likes": 19
+   },
+   {
+    "id": "2111434657732640792",
+    "handle": "cline",
+    "text": "DeepSeek V4.1-Flash-1017 has released, beating GPT 5.6 Sol on Terminal-Bench while being ~17x cheaper.\n\nIt improves the previous DeepSeek V4.1-Flash result by 35%, accomplished with \"no algorithmic innovation\" but instead by RL training it on multiple coding agent harnesses. https://t.co/6yCFudo28S",
+    "date": "2026-10-17T12:30:25.000Z",
+    "likes": 1506
+   },
+   {
+    "id": "2111171077187707033",
+    "handle": "cline",
+    "text": "Cline Desktop now runs in the cloud! ☁️\n\nRun multiple tasks in parallel - each in its own secure cloud sandbox - and close your laptop while Cline keeps working. https://t.co/RTC1IigSeq",
+    "date": "2026-10-16T19:03:03.000Z",
+    "likes": 125
+   },
+   {
+    "id": "2110784104488980727",
+    "handle": "cline",
+    "text": "Nemotron 3.5 Super VL is available for free in Cline!\n\n120B param open-weight model with 12B active, delivers 5x faster output than Nemotron 3 Ultra, and has native support for images, videos, and documents.\n\nGreat work @NVIDIAAI ❤️ https://t.co/K4Ap20lRHC",
+    "date": "2026-10-15T17:25:21.000Z",
+    "likes": 139
+   },
+   {
+    "id": "2110495085049835940",
+    "handle": "cline",
+    "text": "Gemini 4 Argon had the best launch day user share of any frontier model on Cline since June. \n\n~3x as many users tried it on day one as Claude Opus 5.5 or Sonnet 5.5.\n\nWe're also seeing Argon using 30% fewer tokens on average than Claude models. It's a really efficient model!",
+    "date": "2026-10-14T22:16:54.000Z",
+    "likes": 435
+   },
+   {
+    "id": "2110086075096154399",
+    "handle": "cline",
+    "text": "Gemini 4 Argon is #1 on Val Index, completing agentic tasks at half the cost of Opus 5.5.\n\nGoogle shared that the Chrome team recently used Argon to refactor ~6 million lines of legacy features out of a 40-million line codebase, eliminating an entire category of browser crashes. https://t.co/6Xd4PyLJL7",
+    "date": "2026-10-13T19:11:38.000Z",
+    "likes": 334
+   },
+   {
+    "id": "2109755052227490281",
+    "handle": "cline",
+    "text": "Meta’s Muse Wonder now leads on DeepSWE.\n\nThis is an incredible turnaround only 14 months after the announcement of Meta Superintelligence Labs.\n\nWe have a new model on the frontier. https://t.co/98eBeU2Sya",
+    "date": "2026-10-12T21:16:16.000Z",
+    "likes": 441
+   },
+   {
+    "id": "2108630302381994318",
+    "handle": "cline",
+    "text": "Solar Mini 4 is free in Cline.\n\nIt’s a new model from Korean lab @upstageai - 524K context, 208 tokens/sec, 35B MoE with only 3B active parameters.\n\nOn the AAII it scores 24, the highest of any model at 3B active, and within a point of Nemotron 3 Ultra, which uses 55B active!",
+    "date": "2026-10-09T18:46:55.000Z",
+    "likes": 231
+   },
+   {
+    "id": "2108249633789263917",
+    "handle": "cline",
+    "text": "Step 5 Preview is now free in Cline. \n\nOn DeepSWE it scores ahead of Kimi K3 and GLM-5.3, making it one of the strongest open weights coding models available. https://t.co/GWRbfaJyqY",
+    "date": "2026-10-08T17:34:16.000Z",
+    "likes": 516
+   },
+   {
+    "id": "2111206918106570821",
+    "handle": "kilocode",
+    "text": "Cursor is cutting off other models. Kilo was designed around model freedom. https://t.co/NWI5uuHKh9",
+    "date": "2026-10-16T21:25:28.000Z",
+    "likes": 7
+   },
+   {
+    "id": "2111165272484725019",
+    "handle": "kilocode",
+    "text": "Paying for Cursor? Kilo Enterprise is free for the rest of your Cursor contract, up to a year.\n\nOpenAI models leave Cursor on November 12. Kilo connects to your ChatGPT plan, so your team keeps GPT, with 500+ other models beside it.\n\nClaim the offer below 👇 https://t.co/osAV3DFG04",
+    "date": "2026-10-16T18:39:59.000Z",
+    "likes": 23
+   },
+   {
+    "id": "2110818756653932707",
+    "handle": "kilocode",
+    "text": "\"Which model is best?\" is the wrong question.\n\nAsk which model is best for this task:\n\n→ Nemotron 3 Ultra plans\n → Nemotron 3.5 Super VL builds and reads screenshots\n → Nemotron 3.5 Lightning runs the small jobs fast\n\nAn early build of @NVIDIAAI Nemotron 3.5 Super VL scored 53% on KiloBench, the same as GLM 5.2.\n\nTry it here: https://t.co/9SUUBsu0R9",
+    "date": "2026-10-15T19:43:03.000Z",
+    "likes": 36
+   },
+   {
+    "id": "2110442238501122498",
+    "handle": "kilocode",
+    "text": "Kilo is supporting All Day AI on October 22 by giving 5 people $1,000 in Kilo credits.\n\nThe event is 15 hours, and has 122 speakers from Microsoft, NVIDIA, OpenRouter, and more. Free, online, and no vendor pitches.\n\nRegister and share the event by October 15 to qualify for the credit giveaway! \n\nhttps://t.co/jKMhS8dm0B",
+    "date": "2026-10-14T18:46:54.000Z",
+    "likes": 14
+   },
+   {
+    "id": "2110021953784324290",
+    "handle": "kilocode",
+    "text": "Introducing the Kilo MCP. \n\nConnect Kilo Desktop, CLI, VS Code or any agent to the Kilo platform, then ask your agent what you spent this month, update your agent profiles or start a cloud agent without leaving your editor.\n\nSetup takes two steps. https://t.co/8QTysYyHcx",
+    "date": "2026-10-13T14:56:50.000Z",
+    "likes": 18
+   },
+   {
+    "id": "2109673312355819607",
+    "handle": "kilocode",
+    "text": "Sign in with ChatGPT is available in Kilo NOW.\n\nUse your ChatGPT credentials to sign in or create a new Kilo account, and use your ChatGPT plans to power AI coding across all Kilo surfaces!",
+    "date": "2026-10-12T15:51:28.000Z",
+    "likes": 28
+   },
+   {
+    "id": "2107462795516313992",
+    "handle": "kilocode",
+    "text": "Kilo Desktop is here.\n\nOne app for all of AI: 500+ models from every major lab, open-source and local models included, plus agents that plan, code, and debug alongside you. Notebooks, local models, and conda environments built in.\n\nStop stitching tools together. Start building. https://t.co/WXHguZnYce",
+    "date": "2026-10-06T13:27:39.000Z",
+    "likes": 182
+   },
+   {
+    "id": "2106048051798302945",
+    "handle": "kilocode",
+    "text": "Ling 3.1 flash is here, and it's completely FREE in Kilo Code until October 13th!\n\nShoutout to @novita_labs for serving it up!",
+    "date": "2026-10-02T15:45:58.000Z",
+    "likes": 50
+   },
+   {
+    "id": "2104994304104001768",
+    "handle": "kilocode",
+    "text": "Kilo now supports Sign in with ChatGPT from @OpenAI! 🔑\n\nYou can also use your ChatGPT plan on every Kilo surface, including VS Code, JetBrains, the CLI, Cloud Agents, Code Reviews, and the mobile app.\n\nYou can run 10 agents in parallel, or start a Cloud Agent that keeps going after you close your laptop, all drawing from your existing ChatGPT plan.",
+    "date": "2026-09-29T17:58:45.000Z",
+    "likes": 24
+   },
+   {
+    "id": "2104615440966095345",
+    "handle": "kilocode",
+    "text": "Kilo showed up at two Builders & Brews events last Friday: @jobrietbergen spoke in Amsterdam, @coldopn spoke in NYC.\n\nBuilders & Brews is a running series from Nebius and Tavily, part of the Nebius x NVIDIA online hackathon, with solid prizes on the line.\n\nGreat to see so many partners from the ecosystem showing up: @jetbrains @LangChain @nebiusai @tavilyai\n\nBuilders can use @nebius Token Factory inference inside Kilo.",
+    "date": "2026-09-28T16:53:17.000Z",
+    "likes": 5
+   },
+   {
+    "id": "2103510268013605147",
+    "handle": "kilocode",
+    "text": "Most engineers can probably skip this week's AI launches and lose nothing.\n\nA new letter on the Kilo blog argues that testing tools against one slow part of your actual work teaches more than tracking which model tops the leaderboard.\n\nFull post: https://t.co/rpXVUoSmm2 https://t.co/WjSevPAkRk",
+    "date": "2026-09-25T15:41:43.000Z",
+    "likes": 5
+   },
+   {
+    "id": "2103138729154294223",
+    "handle": "kilocode",
+    "text": "Agent Swarms are here. What are your plans for using them in development?",
+    "date": "2026-09-24T15:05:22.000Z",
+    "likes": 3
+   },
+   {
+    "id": "2108212600651887095",
+    "handle": "augmentcode",
+    "text": "Big news from Augment Code.\nWe've agreed to sell Cosmos, Auggie CLI, the Code Context Engine & related tech to @harnessio, the Autonomous SDLC Platform. Harness's integrated ecosystem provides the ideal home to deliver these capabilities at true enterprise scale.\nWe started Augment to help enterprises build software faster. As AI generates more code, orchestrating it reliably at scale has become the real bottleneck.\nAt Harness, our team will continue this work by bringing software factory capabilities to its Autonomous SDLC Platform.\nThank you to our customers, partners, investors, and team.\nRead the announcement: https://t.co/y55s7hs1Tt",
+    "date": "2026-10-08T15:07:07.000Z",
+    "likes": 71
+   },
+   {
+    "id": "2105061036982444167",
+    "handle": "augmentcode",
+    "text": "From @OpenAI DevDay to @augmentcode... GPT-6.1 Sol is now available in Cosmos!\n\nWe'll be trying it in place of GPT-5.6 Sol and GPT-6 Sol in the coming days to power our software factory!",
+    "date": "2026-09-29T22:23:56.000Z",
+    "likes": 8
+   },
+   {
+    "id": "2104709094376689667",
+    "handle": "augmentcode",
+    "text": "Claude Sonnet 5.5 by @AnthropicAI is now available in Cosmos!\n\nOver the next few days we'll be rolling it into our agent loops in place of earlier Sonnet models, and tracking how it changes what our software factory ships.",
+    "date": "2026-09-28T23:05:26.000Z",
+    "likes": 14
+   },
+   {
+    "id": "2102515089148666187",
+    "handle": "augmentcode",
+    "text": "GPT-6 Sol and Luna by @OpenAI are now available in Cosmos!\n\nWe'll be upgrading all our workflows from the GPT-5.6 series of models in the coming days and measuring the impact on our software factory...",
+    "date": "2026-09-22T21:47:14.000Z",
+    "likes": 13
+   },
+   {
+    "id": "2102476374766407768",
+    "handle": "augmentcode",
+    "text": "Claude Opus 5.5 by @AnthropicAI is now available in Cosmos!\n\nAgentic tasks running on Opus 5.5 are completed at 40% of the cost Opus 5, making it a must-have upgrade for Claude power users!\n\nWe're excited to see this model improve outcomes for our customers' software factories!",
+    "date": "2026-09-22T19:13:24.000Z",
+    "likes": 12
+   },
+   {
+    "id": "2109678174468534511",
+    "handle": "Zai_org",
+    "text": "Introducing GLM-Legal\n\nBuilt on GLM-5.3-Flash, GLM-Legal matches frontier models on mainstream legal benchmarks.\n\nDesigned for real legal workflows: contract review, evidence analysis, compliance, and more.\n\nTech Blog: https://t.co/xOzFqKNyqD\nApply for API Access: https://t.co/dKuoDRIKKz\nTry AutoClaw: https://t.co/aGEG5HqTTb",
+    "date": "2026-10-12T16:10:47.000Z",
+    "likes": 7734
+   },
+   {
+    "id": "2107272032073437185",
+    "handle": "Zai_org",
+    "text": "GLM-5.3 is now available on Amazon Bedrock.\n\nBring powerful coding and agentic capabilities to your enterprise.\n\nGet started: https://t.co/daStGOYqsA https://t.co/BB1qLRbvhS",
+    "date": "2026-10-06T00:49:38.000Z",
+    "likes": 854
+   },
+   {
+    "id": "2110786348131258456",
+    "handle": "vercel",
+    "text": "Run your backend on Vercel.\n\n• Python is generally available\n• Containers for other runtimes &amp; system libraries\n• Daemons for async jobs &amp; background workers\n\nhttps://t.co/spPCQWUaWc https://t.co/H1lvSQE81d",
+    "date": "2026-10-15T17:34:16.000Z",
+    "likes": 975
+   },
+   {
+    "id": "2110808586389766404",
+    "handle": "vercel",
+    "text": "Introducing https://t.co/KWzuDDlyvD.\n\nLimited drops, original designs, and a few things you didn't see coming.\n\nPowered by @nextjs, @Shopify Hydrogen &amp; @eve. https://t.co/RA6VsKRBRt",
+    "date": "2026-10-15T19:02:38.000Z",
+    "likes": 616
+   },
+   {
+    "id": "2110803325012824167",
+    "handle": "vercel",
+    "text": "The October 2026 AI Gateway Index is live.\n\n1. Open weight ran over 70% of tokens, and took nearly 25% of spend, up 4x since June.\n\nhttps://t.co/kxHMurg7Sx https://t.co/f3Twn1GLwK",
+    "date": "2026-10-15T18:41:44.000Z",
+    "likes": 92
+   },
+   {
+    "id": "2110790963300045063",
+    "handle": "vercel",
+    "text": "Vercel for Enterprise gives you a single control plane for governing every builder, app, agent, token, and dollar.\n\nhttps://t.co/4M5Vge1TaP",
+    "date": "2026-10-15T17:52:36.000Z",
+    "likes": 86
+   },
+   {
+    "id": "2110788459803938944",
+    "handle": "vercel",
+    "text": "Vercel Drives is generally available. You can now run stateful agents on Vercel.\n\nhttps://t.co/tbogIYouct https://t.co/etKyIfIQr4",
+    "date": "2026-10-15T17:42:40.000Z",
+    "likes": 657
+   },
+   {
+    "id": "2110782262480670819",
+    "handle": "vercel",
+    "text": "Ship SF 2026 is now live.\n\nTune in: https://t.co/QLkcAa0gZF https://t.co/sGRiPvYplX",
+    "date": "2026-10-15T17:18:02.000Z",
+    "likes": 477
+   },
+   {
+    "id": "2110777476972761512",
+    "handle": "vercel",
+    "text": "https://t.co/ZeCq8gwrty",
+    "date": "2026-10-15T16:59:01.000Z",
+    "likes": 198
+   },
+   {
+    "id": "2110766047842476111",
+    "handle": "vercel",
+    "text": "Ship SF starts at 10am PT.\n\nOn stage today:\n• Guillermo Rauch, CEO &amp; Founder @Vercel\n• Tobias Lütke, CEO @Shopify\n• Diogo Almeida, CEO @typesafeai\n• Katelyn Lesse, Head of Engineering @AnthropicAI\n• Prashant Ratanchandani, VP of Eng @AIatMeta\nhttps://t.co/QLkcAa0gZF",
+    "date": "2026-10-15T16:13:36.000Z",
+    "likes": 113
+   },
+   {
+    "id": "2110509321939509421",
+    "handle": "vercel",
+    "text": "We offered $1M to escape Vercel Sandbox.\n\n• 1,285 reports\n• $242,000 in bounties paid out\n• One Linux kernel zero day discovered\n• No reports of customer data compromise\n\nhttps://t.co/IWbHD6MNqJ",
+    "date": "2026-10-14T23:13:28.000Z",
+    "likes": 1005
+   },
+   {
+    "id": "2108636435507269725",
+    "handle": "vercel",
+    "text": "Engineers at @RilletHQ run @eve agents on Vercel that turn customer requests into PRs.\n\nNew features reach production in 2 hours, and merged PRs have tripled.\n\nhttps://t.co/eM0scpkAsL",
+    "date": "2026-10-09T19:11:17.000Z",
+    "likes": 86
+   },
+   {
+    "id": "2106139101422567748",
+    "handle": "vercel",
+    "text": "Jev is now in the AI SDK for Python.\n\nTo test it, we ran two experiments:\n▪︎ Detecting Python vs. English as text is typed\n▪︎ Writing Python, one decision at a time\n\n𝚞𝚟 𝚊𝚍𝚍 𝚊𝚒\n\nhttps://t.co/fWPx6k3Gw3 https://t.co/eLaAvdzGdS",
+    "date": "2026-10-02T21:47:46.000Z",
+    "likes": 306
+   },
+   {
+    "id": "2106094197468205371",
+    "handle": "vercel",
+    "text": "Engineers at @RogoAI build the company's internal apps on Vercel. They deployed over 73,000 times last month.\n\nCoding agents ship to production in 5 minutes, and run everything from churn risk analysis to the sales team's deal desk.\n\nhttps://t.co/PO07A4nDc3",
+    "date": "2026-10-02T18:49:20.000Z",
+    "likes": 76
+   },
+   {
+    "id": "2104653657216012791",
+    "handle": "vercel",
+    "text": "If it's fast, it's on Vercel.\n\nWe just made @MercedesAMGF1 even faster.\n\nLive at https://t.co/1AhAixBkw4 https://t.co/d4Htmru2L4",
+    "date": "2026-09-28T19:25:09.000Z",
+    "likes": 395
+   },
+   {
+    "id": "2103560561577636126",
+    "handle": "vercel",
+    "text": "Engineers @klaviyo built an internal app platform on Vercel. In the first two weeks, 512 employees shipped 356 projects.\n\n• Idea to live app in 3 minutes\n• Apps are full-stack, on Klaviyo's databases\n• Deployments are SSO-gated &amp; private by default\n\nhttps://t.co/wL2Zr0TDXN",
+    "date": "2026-09-25T19:01:34.000Z",
+    "likes": 131
+   },
+   {
+    "id": "2103541839399907424",
+    "handle": "vercel",
+    "text": "In 7 months, the skills.⁠sh registry reached 1 million agent skills and nearly 280 million installs.\n\nSee what people are teaching agents, and where skills are going ↓\n\nhttps://t.co/pPp4yASP8z",
+    "date": "2026-09-25T17:47:11.000Z",
+    "likes": 167
+   },
+   {
+    "id": "2102066246518976683",
+    "handle": "superset_sh",
+    "text": "Introducing Superset for iPhone.\n\nRemotely control agents running on your computer. Review and ship PRs from your pocket. https://t.co/Cow3cmnpGV",
+    "date": "2026-09-21T16:03:42.000Z",
+    "likes": 476
+   },
+   {
+    "id": "2110763027910078637",
+    "handle": "superset_sh",
+    "text": "Your agent can now drive Superset UI\n\nIt can control and script how everything displays. Available through our CLI and skills 🪄\n\nThis demo is in real-time, completely agent driven. Sound on 🔉 https://t.co/0m07xUuZ8b",
+    "date": "2026-10-15T16:01:36.000Z",
+    "likes": 30
+   },
+   {
+    "id": "2110141449404821885",
+    "handle": "superset_sh",
+    "text": "that's because it is 🪄",
+    "date": "2026-10-13T22:51:40.000Z",
+    "likes": 7
+   },
+   {
+    "id": "2110053102300860757",
+    "handle": "superset_sh",
+    "text": "Superset will have a new name later this month\n\nThere are many companies and projects with the same name. We've been looking for something that's truly ours to build an enduring company on. We've finally found it.\n\nWe will make the change later this month. Nothing else will change, same product, team, and mission. We'll continue to rewrite how software is written.",
+    "date": "2026-10-13T17:00:37.000Z",
+    "likes": 52
+   },
+   {
+    "id": "2107971200777633824",
+    "handle": "superset_sh",
+    "text": "🔥🔥🔥",
+    "date": "2026-10-07T23:07:53.000Z",
+    "likes": 4
+   },
+   {
+    "id": "2111170311089459678",
+    "handle": "LangChain",
+    "text": "At our recent Learning Loop event, @oneill_c from @baseten explained why continual learning keeps breaking, and what to try.\n\nWatch the full session ⤵️ https://t.co/USzxElBs5T",
+    "date": "2026-10-16T19:00:00.000Z",
+    "likes": 39
+   },
+   {
+    "id": "2111146976683425860",
+    "handle": "LangChain",
+    "text": "Agents with sandboxes run packages you didn't write. If one is malicious, any credential in the sandbox is exposed.\n\nWith Managed Deep Agents, the proxy adds your token outside the sandbox, only on calls to services you've allowed. The agent never sees it.",
+    "date": "2026-10-16T17:27:17.000Z",
+    "likes": 52
+   },
+   {
+    "id": "2111140111513726991",
+    "handle": "LangChain",
+    "text": "🧵 Behind the scenes of AI Search in LangSmith:\n\nTL;DR\n\n1️⃣ SmithDB turns traces into readable trajectories. Structured filters narrow the candidates when you search\n\n2️⃣ A model checks each remaining trajectory against your description and streams back matches https://t.co/YWBjhFkeQ6",
+    "date": "2026-10-16T17:00:00.000Z",
+    "likes": 53
+   },
+   {
+    "id": "2111087943838298213",
+    "handle": "LangChain",
+    "text": "What does it take to move healthcare and life sciences agents from experimentation into trusted production systems?\n\nExplore the architectures, evaluation practices, and production patterns teams are using as agents take on more complex work: \n\n➡️ https://t.co/RkfVB7H3zd https://t.co/mQnhuYdZ68",
+    "date": "2026-10-16T13:32:42.000Z",
+    "likes": 41
+   },
+   {
+    "id": "2110835558377263173",
+    "handle": "LangChain",
+    "text": "LangSmith for Startups spotlight: @tryopine\nThe customer intelligence layer for revenue teams\n\nOpine traces every production LLM run through LangSmith, and gates every prompt and model change behind LangSmith evals.\n\nSee what Opine looks like on your hardest open deal at https://t.co/9gLv6iTyRR. \n\nAnd if you'd rather help build the context customer intelligence layer than buy it, they’re hiring across GTM and engineering!",
+    "date": "2026-10-15T20:49:49.000Z",
+    "likes": 23
+   },
+   {
+    "id": "2110808602990760121",
+    "handle": "LangChain",
+    "text": "Our education team answered the most common questions we've received over the years about agent evals. \n\nCheck it out ⤵️",
+    "date": "2026-10-15T19:02:42.000Z",
+    "likes": 39
+   },
+   {
+    "id": "2110778308174492044",
+    "handle": "LangChain",
+    "text": "\"I can finally find the data that I want without having to fight my tooling.\"\n\nLangSmith helps @TrustVanta find traces fast, align evaluators to labeled examples, and improve AI quality end to end.\n\n⏯️ Zheng Tao on why \"LangSmith gets it.\" https://t.co/iBqIKLkFtS",
+    "date": "2026-10-15T17:02:19.000Z",
+    "likes": 22
+   },
+   {
+    "id": "2110751954557145402",
+    "handle": "LangChain",
+    "text": "Nemotron 3.5 Super VL from @NVIDIAAI brings vision, reasoning & tool use to Deep Agents via ChatNVIDIA.\n\nOpen weights. 120B parameters, 12B active.\n\nNemotron 3.5 Super VL averaged an 87% pass rate on our Deep Agents behavioral suite.\n\nSpeed stood out, too. On our Harbor-lite benchmark: 55% less total task time than DeepSeek V4.1 Flash, with similar success.\n\nhttps://t.co/PRmlMbQiCP",
+    "date": "2026-10-15T15:17:36.000Z",
+    "likes": 45
+   },
+   {
+    "id": "2110449692144509184",
+    "handle": "LangChain",
+    "text": "How do agents remember?\n\nThe longer an agent runs, the more it takes in (instructions, tool results, files, and drafts), which results in decreased accuracy and reasoning.\n\nRead how LangChain's Deep Agents harness addresses this by moving context out of the active window without deleting it ⤵️",
+    "date": "2026-10-14T19:16:31.000Z",
+    "likes": 102
+   },
+   {
+    "id": "2110424980337127531",
+    "handle": "LangChain",
+    "text": "Claude Platform traces can now be sent to LangSmith through OpenTelemetry.\n\nExport from Claude Managed Agents, the Messages API, or the Claude SDKs with native OTel support. Traces show up in LangSmith so you can inspect every step and improve agent performance.\n\nIt’s available now in public beta.\n\nDocs: https://t.co/DNRGAO4t1E",
+    "date": "2026-10-14T17:38:19.000Z",
+    "likes": 66
+   },
+   {
+    "id": "2110355356366815493",
+    "handle": "LangChain",
+    "text": "How @OrangeBusiness evaluate agents in their enterprise AI platform:\n\n✅ RAG quality: golden datasets, retrieval recall, answer faithfulness\n✅ Agent behavior: tool selection accuracy, prompt injection robustness\n✅ Production traces: latency, cost, failed runs, human feedback\n\nAll in LangSmith, with regression evals before changes reach production, and LangChain for model neutrality & portability\n\nhttps://t.co/6335TKfipN?",
+    "date": "2026-10-14T13:01:40.000Z",
+    "likes": 39
+   },
+   {
+    "id": "2110092206057124170",
+    "handle": "LangChain",
+    "text": "ICYMI: AI Search in LangSmith!",
+    "date": "2026-10-13T19:36:00.000Z",
+    "likes": 26
+   },
+   {
+    "id": "2110930213798584388",
+    "handle": "MiniMax_AI",
+    "text": "Kicking off Open Source AI Week tomorrow with @huggingface at The Midway 🪩\n\nFind the MiniMax team on the dance floor, we’ll have some cute merch.\n\nLatest calendar: https://t.co/AFRppd4eTA\n\n@open_intel_fdn #OpenSourceAIWeek #OpenIntelligence",
+    "date": "2026-10-16T03:05:56.000Z",
+    "likes": 126
+   },
+   {
+    "id": "2110207378725740887",
+    "handle": "MiniMax_AI",
+    "text": "New York, you brought the energy! 🗽💜\n\nAt #AWNewYork26, MiniMax brought together @krea_ai , @fal  & @magnific  for a panel full of sharp insights and fresh perspectives. \n\nAs we deepen our work with brands and agencies, we explored what makes AI video ready for production: consistent results, creative control, and work that feels true to the brand.\n\nOur booth was buzzing, and our little octopus & tote bags got plenty of love 🐙\n\nThanks for having us, @advertisingweek!",
+    "date": "2026-10-14T03:13:39.000Z",
+    "likes": 296
+   },
+   {
+    "id": "2110104942107406441",
+    "handle": "MiniMax_AI",
+    "text": "FastH3-Omni on Reactor - video with synchronized audio, from a single prompt.\n\nYour daydreams have a sound department now.",
+    "date": "2026-10-13T20:26:36.000Z",
+    "likes": 253
+   },
+   {
+    "id": "2109707713974526102",
+    "handle": "MiniMax_AI",
+    "text": "MiniMax's President of Global Business, Linda Sheng, spoke today at the inaugural DBS Asia Future Forward Conference 2026 in Singapore. 🇸🇬\n\nAlongside her was a distinguished lineup of government and business leaders, including Singapore Prime Minister Lawrence Wong and TikTok CEO Shou Chew.\n\nProud to contribute MiniMax's perspective to the conversation on Asia's future. Thank you to @dbsbank  for having us!\n\n#DBSFutureForward",
+    "date": "2026-10-12T18:08:10.000Z",
+    "likes": 578
+   },
+   {
+    "id": "2108793182968504771",
+    "handle": "MiniMax_AI",
+    "text": "MiniMax M3 is now running on NVIDIA Vera Rubin NVL72 with vLLM!🙌\n\nThanks to @vllm_project, @inferact, @NVIDIAAI, @RedHat_AI  for bringing MiniMax M3 to Rubin.",
+    "date": "2026-10-10T05:34:08.000Z",
+    "likes": 805
+   },
+   {
+    "id": "2108339348584448365",
+    "handle": "MiniMax_AI",
+    "text": "Who's got the best open-source video world model when it comes to physics?💫\n\nit's me again, MiniMax H3. Almost on par with closed-source sota.🍾",
+    "date": "2026-10-08T23:30:46.000Z",
+    "likes": 217
+   },
+   {
+    "id": "2108066697353801907",
+    "handle": "MiniMax_AI",
+    "text": "Two months after, the motion of MiniMax H3 is still 🔥.\n\nMore to come👀",
+    "date": "2026-10-08T05:27:21.000Z",
+    "likes": 134
+   },
+   {
+    "id": "2107920617542664263",
+    "handle": "MiniMax_AI",
+    "text": "🍦🍨 Your perfect fuel for #SFTechWeek",
+    "date": "2026-10-07T19:46:53.000Z",
+    "likes": 39
+   },
+   {
+    "id": "2107604812540072143",
+    "handle": "MiniMax_AI",
+    "text": "🪩 Customer Spotlight: SILVERSIDE · “We Bring the Fire”\n\nOur longtime creative partner & client brings bold imagination, beautiful craft, and irresistible charm to MiniMax Music + H3 animation and lip sync.\n\n@Silverside_AI @maxado_ every frame has personality. Every beat brings the fire 🔥🎶",
+    "date": "2026-10-06T22:51:59.000Z",
+    "likes": 277
+   },
+   {
+    "id": "2107556511044284575",
+    "handle": "MiniMax_AI",
+    "text": "MiniMax at SF Tech Week 🌉  \n\n📍 Oct 6 · Frontier Models, High-Speed Inference & Agents at Scale With @friendliai , @anacondainc , and @kilocode.  \n\n📍 Oct 7 · Open Source AI Stack With @novita_labs, @ArtificialAnlys, @NousResearch , @radixark , and @vercel.  \n\n📍 Oct 8 · Intelligence in the Open MiniMax research night with @FireworksAI_HQ , @radixark , @digitalocean , @Modular, and @evermind .  \n\n📍 Oct 8 · Magnific Tech: Growth at the Pace of AI MiniMax joins @magnific to discuss building and growing creative AI products.  \n\nSee you in SF. \n\nDetails + RSVP 👇",
+    "date": "2026-10-06T19:40:03.000Z",
+    "likes": 71
+   },
+   {
+    "id": "2106117690041712697",
+    "handle": "MiniMax_AI",
+    "text": "New York, see you next week 🗽✨\n\nMiniMax is heading to @advertisingweek New York, Oct 5–8. \n\n📍 Booth A16E, near the Food Trucks\n🎬 Live MiniMax H3 demos all week\n🎙️ Our panel with @krea_ai  × @fal  × @magnific : Thu 10/8 · 2:30 PM ET · Innovation Stage\n\nPanel details in the replies👇\n\n@AWNewYork_ #AWNewYork26",
+    "date": "2026-10-02T20:22:41.000Z",
+    "likes": 346
+   },
+   {
+    "id": "2105294192591192302",
+    "handle": "anusonmars",
+    "text": "open-sourced a coding agent that runs only on free models.\nhow: it keeps a ranked list of free models and sends each request to the best one that is up. when one hits its rate limit, the same request goes to the next.\nMIT. github: anus-dev/anus https://t.co/UEe0CO0zGB",
+    "date": "2026-09-30T13:50:24.000Z",
+    "likes": 7
+   }
+  ],
+  "userIds": {
+   "AnthropicAI": "1353836358901501952",
+   "claudeai": "1943306828697550848",
+   "OpenAI": "4398626122",
+   "OpenAIDevs": "1633874951508721686",
+   "GoogleDeepMind": "4783690002",
+   "cursor_ai": "1695890961094909952",
+   "github": "13334762",
+   "code": "3167734591",
+   "zeddotdev": "1471128655699062784",
+   "windsurf": "2054283995450380288",
+   "kirodotdev": "1920136890772262912",
+   "Alibaba_Qwen": "1753339277386342400",
+   "Kimi_Moonshot": "1863959670169501696",
+   "deepseek_ai": "1714580962569588736",
+   "MistralAI": "1667249535519805451",
+   "googleaidevs": "1780784281561726976",
+   "opencode": "1965545045089792000",
+   "ampcode": "1901022787164401666",
+   "blockopensource": "1983630519125639168",
+   "charmcli": "1203143241652166657",
+   "OpenHandsDev": "1793978852919885824",
+   "cognition": "1751810001751183361",
+   "jetbrains": "14146389",
+   "cline": "1875995486110593024",
+   "roomote": "1888678588251340800",
+   "kilocode": "1899809291353169921",
+   "continuedev": "1663920110568964096",
+   "augmentcode": "1719747248031158272",
+   "Zai_org": "1726486879456096256",
+   "_can1357": "602951145",
+   "1jehuang": "1874344018852929536",
+   "vercel": "4686835494",
+   "fuxicidu": "2082696911820320768",
+   "superset_sh": "1985167921983918080",
+   "LangChain": "1589007443853340672",
+   "MiniMax_AI": "1875078099538423808",
+   "stagewise_io": "1698700290071871488",
+   "anusonmars": "1959792378014769152",
+   "nano_collective": "2020177979532263424",
+   "lan0day": "1550111914780332032",
+   "twinnydotdev": "1808468162222161920"
+  },
+  "lastRead": {
+   "AnthropicAI": "2026-10-17T22:40:20.831Z",
+   "claudeai": "2026-10-17T22:40:20.831Z",
+   "OpenAI": "2026-10-17T22:40:20.831Z",
+   "OpenAIDevs": "2026-10-17T22:40:20.831Z",
+   "GoogleDeepMind": "2026-10-17T22:40:20.831Z",
+   "cursor_ai": "2026-10-17T22:40:20.831Z",
+   "github": "2026-10-17T22:40:20.831Z",
+   "code": "2026-10-17T22:40:20.831Z",
+   "zeddotdev": "2026-10-17T22:40:20.831Z",
+   "windsurf": "2026-10-17T22:40:20.831Z",
+   "kirodotdev": "2026-10-17T22:40:20.831Z",
+   "Alibaba_Qwen": "2026-10-17T22:40:20.831Z",
+   "Kimi_Moonshot": "2026-10-17T22:40:20.831Z",
+   "deepseek_ai": "2026-10-17T22:40:20.831Z",
+   "MistralAI": "2026-10-17T22:40:20.831Z",
+   "googleaidevs": "2026-10-17T22:40:20.831Z",
+   "opencode": "2026-10-17T22:40:20.831Z",
+   "ampcode": "2026-10-17T22:40:20.831Z",
+   "blockopensource": "2026-10-17T22:40:20.831Z",
+   "charmcli": "2026-10-17T22:40:20.831Z",
+   "OpenHandsDev": "2026-10-17T22:40:20.831Z",
+   "cognition": "2026-10-17T22:40:20.831Z",
+   "jetbrains": "2026-10-17T22:40:20.831Z",
+   "cline": "2026-10-17T22:40:20.831Z",
+   "roomote": "2026-10-17T22:40:20.831Z",
+   "kilocode": "2026-10-17T22:40:20.831Z",
+   "continuedev": "2026-10-17T22:40:20.831Z",
+   "augmentcode": "2026-10-17T22:40:20.831Z",
+   "Zai_org": "2026-10-17T22:40:20.831Z",
+   "_can1357": "2026-10-17T22:40:20.831Z",
+   "1jehuang": "2026-10-17T22:40:20.831Z",
+   "vercel": "2026-10-17T22:40:20.831Z",
+   "fuxicidu": "2026-10-17T22:40:20.831Z",
+   "superset_sh": "2026-10-17T22:40:20.831Z",
+   "LangChain": "2026-10-17T22:40:20.831Z",
+   "MiniMax_AI": "2026-10-17T22:40:20.831Z",
+   "stagewise_io": "2026-10-17T22:40:20.831Z",
+   "anusonmars": "2026-10-17T22:40:20.831Z",
+   "nano_collective": "2026-10-17T22:40:20.831Z",
+   "lan0day": "2026-10-17T22:40:20.831Z",
+   "twinnydotdev": "2026-10-17T22:40:20.831Z"
+  },
+  "via": "guest, 41/41 accounts",
+  "added": 1108,
+  "handles": {
+   "copilot-cli": {
+    "handle": "github",
+    "src": "manual",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "claude-code": {
+    "handle": "claudeai",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gemini-cli": {
+    "handle": "googleaidevs",
+    "src": "github",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "opencode": {
+    "handle": "opencode",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "amp": {
+    "handle": "ampcode",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "codex": {
+    "handle": "OpenAIDevs",
+    "src": "site",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "kimi-cli": {
+    "handle": "Kimi_Moonshot",
+    "src": "manual",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "qwen-code": {
+    "handle": "Alibaba_Qwen",
+    "src": "github",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "crush": {
+    "handle": "charmcli",
+    "src": "site",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "goose": {
+    "handle": "blockopensource",
+    "src": "github",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "aider": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "openhands": {
+    "handle": "OpenHandsDev",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "zed": {
+    "handle": "zeddotdev",
+    "src": "manual",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "vscode": {
+    "handle": "code",
+    "src": "manual",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "cursor": {
+    "handle": "cursor_ai",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "kiro": {
+    "handle": "kirodotdev",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "antigravity": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "windsurf": {
+    "handle": "cognition",
+    "src": "site",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "github-copilot": {
+    "handle": "github",
+    "src": "manual",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "cline": {
+    "handle": "cline",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "trae": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "jetbrains-ai": {
+    "handle": "jetbrains",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "roo-code": {
+    "handle": "roomote",
+    "src": "github",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "kilo-code": {
+    "handle": "kilocode",
+    "src": "github",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-earendil-works-pi": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "augment": {
+    "handle": "augmentcode",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "continue": {
+    "handle": "continuedev",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-can1357-oh-my-pi": {
+    "handle": "_can1357",
+    "src": "github",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-esengine-deepseek-reasonix": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-zai-org-zcode": {
+    "handle": "Zai_org",
+    "src": "github",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-omnirush-ai-omnirush-gui": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-1jehuang-jcode": {
+    "handle": "1jehuang",
+    "src": "github",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-vercel-labs-fx": {
+    "handle": "vercel",
+    "src": "github",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-openinterpreter-openinterpreter": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-superset-sh-superset": {
+    "handle": "superset_sh",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-fuxicodex-fuxi": {
+    "handle": "fuxicidu",
+    "src": "github",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-langchain-ai-open-swe": {
+    "handle": "LangChain",
+    "src": "site",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-mistralai-mistral-vibe": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-anus-dev-anus": {
+    "handle": "anusonmars",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-stagewise-io-stagewise": {
+    "handle": "stagewise_io",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-hkuds-deepcode": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-minimax-ai-minimax-code": {
+    "handle": "MiniMax_AI",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-mayday-wpf-snow-cli": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-editor-code-assistant-eca": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-twinnydotdev-twinny": {
+    "handle": "twinnydotdev",
+    "src": "site",
+    "own": true,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-momozi1996-momo-code": {
+    "handle": null,
+    "src": "none",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-nano-collective-nanocoder": {
+    "handle": "nano_collective",
+    "src": "github",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   },
+   "gh-vastsa-pi-desktop": {
+    "handle": "lan0day",
+    "src": "github",
+    "own": false,
+    "checked": "2026-10-17T22:40:20.831Z"
+   }
+  }
+ },
+ "news": [
+  {
+   "id": "hn:50133401",
+   "title": "OpenCode Hacked: User credentials leaked",
+   "url": "https://twitter.com/opencode/status/2111516673953935833",
+   "date": "2026-10-17T18:01:41.000Z",
+   "summary": "",
+   "toolIds": [
+    "opencode"
+   ],
+   "points": 582,
+   "comments": 92,
+   "sources": [
+    {
+     "name": "Hacker News · ▲582",
+     "url": "https://news.ycombinator.com/item?id=50133401"
+    }
+   ],
+   "score": 9,
+   "tag": "Security",
+   "major": true
+  },
+  {
+   "id": "x:2111434657732640792",
+   "title": "DeepSeek V4.1-Flash-1017 has released, beating GPT 5.6 Sol on Terminal-Bench while being ~17x cheaper.",
+   "url": "https://x.com/cline/status/2111434657732640792",
+   "date": "2026-10-17T12:30:25.000Z",
+   "summary": "DeepSeek V4.1-Flash-1017 has released, beating GPT 5.6 Sol on Terminal-Bench while being ~17x cheaper.\n\nIt improves the previous DeepSeek V4.1-Flash result by 35%, accomplished with \"no algorithmic innovation\" but instead by RL training it on multiple coding agent harnesses.",
+   "toolIds": [
+    "cline"
+   ],
+   "likes": 1506,
+   "sources": [
+    {
+     "name": "X · @cline",
+     "url": "https://x.com/cline/status/2111434657732640792"
+    }
+   ],
+   "score": 5.5,
+   "tag": "Model",
+   "major": false
+  },
+  {
+   "id": "feed:https://github.blog/changelog/2026-10-15-upcoming-deprecation-of-selected-github-copilot-models-in-mid-november",
+   "title": "Upcoming deprecation of selected GitHub Copilot models in mid-November",
+   "url": "https://github.blog/changelog/2026-10-15-upcoming-deprecation-of-selected-github-copilot-models-in-mid-november",
+   "date": "2026-10-15T19:35:13.000Z",
+   "summary": "We will deprecate the following models across all GitHub Copilot experiences (including Copilot Chat, inline edits, ask and agent modes, and code completions) on November 16th, 2026: Model Deprecation date Suggested alternative Claude Opus 4.8* 2026-11-16…",
+   "toolIds": [
+    "github-copilot"
+   ],
+   "sources": [
+    {
+     "name": "github.blog",
+     "url": "https://github.blog/changelog/2026-10-15-upcoming-deprecation-of-selected-github-copilot-models-in-mid-november"
+    }
+   ],
+   "score": 4.3,
+   "tag": "Deprecation",
+   "major": false
+  },
+  {
+   "id": "hn:50099375",
+   "title": "Claude Code Desktop Vulnerability: Preview Pane Data Exfiltration",
+   "url": "https://noma.security/noma-labs/sneakpeek-how-the-preview-pane-in-claude-code-desktop-can-exfiltrate-your-data",
+   "date": "2026-10-15T05:02:06.000Z",
+   "summary": "",
+   "toolIds": [
+    "claude-code"
+   ],
+   "points": 16,
+   "comments": 0,
+   "sources": [
+    {
+     "name": "Hacker News · ▲16",
+     "url": "https://news.ycombinator.com/item?id=50099375"
+    }
+   ],
+   "score": 5,
+   "tag": "Security",
+   "major": false
+  },
+  {
+   "id": "x:2110495085049835940",
+   "title": "Gemini 4 Argon had the best launch day user share of any frontier model on Cline since June.",
+   "url": "https://x.com/cline/status/2110495085049835940",
+   "date": "2026-10-14T22:16:54.000Z",
+   "summary": "Gemini 4 Argon had the best launch day user share of any frontier model on Cline since June. \n\n~3x as many users tried it on day one as Claude Opus 5.5 or Sonnet 5.5.\n\nWe're also seeing Argon using 30% fewer tokens on average than Claude models. It's a really efficient model!",
+   "toolIds": [
+    "cline"
+   ],
+   "likes": 435,
+   "sources": [
+    {
+     "name": "X · @cline",
+     "url": "https://x.com/cline/status/2110495085049835940"
+    }
+   ],
+   "score": 7.5,
+   "tag": "Model",
+   "major": true
+  },
+  {
+   "id": "feed:https://kiro.dev/changelog/models/kimi-k3-now-available-in-kiro",
+   "title": "Models: Kimi K3 now available in Kiro",
+   "url": "https://kiro.dev/changelog/models/kimi-k3-now-available-in-kiro",
+   "date": "2026-10-14T21:34:19.000Z",
+   "summary": "Kimi K3 is now available with experimental support across the Kiro IDE, CLI, Crew, and Web for Pro, Pro+, Pro Max, and Power customers using Kiro's US geography. Moonshot AI's open-weight model accepts text and images and has a 1M-token context window, making…",
+   "toolIds": [
+    "kiro"
+   ],
+   "sources": [
+    {
+     "name": "kiro.dev",
+     "url": "https://kiro.dev/changelog/models/kimi-k3-now-available-in-kiro"
+    },
+    {
+     "name": "X · @kirodotdev",
+     "url": "https://x.com/kirodotdev/status/2110484370129670341"
+    }
+   ],
+   "score": 5.8,
+   "tag": "Model",
+   "major": false
+  },
+  {
+   "id": "x:2110442238501122498",
+   "title": "Kilo is supporting All Day AI on October 22 by giving 5 people $1,000 in Kilo credits.",
+   "url": "https://x.com/kilocode/status/2110442238501122498",
+   "date": "2026-10-14T18:46:54.000Z",
+   "summary": "Kilo is supporting All Day AI on October 22 by giving 5 people $1,000 in Kilo credits.\n\nThe event is 15 hours, and has 122 speakers from Microsoft, NVIDIA, OpenRouter, and more. Free, online, and no vendor pitches.\n\nRegister and share the event by October 15 to qualify for the cr",
+   "toolIds": [
+    "kilo-code"
+   ],
+   "likes": 14,
+   "sources": [
+    {
+     "name": "X · @kilocode",
+     "url": "https://x.com/kilocode/status/2110442238501122498"
+    }
+   ],
+   "score": 5,
+   "tag": "Pricing",
+   "major": false
+  },
+  {
+   "id": "feed:https://kiro.dev/changelog/models/claude-sonnet-4-end-of-life",
+   "title": "Models: Claude Sonnet 4 reaches end of life",
+   "url": "https://kiro.dev/changelog/models/claude-sonnet-4-end-of-life",
+   "date": "2026-10-14T04:00:00.000Z",
+   "summary": "Claude Sonnet 4 has reached end of life in Kiro as of October 14, 2026. If your work depends on it, choose another available model before continuing. Claude Sonnet 5.5 is the latest Sonnet model. See Model lifecycle for lifecycle stages and end-of-life dates.",
+   "toolIds": [
+    "kiro"
+   ],
+   "sources": [
+    {
+     "name": "kiro.dev",
+     "url": "https://kiro.dev/changelog/models/claude-sonnet-4-end-of-life"
+    }
+   ],
+   "score": 5.5,
+   "tag": "Deprecation",
+   "major": false
+  },
+  {
+   "id": "x:2110086075096154399",
+   "title": "Gemini 4 Argon is #1 on Val Index, completing agentic tasks at half the cost of Opus 5.5.",
+   "url": "https://x.com/cline/status/2110086075096154399",
+   "date": "2026-10-13T19:11:38.000Z",
+   "summary": "Gemini 4 Argon is #1 on Val Index, completing agentic tasks at half the cost of Opus 5.5.\n\nGoogle shared that the Chrome team recently used Argon to refactor ~6 million lines of legacy features out of a 40-million line codebase, eliminating an entire category of browser crashes.",
+   "toolIds": [
+    "cline"
+   ],
+   "likes": 334,
+   "sources": [
+    {
+     "name": "X · @cline",
+     "url": "https://x.com/cline/status/2110086075096154399"
+    }
+   ],
+   "score": 4.5,
+   "tag": "Model",
+   "major": false
+  },
+  {
+   "id": "x:2110087611763368271",
+   "title": "Gemini 4 Argon is now available in Cursor!",
+   "url": "https://x.com/cursor_ai/status/2110087611763368271",
+   "date": "2026-10-13T16:05:40.000Z",
+   "summary": "Gemini 4 Argon is now available in Cursor!\n\nIt scores 52.8% on CursorBench at default effort, on par with Opus 5.5.\n\nPriced at $2/M input and $10/M output tokens.",
+   "toolIds": [
+    "cursor",
+    "windsurf"
+   ],
+   "likes": 4443,
+   "sources": [
+    {
+     "name": "X · @cursor_ai",
+     "url": "https://x.com/cursor_ai/status/2110087611763368271"
+    },
+    {
+     "name": "X · @cognition",
+     "url": "https://x.com/cognition/status/2110043605528408110"
+    },
+    {
+     "name": "X · @GoogleDeepMind",
+     "url": "https://x.com/GoogleDeepMind/status/2110039274922131792"
+    },
+    {
+     "name": "X · @cursor_ai",
+     "url": "https://x.com/cursor_ai/status/2110867556693430293"
+    }
+   ],
+   "score": 14.5,
+   "tag": "Model",
+   "major": true
+  },
+  {
+   "id": "x:2110021953784324290",
+   "title": "Introducing the Kilo MCP.",
+   "url": "https://x.com/kilocode/status/2110021953784324290",
+   "date": "2026-10-13T14:56:50.000Z",
+   "summary": "Introducing the Kilo MCP. \n\nConnect Kilo Desktop, CLI, VS Code or any agent to the Kilo platform, then ask your agent what you spent this month, update your agent profiles or start a cloud agent without leaving your editor.\n\nSetup takes two steps.",
+   "toolIds": [
+    "kilo-code",
+    "vscode"
+   ],
+   "likes": 18,
+   "sources": [
+    {
+     "name": "X · @kilocode",
+     "url": "https://x.com/kilocode/status/2110021953784324290"
+    }
+   ],
+   "score": 4,
+   "tag": "Launch",
+   "major": false
+  },
+  {
+   "id": "hn:50060694",
+   "title": "Codex CLI installs a persistent, self-updating background daemon by default",
+   "url": "https://github.com/openai/codex/issues/48195",
+   "date": "2026-10-12T18:29:04.000Z",
+   "summary": "",
+   "toolIds": [
+    "codex"
+   ],
+   "points": 609,
+   "comments": 294,
+   "sources": [
+    {
+     "name": "Hacker News · ▲609",
+     "url": "https://news.ycombinator.com/item?id=50060694"
+    }
+   ],
+   "score": 4,
+   "tag": "Community",
+   "major": false
+  },
+  {
+   "id": "hn:50094994",
+   "title": "OpenCode 2.0",
+   "url": "https://anoma.ly/notes/opencode-2-0/",
+   "date": "2026-10-12T00:00:00.000Z",
+   "summary": "",
+   "toolIds": [
+    "opencode"
+   ],
+   "points": 884,
+   "comments": 390,
+   "sources": [
+    {
+     "name": "Hacker News · ▲884",
+     "url": "https://news.ycombinator.com/item?id=50094994"
+    },
+    {
+     "name": "anoma.ly",
+     "url": "https://anoma.ly/notes/opencode-2-0"
+    }
+   ],
+   "score": 8.3,
+   "tag": "Launch",
+   "major": true
+  },
+  {
+   "id": "x:2107896916595884177",
+   "title": "Coming soon to GitHub Copilot: intelligent local model routing.",
+   "url": "https://x.com/github/status/2107896916595884177",
+   "date": "2026-10-07T18:12:42.000Z",
+   "summary": "📣 Coming soon to GitHub Copilot: intelligent local model routing.\n\nWe are excited to announce the next step in our Project HydraFusion vision. GitHub Copilot will soon be able to automatically route tasks to a local model when it's most suitable, helping you save on AI credits.",
+   "toolIds": [
+    "github-copilot"
+   ],
+   "likes": 554,
+   "sources": [
+    {
+     "name": "X · @github",
+     "url": "https://x.com/github/status/2107896916595884177"
+    }
+   ],
+   "score": 4,
+   "tag": "Pricing",
+   "major": false
+  },
+  {
+   "id": "x:2107894208547983705",
+   "title": "Claude Haiku 5.5, our latest model",
+   "url": "https://x.com/AnthropicAI/status/2107894208547983705",
+   "date": "2026-10-07T18:01:56.000Z",
+   "summary": "",
+   "toolIds": [],
+   "likes": 7513,
+   "sources": [
+    {
+     "name": "X · @AnthropicAI",
+     "url": "https://x.com/AnthropicAI/status/2107894208547983705"
+    }
+   ],
+   "score": 6.5,
+   "tag": "Model",
+   "major": true
+  },
+  {
+   "id": "x:2107457414387622310",
+   "title": "Meet Mistral Large 4, aka Le Chonk.",
+   "url": "https://x.com/MistralAI/status/2107457414387622310",
+   "date": "2026-10-06T13:06:16.000Z",
+   "summary": "Meet Mistral Large 4, aka Le Chonk. \n\n• 1T parameters, natively multimodal. 49B active.\nIt is the best open weights model from US or Europe on aggregated benchmarks.\n• State-of-the-art on critical workloads, including cyber defense, manufacturing and finance and it surpasses clos",
+   "toolIds": [],
+   "likes": 40649,
+   "sources": [
+    {
+     "name": "X · @MistralAI",
+     "url": "https://x.com/MistralAI/status/2107457414387622310"
+    }
+   ],
+   "score": 9.5,
+   "tag": "Model",
+   "major": true
+  },
+  {
+   "id": "x:2107272032073437185",
+   "title": "GLM-5.3 is now available on Amazon Bedrock.",
+   "url": "https://x.com/Zai_org/status/2107272032073437185",
+   "date": "2026-10-06T00:49:38.000Z",
+   "summary": "GLM-5.3 is now available on Amazon Bedrock.\n\nBring powerful coding and agentic capabilities to your enterprise.\n\nGet started:",
+   "toolIds": [
+    "gh-zai-org-zcode"
+   ],
+   "likes": 854,
+   "sources": [
+    {
+     "name": "X · @Zai_org",
+     "url": "https://x.com/Zai_org/status/2107272032073437185"
+    }
+   ],
+   "score": 7.5,
+   "tag": "Model",
+   "major": true
+  },
+  {
+   "id": "hn:49946567",
+   "title": "Getting the most out of Opus 5.5 in Claude and Claude Code",
+   "url": "https://claude.dev/blog/getting-the-most-out-of-opus-5-5/",
+   "date": "2026-10-03T18:29:30.000Z",
+   "summary": "",
+   "toolIds": [
+    "claude-code"
+   ],
+   "points": 252,
+   "comments": 162,
+   "sources": [
+    {
+     "name": "Hacker News · ▲252",
+     "url": "https://news.ycombinator.com/item?id=49946567"
+    }
+   ],
+   "score": 5.5,
+   "tag": "Model",
+   "major": false
+  },
+  {
+   "id": "x:2106048051798302945",
+   "title": "Ling 3.1 flash is here, and it's completely FREE in Kilo Code until October 13th!",
+   "url": "https://x.com/kilocode/status/2106048051798302945",
+   "date": "2026-10-02T15:45:58.000Z",
+   "summary": "Ling 3.1 flash is here, and it's completely FREE in Kilo Code until October 13th!\n\nShoutout to @novita_labs for serving it up!",
+   "toolIds": [
+    "kilo-code"
+   ],
+   "likes": 50,
+   "sources": [
+    {
+     "name": "X · @kilocode",
+     "url": "https://x.com/kilocode/status/2106048051798302945"
+    }
+   ],
+   "score": 4,
+   "tag": "Launch",
+   "major": false
+  },
+  {
+   "id": "x:2105408724655337626",
+   "title": "Introducing Kiro workflows, now generally available.",
+   "url": "https://x.com/kirodotdev/status/2105408724655337626",
+   "date": "2026-09-30T21:25:31.000Z",
+   "summary": "Introducing Kiro workflows, now generally available. 👻\n\nTake complex agent orchestration beyond prompts and sessions.\n\nSequence work. Fan it out in parallel. Loop on results. Vary agents, models, and effort by step. All in the workflow itself.\n\nRefine it. Save it as a recipe. Ru",
+   "toolIds": [
+    "kiro"
+   ],
+   "likes": 141,
+   "sources": [
+    {
+     "name": "X · @kirodotdev",
+     "url": "https://x.com/kirodotdev/status/2105408724655337626"
+    }
+   ],
+   "score": 4,
+   "tag": "Launch",
+   "major": false
+  },
+  {
+   "id": "x:2105256053403508849",
+   "title": "Qwen3.8-27B is now accessible via @nebiustf.",
+   "url": "https://x.com/Alibaba_Qwen/status/2105256053403508849",
+   "date": "2026-09-30T11:18:51.000Z",
+   "summary": "Qwen3.8-27B is now accessible via @nebiustf. Whether you are building agents or doing deep research, this 27B dense model is ready for your multi-step workflows! 🥳",
+   "toolIds": [
+    "qwen-code"
+   ],
+   "likes": 345,
+   "sources": [
+    {
+     "name": "X · @Alibaba_Qwen",
+     "url": "https://x.com/Alibaba_Qwen/status/2105256053403508849"
+    }
+   ],
+   "score": 4.5,
+   "tag": "Model",
+   "major": false
+  },
+  {
+   "id": "x:2102515089148666187",
+   "title": "GPT-6 Sol and Luna by @OpenAI are now available in Cosmos!",
+   "url": "https://x.com/augmentcode/status/2102515089148666187",
+   "date": "2026-09-22T21:47:14.000Z",
+   "summary": "GPT-6 Sol and Luna by @OpenAI are now available in Cosmos!\n\nWe'll be upgrading all our workflows from the GPT-5.6 series of models in the coming days and measuring the impact on our software factory...",
+   "toolIds": [
+    "augment"
+   ],
+   "likes": 13,
+   "sources": [
+    {
+     "name": "X · @augmentcode",
+     "url": "https://x.com/augmentcode/status/2102515089148666187"
+    }
+   ],
+   "score": 6.5,
+   "tag": "Model",
+   "major": true
+  },
+  {
+   "id": "feed:https://openai.com/index/introducing-gpt-6-1-sol",
+   "title": "Introducing GPT-6.1 Sol",
+   "url": "https://openai.com/index/introducing-gpt-6-1-sol",
+   "date": "2026-09-22T18:00:00.000Z",
+   "summary": "Meet GPT-6.1 Sol: near-Astra intelligence for coding, computer use, and professional work at one-fifth of Astra’s standard API input and output token prices.",
+   "toolIds": [],
+   "sources": [
+    {
+     "name": "openai.com",
+     "url": "https://openai.com/index/introducing-gpt-6-1-sol"
+    }
+   ],
+   "score": 6.5,
+   "tag": "Model",
+   "major": true
+  },
+  {
+   "id": "x:2102066246518976683",
+   "title": "Introducing Superset for iPhone.",
+   "url": "https://x.com/superset_sh/status/2102066246518976683",
+   "date": "2026-09-21T16:03:42.000Z",
+   "summary": "Introducing Superset for iPhone.\n\nRemotely control agents running on your computer. Review and ship PRs from your pocket.",
+   "toolIds": [
+    "gh-superset-sh-superset"
+   ],
+   "likes": 476,
+   "sources": [
+    {
+     "name": "X · @superset_sh",
+     "url": "https://x.com/superset_sh/status/2102066246518976683"
+    }
+   ],
+   "score": 5,
+   "tag": "Launch",
+   "major": false
+  },
+  {
+   "id": "x:2104633259925630995",
+   "title": "Claude Sonnet 5.5 is now available",
+   "url": "https://x.com/AnthropicAI/status/2104633259925630995",
+   "date": "2026-09-21T15:57:15.000Z",
+   "summary": "Claude Opus 5.5 is now available with experimental support across the Kiro IDE, CLI, Crew, and Web for Pro, Pro+, Pro Max, and Power customers in us-east-1 (IAD) and eu-central-1 (FRA). Anthropic reports stronger performance on long, complex coding tasks and…",
+   "toolIds": [
+    "kiro",
+    "cursor",
+    "augment"
+   ],
+   "likes": 12068,
+   "sources": [
+    {
+     "name": "X · @AnthropicAI",
+     "url": "https://x.com/AnthropicAI/status/2104633259925630995"
+    },
+    {
+     "name": "kiro.dev",
+     "url": "https://kiro.dev/changelog/models/claude-opus-5-5"
+    },
+    {
+     "name": "X · @cursor_ai",
+     "url": "https://x.com/cursor_ai/status/2107897245282799864"
+    },
+    {
+     "name": "X · @kirodotdev",
+     "url": "https://x.com/kirodotdev/status/2107118899690967491"
+    },
+    {
+     "name": "X · @kirodotdev",
+     "url": "https://x.com/kirodotdev/status/2104646075051102680"
+    },
+    {
+     "name": "X · @augmentcode",
+     "url": "https://x.com/augmentcode/status/2104709094376689667"
+    },
+    {
+     "name": "X · @augmentcode",
+     "url": "https://x.com/augmentcode/status/2102476374766407768"
+    },
+    {
+     "name": "kiro.dev",
+     "url": "https://kiro.dev/changelog/models/claude-sonnet-5-5"
+    },
+    {
+     "name": "X · @kirodotdev",
+     "url": "https://x.com/kirodotdev/status/2102064625474785741"
+    },
+    {
+     "name": "kiro.dev",
+     "url": "https://kiro.dev/changelog/models/claude-opus-5-5-now-available-in-aws-govcloud-us"
+    },
+    {
+     "name": "kiro.dev",
+     "url": "https://kiro.dev/changelog/models/claude-sonnet-5-5-now-available-in-aws-govcloud-us"
+    }
+   ],
+   "score": 24.3,
+   "tag": "Model",
+   "major": true
+  },
+  {
+   "id": "hn:49760187",
+   "title": "Claude Code now reads AGENTS.md if there is no Claude.md",
+   "url": "https://code.claude.com/docs/en/changelog",
+   "date": "2026-09-18T21:00:32.000Z",
+   "summary": "",
+   "toolIds": [
+    "claude-code"
+   ],
+   "points": 741,
+   "comments": 285,
+   "sources": [
+    {
+     "name": "Hacker News · ▲741",
+     "url": "https://news.ycombinator.com/item?id=49760187"
+    }
+   ],
+   "score": 4,
+   "tag": "Community",
+   "major": false
+  },
+  {
+   "id": "hn:49752422",
+   "title": "ZCode, the GLM coding agent, silently uploads your Git history",
+   "url": "https://tokenstead.ai/guides/zcode-silent-git-history-upload",
+   "date": "2026-09-18T10:35:28.000Z",
+   "summary": "",
+   "toolIds": [
+    "gh-zai-org-zcode"
+   ],
+   "points": 262,
+   "comments": 14,
+   "sources": [
+    {
+     "name": "Hacker News · ▲262",
+     "url": "https://news.ycombinator.com/item?id=49752422"
+    }
+   ],
+   "score": 8,
+   "tag": "Security",
+   "major": true
+  }
  ]
 }
