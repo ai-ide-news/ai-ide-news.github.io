@@ -1,0 +1,386 @@
+{
+ "version": 8,
+ "icons": {
+  "claude-code": {
+   "logo": "lobe:claudecode",
+   "checked": 1792275638476,
+   "file": "claude-code.svg",
+   "mono": false,
+   "src": "lobehub:claudecode-color",
+   "tone": null
+  },
+  "opencode": {
+   "logo": "lobe:opencode",
+   "checked": 1792275638608,
+   "file": "opencode.svg",
+   "mono": true,
+   "src": "lobehub:opencode",
+   "tone": null
+  },
+  "goose": {
+   "logo": "lobe:goose",
+   "checked": 1792275638614,
+   "file": "goose.svg",
+   "mono": true,
+   "src": "lobehub:goose",
+   "tone": null
+  },
+  "gh-vercel-labs-fx": {
+   "logo": null,
+   "checked": 1792275638628,
+   "file": "gh-vercel-labs-fx.svg",
+   "mono": true,
+   "src": "lobehub:vercel",
+   "tone": null
+  },
+  "cline": {
+   "logo": "lobe:cline",
+   "checked": 1792275638636,
+   "file": "cline.svg",
+   "mono": true,
+   "src": "lobehub:cline",
+   "tone": null
+  },
+  "github-copilot": {
+   "logo": "lobe:githubcopilot",
+   "checked": 1792275638663,
+   "file": "github-copilot.svg",
+   "mono": true,
+   "src": "lobehub:githubcopilot",
+   "tone": null
+  },
+  "amp": {
+   "logo": "lobe:amp",
+   "checked": 1792275638673,
+   "file": "amp.svg",
+   "mono": false,
+   "src": "lobehub:amp-color",
+   "tone": null
+  },
+  "cursor": {
+   "logo": "lobe:cursor",
+   "checked": 1792275638796,
+   "file": "cursor.svg",
+   "mono": true,
+   "src": "lobehub:cursor",
+   "tone": null
+  },
+  "gh-omnirush-ai-omnirush-gui": {
+   "logo": null,
+   "checked": 1792275639200,
+   "file": "gh-omnirush-ai-omnirush-gui.png",
+   "mono": false,
+   "src": "https://raw.githubusercontent.com/omnirush-ai/omnirush-gui/main/omnirush-logo.png",
+   "tone": "dark"
+  },
+  "codex": {
+   "logo": "lobe:codex",
+   "checked": 1792275639241,
+   "file": "codex.svg",
+   "mono": false,
+   "src": "lobehub:codex-color",
+   "tone": null
+  },
+  "kiro": {
+   "logo": "lobe:kiro",
+   "checked": 1792275639362,
+   "file": "kiro.svg",
+   "mono": false,
+   "src": "lobehub:kiro-color",
+   "tone": null
+  },
+  "gh-langchain-ai-open-swe": {
+   "logo": null,
+   "checked": 1792275639532,
+   "file": "gh-langchain-ai-open-swe.png",
+   "mono": false,
+   "src": "https://cdn.prod.website-files.com/65b8cd72835ceeacd4449a53/69a17e4f0c916c644f4de1cd_webclip%20lg.png",
+   "tone": null
+  },
+  "qwen-code": {
+   "logo": "lobe:qwen",
+   "checked": 1792275639553,
+   "file": "qwen-code.svg",
+   "mono": false,
+   "src": "lobehub:qwen-color",
+   "tone": null
+  },
+  "jetbrains-ai": {
+   "logo": "lobe:junie",
+   "checked": 1792275639677,
+   "file": "jetbrains-ai.svg",
+   "mono": false,
+   "src": "lobehub:junie-color",
+   "tone": null
+  },
+  "gh-editor-code-assistant-eca": {
+   "logo": null,
+   "checked": 1792275639778,
+   "file": "gh-editor-code-assistant-eca.svg",
+   "mono": true,
+   "src": "http://eca.dev/images/logo.svg",
+   "tone": null
+  },
+  "gh-can1357-oh-my-pi": {
+   "logo": null,
+   "checked": 1792275639778,
+   "file": "gh-can1357-oh-my-pi.svg",
+   "mono": false,
+   "src": "https://omp.sh/favicon.svg",
+   "tone": null
+  },
+  "kilo-code": {
+   "logo": "lobe:kilocode",
+   "checked": 1792275639901,
+   "file": "kilo-code.svg",
+   "mono": true,
+   "src": "lobehub:kilocode",
+   "tone": null
+  },
+  "copilot-cli": {
+   "logo": "lobe:githubcopilot",
+   "checked": 1792275639916,
+   "file": "copilot-cli.svg",
+   "mono": true,
+   "src": "lobehub:githubcopilot",
+   "tone": null
+  },
+  "gh-esengine-deepseek-reasonix": {
+   "logo": null,
+   "checked": 1792275640031,
+   "file": "gh-esengine-deepseek-reasonix.svg",
+   "mono": false,
+   "src": "http://reasonix.io/favicon.svg",
+   "tone": null
+  },
+  "gh-mayday-wpf-snow-cli": {
+   "logo": null,
+   "checked": 1792275640246,
+   "file": null,
+   "mono": false,
+   "src": null
+  },
+  "gh-earendil-works-pi": {
+   "logo": null,
+   "checked": 1792275640139,
+   "file": "gh-earendil-works-pi.svg",
+   "mono": false,
+   "src": "https://pi.dev/logo-auto.svg",
+   "tone": null
+  },
+  "gemini-cli": {
+   "logo": "lobe:geminicli",
+   "checked": 1792275640255,
+   "file": "gemini-cli.svg",
+   "mono": false,
+   "src": "lobehub:geminicli-color",
+   "tone": null
+  },
+  "zed": {
+   "logo": "simple:zedindustries",
+   "checked": 1792275640370,
+   "file": "zed.svg",
+   "mono": false,
+   "src": "simpleicons:zedindustries",
+   "tone": null
+  },
+  "gh-1jehuang-jcode": {
+   "logo": null,
+   "checked": 1792275640481,
+   "file": "gh-1jehuang-jcode.svg",
+   "mono": true,
+   "src": "https://raw.githubusercontent.com/1jehuang/jcode/master/assets/brand/jcode-mark.svg",
+   "tone": null
+  },
+  "openhands": {
+   "logo": "lobe:openhands",
+   "checked": 1792275640489,
+   "file": "openhands.svg",
+   "mono": false,
+   "src": "lobehub:openhands-color",
+   "tone": null
+  },
+  "gh-mistralai-mistral-vibe": {
+   "logo": null,
+   "checked": 1792275640660,
+   "file": "gh-mistralai-mistral-vibe.svg",
+   "mono": false,
+   "src": "lobehub:mistral-color",
+   "tone": null
+  },
+  "gh-vastsa-pi-desktop": {
+   "logo": null,
+   "checked": 1792275640886,
+   "file": "gh-vastsa-pi-desktop.png",
+   "mono": false,
+   "src": "https://raw.githubusercontent.com/vastsa/PI-Desktop/main/docs/image/readme/logo.png",
+   "tone": "light"
+  },
+  "gh-minimax-ai-minimax-code": {
+   "logo": null,
+   "checked": 1792275640923,
+   "file": "gh-minimax-ai-minimax-code.svg",
+   "mono": false,
+   "src": "lobehub:minimax-color",
+   "tone": null
+  },
+  "vscode": {
+   "logo": "simple:visualstudiocode",
+   "checked": 1792275641687,
+   "file": "vscode.png",
+   "mono": false,
+   "src": "https://code.visualstudio.com/assets/apple-touch-icon.png",
+   "tone": null
+  },
+  "augment": {
+   "logo": "site",
+   "checked": 1792275641756,
+   "file": "augment.svg",
+   "mono": true,
+   "src": "https://www.augmentcode.com/favicon.svg",
+   "tone": null
+  },
+  "gh-hkuds-deepcode": {
+   "logo": null,
+   "checked": 1792275641819,
+   "file": "gh-hkuds-deepcode.jpg",
+   "mono": false,
+   "src": "github-org-avatar",
+   "tone": null
+  },
+  "gh-momozi1996-momo-code": {
+   "logo": null,
+   "checked": 1792275641872,
+   "file": null,
+   "mono": false,
+   "src": null
+  },
+  "gh-superset-sh-superset": {
+   "logo": null,
+   "checked": 1792275641981,
+   "file": "gh-superset-sh-superset.png",
+   "mono": false,
+   "src": "https://superset.sh/apple-touch-icon.png",
+   "tone": null
+  },
+  "gh-zai-org-zcode": {
+   "logo": null,
+   "checked": 1792275642004,
+   "file": "gh-zai-org-zcode.svg",
+   "mono": true,
+   "src": "lobehub:zai",
+   "tone": null
+  },
+  "gh-stagewise-io-stagewise": {
+   "logo": null,
+   "checked": 1792275642972,
+   "file": "gh-stagewise-io-stagewise.png",
+   "mono": false,
+   "src": "https://stagewise.io/apple-touch-icon.png",
+   "tone": null
+  },
+  "crush": {
+   "logo": null,
+   "checked": 1792275643275,
+   "file": "crush.png",
+   "mono": false,
+   "src": "github-org-avatar",
+   "tone": null
+  },
+  "gh-openinterpreter-openinterpreter": {
+   "logo": null,
+   "checked": 1792275643393,
+   "file": "gh-openinterpreter-openinterpreter.svg",
+   "mono": true,
+   "src": "http://openinterpreter.com/icon.svg?20bca645e05fa00a",
+   "tone": null
+  },
+  "kimi-cli": {
+   "logo": "lobe:kimi",
+   "checked": 1792275643290,
+   "file": "kimi-cli.svg",
+   "mono": false,
+   "src": "lobehub:kimi-color",
+   "tone": "light"
+  },
+  "antigravity": {
+   "logo": "lobe:antigravity",
+   "checked": 1792275643404,
+   "file": "antigravity.svg",
+   "mono": false,
+   "src": "lobehub:antigravity-color",
+   "tone": null
+  },
+  "trae": {
+   "logo": "lobe:trae",
+   "checked": 1792275643503,
+   "file": "trae.svg",
+   "mono": false,
+   "src": "lobehub:trae-color",
+   "tone": null
+  },
+  "gh-nano-collective-nanocoder": {
+   "logo": null,
+   "checked": 1792275643599,
+   "file": "gh-nano-collective-nanocoder.svg",
+   "mono": false,
+   "src": "https://docs.nanocollective.org/favicon.svg",
+   "tone": null
+  },
+  "gh-anus-dev-anus": {
+   "logo": null,
+   "checked": 1792275643735,
+   "file": "gh-anus-dev-anus.png",
+   "mono": false,
+   "src": "github-org-avatar",
+   "tone": "dark"
+  },
+  "roo-code": {
+   "logo": "lobe:roocode",
+   "checked": 1792275643748,
+   "file": "roo-code.svg",
+   "mono": true,
+   "src": "lobehub:roocode",
+   "tone": null
+  },
+  "windsurf": {
+   "logo": "lobe:windsurf",
+   "checked": 1792275643758,
+   "file": "windsurf.svg",
+   "mono": true,
+   "src": "lobehub:windsurf",
+   "tone": null
+  },
+  "gh-fuxicodex-fuxi": {
+   "logo": null,
+   "checked": 1792275644324,
+   "file": null,
+   "mono": false,
+   "src": null
+  },
+  "gh-twinnydotdev-twinny": {
+   "logo": null,
+   "checked": 1792275644546,
+   "file": "gh-twinnydotdev-twinny.png",
+   "mono": false,
+   "src": "github-org-avatar",
+   "tone": null
+  },
+  "aider": {
+   "logo": "site",
+   "checked": 1792275645148,
+   "file": "aider.png",
+   "mono": false,
+   "src": "github-org-avatar",
+   "tone": null
+  },
+  "continue": {
+   "logo": "site",
+   "checked": 1792275645699,
+   "file": "continue.png",
+   "mono": false,
+   "src": "github-org-avatar",
+   "tone": null
+  }
+ }
+}

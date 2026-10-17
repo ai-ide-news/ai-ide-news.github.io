@@ -1,6 +1,7 @@
 // Renders data/snapshot.json into a static, SEO-friendly site in dist/.
 import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
 import { TOOLS, CATEGORIES } from './sources.mjs';
+import { resolveIcons } from './icons.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -64,8 +65,17 @@ function sparkline(dates, { weeks = 12, w = 132, h = 32 } = {}) {
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="${total} updates in the last ${weeks} weeks">${bars}</svg>`;
 }
 
-const icon = (t, root, size = 'md') =>
-  `<span class="ticon ticon-${size}" style="--c:${t.color}" aria-hidden="true"><img src="${root}icons/${t.id}.png" alt="" loading="lazy" width="32" height="32" onerror="this.remove()"><b>${esc(t.name[0])}</b></span>`;
+// Real logo per tool (scripts/icons.mjs). Mono logos are CSS masks so they follow the theme;
+// org avatars fill the tile; anything missing falls back to the coloured monogram.
+let ICONS = {};
+const icon = (t, root, size = 'md') => {
+  const m = ICONS[t.id];
+  const src = m?.file && `${root}icons/${m.file}`;
+  const art = !src ? '' : m.mono
+    ? `<i class="mono" style="--img:url('${src}')"></i>`
+    : `<img${m.src === 'github-org-avatar' ? ' class="fill"' : ''} src="${src}" alt="" loading="lazy" decoding="async" width="40" height="40">`;
+  return `<span class="ticon ticon-${size}${src ? ' has-logo' : ''}${m?.tone ? ` tone-${m.tone}` : ''}" style="--c:${t.color}" aria-hidden="true">${art}<b>${esc(t.name[0])}</b></span>`;
+};
 
 // ── layout ────────────────────────────────────────────────
 function layout({ root, path, title, description, body, jsonld, active = '' }) {
@@ -395,19 +405,8 @@ ${items.map((i) => `<item><title>${x(i.title)}</title><link>${x(i.url)}</link><g
 async function icons() {
   await mkdir(new URL('icons/', DIST), { recursive: true });
   const cacheDir = new URL('data/icons/', ROOT);
-  await mkdir(cacheDir, { recursive: true });
-  await Promise.all(tools.map(async (t) => {
-    const cached = new URL(`${t.id}.png`, cacheDir);
-    let buf = await readFile(cached).catch(() => null);
-    if (!buf) {
-      try {
-        const src = t.avatar ? `${t.avatar}${t.avatar.includes('?') ? '&' : '?'}s=128` : `https://www.google.com/s2/favicons?domain=${t.domain}&sz=128`;
-        const res = await fetch(src, { signal: AbortSignal.timeout(15000) });
-        if (res.ok) { buf = Buffer.from(await res.arrayBuffer()); await writeFile(cached, buf); }
-      } catch {}
-    }
-    if (buf) await writeFile(new URL(`icons/${t.id}.png`, DIST), buf);
-  }));
+  ICONS = await resolveIcons(tools, cacheDir);
+  await Promise.all(Object.values(ICONS).filter((m) => m.file).map((m) => cp(new URL(m.file, cacheDir), new URL(`icons/${m.file}`, DIST))));
 }
 
 const out = async (path, content) => {

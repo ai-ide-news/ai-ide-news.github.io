@@ -46,6 +46,7 @@ jobs:
         run: node scripts/build.mjs
         env:
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # README lookups when resolving new logos
       - name: Commit data snapshot (keeps history + keeps the schedule alive)
         if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
         run: |
