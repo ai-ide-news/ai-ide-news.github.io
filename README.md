@@ -12,6 +12,11 @@ A live tracker of the latest releases, patches, changelogs and community discuss
 | Official changelog RSS/Atom feeds | Cursor, Kiro, Amp, GitHub Copilot changelogs |
 | Official blog feeds | VS Code, Zed, Windsurf, Trae, JetBrains AI, Augment, OpenAI (Codex), Google (Gemini CLI / Antigravity) |
 | Hacker News (Algolia API) | Community discussion |
+| GitHub Search API | Auto-discovering trending open-source coding agents, IDEs & extensions |
+
+### Trending auto-discovery
+
+On every refresh, `scripts/discover.mjs` searches GitHub for repos in the niche (coding-agent / AI-IDE topics and descriptions), filters out skill packs, guides, MCP servers, proxies and other companion utilities, and keeps only tools that shipped a stable GitHub Release in the last 60 days. Their release notes become their changelog on the site, and a daily star history ranks them by star velocity. Tune it via `DISCOVERY` in `scripts/sources.mjs` (`allow` / `deny` lists, star threshold, cap).
 
 A GitHub Actions workflow re-fetches everything every 3 hours, rebuilds the static site and deploys it to GitHub Pages. If a source fails, the previous snapshot for that source is kept.
 
@@ -22,7 +27,7 @@ npm install
 npm run dev   # fetch → build → serve on http://localhost:4173
 ```
 
-Add a tool in `scripts/sources.mjs`. Outputs: HTML pages, `feed.xml` (RSS), `data.json` (JSON API), `sitemap.xml`.
+Add a curated tool in `scripts/sources.mjs` (trending ones are added automatically). Outputs: HTML pages, `feed.xml` (RSS), `data.json` (JSON API), `sitemap.xml`.
 
 ---
 

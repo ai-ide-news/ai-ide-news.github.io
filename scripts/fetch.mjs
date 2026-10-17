@@ -4,7 +4,8 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { XMLParser } from 'fast-xml-parser';
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
-import { TOOLS, HN_MATCH, HN_QUERIES } from './sources.mjs';
+import { TOOLS, HN_MATCH, HN_QUERIES, DISCOVERY } from './sources.mjs';
+import { searchCandidates, toTool } from './discover.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
 const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
@@ -175,7 +176,7 @@ async function fetchFeeds(tool) {
 }
 
 // ── Hacker News discussion ────────────────────────────────
-async function fetchHN() {
+async function fetchHN(allTools) {
   const since = Math.floor((NOW - 60 * DAY) / 1000);
   const seen = new Map();
   await Promise.all(HN_QUERIES.map(async (q) => {
@@ -185,7 +186,7 @@ async function fetchHN() {
   }));
   const items = [];
   for (const h of seen.values()) {
-    const toolIds = TOOLS.filter((t) => HN_MATCH[t.id]?.test(h.title)).map((t) => t.id);
+    const toolIds = allTools.filter((t) => (HN_MATCH[t.id] || t.hnMatch)?.test(h.title)).map((t) => t.id);
     if (!toolIds.length) continue;
     items.push({
       id: `hn:${h.objectID}`, toolId: toolIds[0], toolIds, kind: 'discussion', title: h.title,
@@ -198,6 +199,62 @@ async function fetchHN() {
   return items.sort((a, b) => b.points - a.points).slice(0, 150);
 }
 
+// ── Trending discovery ─────────────────────────────────────
+// Finds trending repos in the niche, keeps those that shipped a stable release recently, and
+// tracks a daily star history per tool so "trending" means real star velocity, not just size.
+const discoveredItems = new Map();
+// HN titles must name the tool *and* sound like coding news, since discovered names can be common words.
+function hnPattern(name) {
+  if (name.length < 5 || /\s/.test(name)) return null;
+  const n = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const ctx = '(agent|cod(e|ing)|cli|ide|llm|ai)';
+  return new RegExp(`\\b${n}\\b.*\\b${ctx}\\b|\\b${ctx}\\b.*\\b${n}\\b`, 'i');
+}
+
+function starVelocity(history) {
+  const recent = history.filter(([d]) => NOW - Date.parse(d) <= 8 * DAY);
+  if (recent.length < 2) return null;
+  const [d0, s0] = recent[0], [d1, s1] = recent[recent.length - 1];
+  const days = (Date.parse(d1) - Date.parse(d0)) / DAY;
+  return days >= 1 ? Math.round(((s1 - s0) / days) * 7) : null;
+}
+
+async function discover(prev, report) {
+  const prevById = new Map((prev.discovered || []).map((d) => [d.id, d]));
+  let candidates;
+  try { candidates = await searchCandidates(get, ghHeaders); } catch (e) {
+    report.push(`⚠ Discovery: ${e.message} (kept previous list)`);
+    return prev.discovered || [];
+  }
+  const today = new Date(NOW).toISOString().slice(0, 10);
+  const qualified = [];
+  await Promise.all(candidates.map(async (r) => {
+    const tool = toTool(r);
+    try {
+      const { items, meta } = await fetchGithub(tool);
+      const latest = items[0];
+      if (!latest || NOW - Date.parse(latest.date) > DISCOVERY.maxReleaseAgeDays * DAY) return;
+      const old = prevById.get(tool.id);
+      const stars = [...(old?.stars || []).filter(([d]) => d !== today && NOW - Date.parse(d) < 31 * DAY), [today, r.stargazers_count]];
+      const ageDays = Math.max(30, (NOW - Date.parse(r.created_at)) / DAY);
+      const velocity = starVelocity(stars);
+      qualified.push({
+        ...tool, firstSeen: old?.firstSeen || new Date(NOW).toISOString(), lastQualified: new Date(NOW).toISOString(),
+        stars, starsPerWeek: velocity, score: velocity ?? Math.round((r.stargazers_count / ageDays) * 7),
+      });
+      discoveredItems.set(tool.id, { items, meta, errors: [] });
+    } catch {}
+  }));
+  // Keep recently-qualified tools for a while so pages don't flicker in and out.
+  const ids = new Set(qualified.map((q) => q.id));
+  // Only tools that still pass the niche filter are kept (a deny-list entry removes one at once).
+  const stillCandidates = new Set(candidates.map((r) => toTool(r).id));
+  const kept = [...prevById.values()].filter((d) => !ids.has(d.id) && stillCandidates.has(d.id) && NOW - Date.parse(d.lastQualified) < DISCOVERY.keepDays * DAY);
+  const out = [...qualified.sort((a, b) => b.score - a.score).slice(0, DISCOVERY.maxTools), ...kept];
+  report.push(`✓ Discovery              ${qualified.length} trending tools qualified (${candidates.length} candidates, ${kept.length} kept)`);
+  return out;
+}
+
 // ── Orchestrate ────────────────────────────────────────────
 async function main() {
   let prev = { tools: {}, discussions: [] };
@@ -205,7 +262,14 @@ async function main() {
 
   const report = [];
   const tools = {};
-  await Promise.all(TOOLS.map(async (tool) => {
+  const discovered = await discover(prev, report);
+  const allTools = [...TOOLS, ...discovered.map((d) => ({ ...d, hnMatch: hnPattern(d.name) }))];
+  await Promise.all(allTools.map(async (tool) => {
+    if (tool.discovered && discoveredItems.has(tool.id)) { // already fetched while qualifying it
+      tools[tool.id] = discoveredItems.get(tool.id);
+      report.push(`✓ ${('↗ ' + tool.name).padEnd(22)} ${String(tools[tool.id].items.length).padStart(3)} items`);
+      return;
+    }
     const entry = { items: [], meta: {}, errors: [] };
     if (tool.github) {
       try {
@@ -231,12 +295,12 @@ async function main() {
   }));
 
   let discussions = [];
-  try { discussions = await fetchHN(); report.push(`✓ Hacker News            ${discussions.length} stories`); } catch (e) {
+  try { discussions = await fetchHN(allTools); report.push(`✓ Hacker News            ${discussions.length} stories`); } catch (e) {
     discussions = prev.discussions || []; report.push(`⚠ Hacker News: ${e.message}`);
   }
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discussions }, null, 1));
+  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions }, null, 1));
   console.log(report.sort().join('\n'));
 }
 

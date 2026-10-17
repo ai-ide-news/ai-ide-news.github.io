@@ -295,3 +295,11 @@ h2 { font-size: clamp(26px, 3.2vw, 38px); letter-spacing: -.035em; line-height: 
 }
 .foot-in p.credit { color: var(--ink); font-weight: 550; }
 .foot-in p.credit a { font-weight: 600; }
+
+/* Auto-discovered trending tools */
+.trend { font: 500 10.5px var(--mono); letter-spacing: .04em; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+.vcard-top .trend { margin-left: auto; }
+.vcard-top .fresh + .trend { margin-left: 6px; }
+.eyebrow .trend { text-transform: none; }
+.section-note { max-width: 46ch; margin: 0; }
+.more-link { margin-top: 16px; text-align: center; }

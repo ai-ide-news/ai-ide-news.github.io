@@ -34,14 +34,15 @@
     const q = state.q.trim().toLowerCase();
     const terms = q ? q.split(/\s+/) : [];
     const match = (el) => terms.every((t) => el.dataset.text.includes(t));
+    const inCat = (el) => state.cat === 'all' || (state.cat === 'trending' ? el.dataset.trend === '1' : el.dataset.cat === state.cat);
 
-    vcards.forEach((v) => { v.hidden = !((state.cat === 'all' || v.dataset.cat === state.cat) && match(v)); });
+    vcards.forEach((v) => { v.hidden = !(inCat(v) && match(v)); });
     $$('.vgrid').forEach((g) => { const e = g.nextElementSibling; if (e?.classList.contains('empty')) e.hidden = $$('.vcard', g).some((v) => !v.hidden); });
 
     if (!feed) return;
     let shown = 0, total = 0;
     for (const c of cards) {
-      const ok = (state.cat === 'all' || c.dataset.cat === state.cat) && (state.kind === 'all' || c.dataset.kind === state.kind) && match(c);
+      const ok = inCat(c) && (state.kind === 'all' || c.dataset.kind === state.kind) && match(c);
       if (ok) total++;
       const vis = ok && shown < state.page;
       if (vis) shown++;
@@ -57,12 +58,16 @@
     const empty = $('.feed-more .empty'); if (empty) empty.hidden = total > 0;
   }
 
-  $$('.tabs').forEach((tabs) => tabs.addEventListener('click', (e) => {
-    const b = e.target.closest('button'); if (!b) return;
-    state.cat = b.dataset.cat; state.page = 40;
+  const setCat = (cat) => {
+    state.cat = cat; state.page = 40;
     $$('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.cat === state.cat)));
     apply();
+  };
+  $$('.tabs').forEach((tabs) => tabs.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (b) setCat(b.dataset.cat);
   }));
+  // /tools/#trending opens the directory pre-filtered
+  if (location.hash === '#trending' && !$('#trending') && $('.tabs button[data-cat="trending"]')) setCat('trending');
   $$('.chips').forEach((chips) => chips.addEventListener('click', (e) => {
     const b = e.target.closest('.chip'); if (!b) return;
     state.kind = b.dataset.kind; state.page = 40;

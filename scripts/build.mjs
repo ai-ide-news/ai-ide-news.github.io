@@ -30,7 +30,9 @@ const compact = (n) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
 const time = (iso, cls = '') => `<time class="${cls}" datetime="${esc(iso)}" title="${esc(new Date(iso).toUTCString())}">${ago(iso)}</time>`;
 const KIND = { release: 'Release', changelog: 'Changelog', blog: 'Blog', discussion: 'Discussion' };
 
-const tools = TOOLS.map((t) => {
+// Curated tools plus trending ones auto-discovered on GitHub (scripts/discover.mjs).
+const discovered = snap.discovered || [];
+const tools = [...TOOLS, ...discovered].map((t) => {
   const entry = snap.tools[t.id] || { items: [], meta: {} };
   const items = entry.items;
   const updates = items.filter((i) => i.kind === 'release' || i.kind === 'changelog');
@@ -41,6 +43,8 @@ const tools = TOOLS.map((t) => {
   return { ...t, items, meta: entry.meta || {}, latest, latestRelease, updates, activity, discussions, lastActive: latest?.date || '1970-01-01T00:00:00Z' };
 }).sort((a, b) => b.lastActive.localeCompare(a.lastActive));
 const byId = Object.fromEntries(tools.map((t) => [t.id, t]));
+const trending = tools.filter((t) => t.discovered).sort((a, b) => b.score - a.score);
+const trendBadge = (t) => (t.starsPerWeek > 0 ? `↗ +${compact(t.starsPerWeek)}★` : '↗');
 
 // Weekly activity sparkline (12 weeks). Single series → one hue, per-bar hover tooltip.
 function sparkline(dates, { weeks = 12, w = 132, h = 32 } = {}) {
@@ -104,6 +108,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
     <nav class="nav-links" aria-label="Primary">
       <a href="${root}#versions" ${active === 'versions' ? 'aria-current="page"' : ''}>Versions</a>
       <a href="${root}#feed">Feed</a>
+      ${trending.length ? `<a href="${root}#trending">Trending</a>` : ''}
       <a href="${root}#discussions">Discussions</a>
       <a href="${root}tools/">All tools</a>
     </nav>
@@ -121,7 +126,7 @@ ${body}
   <div class="wrap foot-in">
     <div>
       <a class="brand" href="${root}"><span>${SITE_NAME}</span></a>
-      <p>Real-time changelog tracker for AI IDEs, coding CLIs and editor agents. Data is pulled straight from official GitHub releases, official changelog &amp; blog RSS feeds, and Hacker News — refreshed automatically every few hours. No mock data.</p>
+      <p>Real-time changelog tracker for AI IDEs, coding CLIs and editor agents. Data is pulled straight from official GitHub releases, official changelog &amp; blog RSS feeds, and Hacker News — refreshed automatically every few hours. Trending tools are discovered automatically from GitHub. No mock data.</p>
     </div>
     <div class="foot-meta">
       <p>Last refreshed ${time(snap.generatedAt, 'live-ago')}</p>
@@ -142,7 +147,7 @@ function feedCard(item, root, { full = false } = {}) {
   const cat = t.category;
   const text = `${t.name} ${item.title} ${item.version || ''} ${t.vendor}`.toLowerCase();
   const notes = full && item.html ? `<details class="notes"><summary>Read full notes</summary><div class="prose">${item.html}</div></details>` : '';
-  return `<article class="fcard" data-kind="${item.kind}" data-cat="${cat}" data-tool="${t.id}" data-text="${esc(text)}" style="--c:${t.color}">
+  return `<article class="fcard" data-kind="${item.kind}" data-cat="${cat}" data-trend="${t.discovered ? 1 : 0}" data-tool="${t.id}" data-text="${esc(text)}" style="--c:${t.color}">
   <div class="fcard-rail">${icon(t, root, 'sm')}</div>
   <div class="fcard-body">
     <div class="fcard-meta">
@@ -188,8 +193,8 @@ function versionCard(t, root) {
   const l = t.latest;
   const ver = t.latestRelease ? t.latestRelease.version : null;
   const fresh = l && NOW - Date.parse(l.date) < 2 * DAY;
-  return `<a class="vcard" href="${root}tools/${t.id}/" data-cat="${t.category}" data-tool="${t.id}" data-text="${esc(`${t.name} ${t.vendor}`.toLowerCase())}" style="--c:${t.color}">
-  <div class="vcard-top">${icon(t, root)}<div class="vcard-name"><strong>${esc(t.name)}</strong><span>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</span></div>${fresh ? '<span class="fresh">New</span>' : ''}</div>
+  return `<a class="vcard" href="${root}tools/${t.id}/" data-cat="${t.category}" data-trend="${t.discovered ? 1 : 0}" data-tool="${t.id}" data-text="${esc(`${t.name} ${t.vendor}`.toLowerCase())}" style="--c:${t.color}">
+  <div class="vcard-top">${icon(t, root)}<div class="vcard-name"><strong>${esc(t.name)}</strong><span>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</span></div>${fresh ? '<span class="fresh">New</span>' : ''}${t.discovered ? `<span class="trend" title="Trending on GitHub${t.starsPerWeek > 0 ? ` · +${t.starsPerWeek} stars this week` : ''}">${trendBadge(t)}</span>` : ''}</div>
   <div class="vcard-ver">${ver ? `<code>${esc(ver)}</code>` : `<span class="vcard-upd">${esc(l?.title || '—')}</span>`}</div>
   <div class="vcard-foot">
     <span>${l ? time(l.date) : 'no data'}${t.meta.stars ? ` · ★ ${compact(t.meta.stars)}` : ''}</span>
@@ -201,6 +206,7 @@ function versionCard(t, root) {
 const catTabs = (withCounts = true) => `<div class="tabs" role="tablist" aria-label="Filter by category">
   <button role="tab" aria-selected="true" data-cat="all">All${withCounts ? ` <i>${tools.length}</i>` : ''}</button>
   ${Object.entries(CATEGORIES).map(([k, c]) => `<button role="tab" aria-selected="false" data-cat="${k}">${c.label}${withCounts ? ` <i>${tools.filter((t) => t.category === k).length}</i>` : ''}</button>`).join('')}
+  ${trending.length ? `<button role="tab" aria-selected="false" data-cat="trending">↗ Trending${withCounts ? ` <i>${trending.length}</i>` : ''}</button>` : ''}
 </div>`;
 
 // ── pages ─────────────────────────────────────────────────
@@ -224,7 +230,7 @@ function indexPage() {
     <kbd>/</kbd>
   </div>
   <dl class="stats">
-    <div><dt>Tools tracked</dt><dd>${tools.length}</dd></div>
+    <div><dt>Tools tracked</dt><dd>${tools.length}${trending.length ? `<small> · ${trending.length} trending</small>` : ''}</dd></div>
     <div><dt>Updates · 7 days</dt><dd>${weekUpdates}</dd></div>
     <div><dt>Shipped in 24h</dt><dd>${shippedToday}<small> tools</small></dd></div>
     <div><dt>HN threads · 60d</dt><dd>${snap.discussions.length}</dd></div>
@@ -242,9 +248,18 @@ function indexPage() {
   <p class="empty" hidden>No tools match your search.</p>
 </section>
 
+${trending.length ? `<section id="trending" class="wrap section">
+  <div class="section-head">
+    <div><p class="eyebrow">02 — Rising on GitHub</p><h2>Trending AI coding tools</h2></div>
+    <p class="muted small section-note">Auto-discovered open-source coding agents, IDEs and extensions that are gaining stars and shipping releases. Ranked by star velocity; the list refreshes itself every few hours.</p>
+  </div>
+  <div class="vgrid">${trending.slice(0, 12).map((t) => versionCard(t, root)).join('')}</div>
+  ${trending.length > 12 ? `<p class="more-link"><a class="btn ghost" href="${root}tools/#trending">See all ${trending.length} trending tools →</a></p>` : ''}
+</section>` : ''}
+
 <section id="feed" class="wrap section">
   <div class="section-head">
-    <div><p class="eyebrow">02 — Everything that shipped</p><h2>The update feed</h2></div>
+    <div><p class="eyebrow">03 — Everything that shipped</p><h2>The update feed</h2></div>
     <div class="chips" role="group" aria-label="Filter by type">
       <button class="chip on" data-kind="all">All</button>
       <button class="chip" data-kind="release"><i class="k release"></i>Releases</button>
@@ -256,7 +271,7 @@ function indexPage() {
     <div class="feed" id="feedlist" data-page="40">${timeline(recent, root)}</div>
     <aside id="discussions" class="side">
       <div class="side-card">
-        <p class="eyebrow">03 — Community</p>
+        <p class="eyebrow">04 — Community</p>
         <h2>Hot on Hacker News</h2>
         <p class="muted small">Top-voted threads about these tools, last 60 days.</p>
         ${discussionList(hottest, root)}
@@ -295,7 +310,7 @@ function toolPage(t) {
   <div class="tool-head">
     ${icon(t, root, 'xl')}
     <div>
-      <p class="eyebrow">${CATEGORIES[t.category].label} · ${esc(t.vendor)}</p>
+      <p class="eyebrow">${CATEGORIES[t.category].label} · ${esc(t.vendor)}${t.discovered ? ` · <span class="trend">↗ Trending on GitHub</span>` : ''}</p>
       <h1>${esc(t.name)} <em>changelog</em></h1>
       <p class="lede">${esc(t.blurb)}</p>
       <div class="tool-links">
@@ -307,7 +322,7 @@ function toolPage(t) {
   <dl class="stats tool-stats">
     <div><dt>${ver ? 'Latest version' : 'Latest update'}</dt><dd>${ver ? `<code>${esc(ver)}</code>` : (t.latest ? fmtDate(t.latest.date) : '—')}</dd></div>
     <div><dt>Last shipped</dt><dd>${t.latest ? ago(t.latest.date) : '—'}</dd></div>
-    <div><dt>Updates · 90 days</dt><dd>${rel90.length}</dd></div>
+    ${t.discovered ? `<div><dt>GitHub stars</dt><dd>${compact(t.meta.stars || 0)}${t.starsPerWeek > 0 ? `<small> +${compact(t.starsPerWeek)}/wk</small>` : ''}</dd></div>` : `<div><dt>Updates · 90 days</dt><dd>${rel90.length}</dd></div>`}
     <div><dt>${avgGap != null ? 'Avg. release gap' : 'GitHub stars'}</dt><dd>${avgGap != null ? `${avgGap < 1 ? '<1' : avgGap.toFixed(1)}<small> days</small>` : (t.meta.stars ? compact(t.meta.stars) : '—')}</dd></div>
   </dl>
   <div class="tool-spark"><span class="muted small">Weekly activity · last 26 weeks</span>${sparkline(t.activity, { weeks: 26, w: 520, h: 56 })}</div>
@@ -385,7 +400,8 @@ async function icons() {
     let buf = await readFile(cached).catch(() => null);
     if (!buf) {
       try {
-        const res = await fetch(`https://www.google.com/s2/favicons?domain=${t.domain}&sz=128`, { signal: AbortSignal.timeout(15000) });
+        const src = t.avatar ? `${t.avatar}${t.avatar.includes('?') ? '&' : '?'}s=128` : `https://www.google.com/s2/favicons?domain=${t.domain}&sz=128`;
+        const res = await fetch(src, { signal: AbortSignal.timeout(15000) });
         if (res.ok) { buf = Buffer.from(await res.arrayBuffer()); await writeFile(cached, buf); }
       } catch {}
     }
@@ -413,7 +429,7 @@ const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompa
 await out('feed.xml', rss(allItems.slice(0, 120)));
 await out('data.json', JSON.stringify({
   generatedAt: snap.generatedAt, source: SITE_URL,
-  tools: tools.map((t) => ({ id: t.id, name: t.name, vendor: t.vendor, category: t.category, site: t.site, latestVersion: t.latestRelease?.version || null, lastUpdate: t.latest?.date || null, stars: t.meta.stars ?? null, url: `${SITE_URL}/tools/${t.id}/` })),
+  tools: tools.map((t) => ({ id: t.id, name: t.name, vendor: t.vendor, category: t.category, trending: !!t.discovered, site: t.site, latestVersion: t.latestRelease?.version || null, lastUpdate: t.latest?.date || null, stars: t.meta.stars ?? null, url: `${SITE_URL}/tools/${t.id}/` })),
   updates: allItems.slice(0, 300).map(({ html, ...i }) => i),
   discussions: snap.discussions,
 }));

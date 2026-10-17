@@ -184,6 +184,25 @@ export const TOOLS = [
   },
 ];
 
+// Auto-discovery of trending open-source tools in the same niche (see discover.mjs).
+// allow: repos to always include if they ship releases · deny: repos to never include.
+export const DISCOVERY = {
+  maxTools: 40,          // cap on discovered tools shown alongside the curated list
+  minStars: 1000,
+  maxIdleDays: 30,       // must have been pushed to recently
+  maxReleaseAgeDays: 60, // must have shipped a stable GitHub Release recently
+  keepDays: 14,          // keep a tool this long after it stops qualifying (avoids churn)
+  topics: ['coding-agent', 'ai-coding', 'ai-coding-assistant', 'coding-assistant', 'agentic-coding', 'ai-ide', 'code-assistant', 'ai-pair-programming', 'terminal-agent', 'ai-code-editor'],
+  allow: [],
+  deny: ['the-open-agent/openagent'],
+  // Display names where the repo name doesn't read well.
+  names: {
+    'openinterpreter/openinterpreter': 'Open Interpreter', 'omnirush-ai/omnirush-gui': 'OmniRush',
+    'langchain-ai/open-swe': 'Open SWE', 'editor-code-assistant/eca': 'ECA', 'momozi1996/momo-code': 'MOMO Code',
+    'fuxicodex/fuxi': 'FuXi', 'minimax-ai/minimax-code': 'MiniMax Code', 'vastsa/pi-desktop': 'PI Desktop',
+  },
+};
+
 // Title patterns that tie a Hacker News story to a tool (kept strict to avoid false matches).
 export const HN_MATCH = {
   'claude-code': /claude code/i,
