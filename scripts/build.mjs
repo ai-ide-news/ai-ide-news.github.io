@@ -78,6 +78,7 @@ function layout({ root, path, title, description, body, jsonld, active = '' }) {
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta name="author" content="${AUTHOR.name}">
+<meta name="pw-generated" content="${snap.generatedAt}">
 <link rel="canonical" href="${canonical}">
 <meta name="theme-color" content="#09090b">
 <meta property="og:type" content="website">
@@ -432,6 +433,11 @@ await out('data.json', JSON.stringify({
   tools: tools.map((t) => ({ id: t.id, name: t.name, vendor: t.vendor, category: t.category, trending: !!t.discovered, site: t.site, latestVersion: t.latestRelease?.version || null, lastUpdate: t.latest?.date || null, stars: t.meta.stars ?? null, url: `${SITE_URL}/tools/${t.id}/` })),
   updates: allItems.slice(0, 300).map(({ html, ...i }) => i),
   discussions: snap.discussions,
+}));
+// Tiny file the open page polls to announce new updates without a full reload of data.json.
+await out('version.json', JSON.stringify({
+  generatedAt: snap.generatedAt,
+  latest: allItems.filter((i) => i.kind !== 'blog').slice(0, 30).map((i) => ({ id: i.id, title: i.title, tool: byId[i.toolId].name, url: `${SITE_URL}/tools/${i.toolId}/`, date: i.date })),
 }));
 await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

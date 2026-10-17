@@ -85,4 +85,34 @@
   }
   more?.addEventListener('click', () => { state.page += 40; apply(); });
   apply();
+
+  // Live updates: poll the tiny version.json and offer a refresh as soon as a new build ships.
+  const built = $('meta[name="pw-generated"]')?.content;
+  const versionUrl = new URL('../version.json', document.currentScript?.src || location.href);
+  let seen = null, toast = null;
+  async function checkForUpdates() {
+    if (document.hidden || !built) return;
+    try {
+      const v = await (await fetch(`${versionUrl}?t=${Date.now()}`, { cache: 'no-store' })).json();
+      if (!(v.generatedAt > built) || v.generatedAt === seen) return;
+      seen = v.generatedAt;
+      const fresh = v.latest.filter((i) => i.date > built);
+      showToast(fresh.length
+        ? `${fresh.length} new update${fresh.length === 1 ? '' : 's'}: ${fresh.slice(0, 2).map((i) => i.title).join(' · ')}${fresh.length > 2 ? ' …' : ''}`
+        : 'The site was just refreshed with new data.');
+    } catch {}
+  }
+  function showToast(text) {
+    toast?.remove();
+    toast = document.createElement('div');
+    toast.className = 'live-toast';
+    toast.setAttribute('role', 'status');
+    toast.innerHTML = '<span class="dot"></span><p></p><button type="button" class="btn">Refresh</button><button type="button" class="x" aria-label="Dismiss">×</button>';
+    $('p', toast).textContent = text;
+    $('.btn', toast).addEventListener('click', () => location.reload());
+    $('.x', toast).addEventListener('click', () => toast.remove());
+    document.body.append(toast);
+  }
+  setInterval(checkForUpdates, 90000);
+  document.addEventListener('visibilitychange', checkForUpdates);
 })();

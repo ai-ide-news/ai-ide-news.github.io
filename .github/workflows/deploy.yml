@@ -4,8 +4,11 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '17 */3 * * *'   # every 3 hours
+    - cron: '*/10 * * * *'   # quick check for new releases; deploys only if something shipped
+    - cron: '17 */3 * * *'   # full refresh: trending discovery, stars, HN — always deploys
   workflow_dispatch:
+  repository_dispatch:       # lets an external webhook trigger an instant refresh
+    types: [refresh]
 
 permissions:
   contents: write
@@ -16,9 +19,15 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+env:
+  # Every run except the scheduled 10-minute check is a full refresh.
+  QUICK: ${{ github.event.schedule == '*/10 * * * *' && '1' || '0' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ env.QUICK != '1' || steps.fetch.outputs.changed == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,14 +36,17 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Fetch latest releases, changelogs & news
+        id: fetch
         run: node scripts/fetch.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build site
+        if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
         run: node scripts/build.mjs
         env:
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
       - name: Commit data snapshot (keeps history + keeps the schedule alive)
+        if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
         run: |
           git config user.name "patchwire-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -42,12 +54,15 @@ jobs:
           git diff --cached --quiet || git commit -m "data: refresh snapshot [skip ci]"
           git push || echo "push skipped"
       - uses: actions/configure-pages@v5
+        if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
       - uses: actions/upload-pages-artifact@v3
+        if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
         with:
           path: dist
 
   deploy:
     needs: build
+    if: needs.build.outputs.deploy == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

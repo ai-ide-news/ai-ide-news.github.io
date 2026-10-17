@@ -13,6 +13,9 @@ const GH_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
 const DAY = 86400e3;
 const NOW = Date.now();
 const MAX_PER_TOOL = 40;
+// QUICK=1: the frequent "is there anything new?" run — skips trending discovery and repo metadata,
+// and uses conditional requests so unchanged GitHub repos cost nothing against the rate limit.
+const QUICK = process.env.QUICK === '1';
 const UNSTABLE = /nightly|alpha|beta|preview|canary|[-.]rc\.?\d*|-pre\b|\bdev\b|insiders/i;
 
 const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@', cdataPropName: false, processEntities: true, htmlEntities: true });
@@ -65,12 +68,21 @@ function releaseTitle(tool, version, name) {
 const ghHeaders = () => ({ Accept: 'application/vnd.github+json', ...(GH_TOKEN ? { Authorization: `Bearer ${GH_TOKEN}` } : {}) });
 
 // ── GitHub releases ────────────────────────────────────────
-async function fetchGithub(tool) {
-  const [releases, repo] = await Promise.all([
-    get(`https://api.github.com/repos/${tool.github}/releases?per_page=60`, { json: true, headers: ghHeaders() }),
-    get(`https://api.github.com/repos/${tool.github}`, { json: true, headers: ghHeaders() }),
-  ]);
-  const meta = { stars: repo.stargazers_count, repo: tool.github, repoUrl: repo.html_url, license: repo.license?.spdx_id || null };
+// `old` is the tool's previous snapshot entry: its ETag lets GitHub answer 304 (free) when nothing shipped.
+async function fetchGithub(tool, old) {
+  const url = `https://api.github.com/repos/${tool.github}/releases?per_page=60`;
+  const res = await fetch(url, { headers: { 'User-Agent': UA, ...ghHeaders(), ...(old?.meta?.etag ? { 'If-None-Match': old.meta.etag } : {}) }, signal: AbortSignal.timeout(30000) });
+  const reuse = QUICK && old?.meta?.repo;
+  if (res.status === 304 && !tool.npm) {
+    return { items: old.items.filter((i) => i.kind === 'release'), meta: old.meta };
+  }
+  if (!res.ok && res.status !== 304) throw new Error(`${res.status} ${url}`);
+  const releases = res.status === 304 ? [] : await res.json();
+  const etag = res.headers.get('etag');
+  const repo = reuse ? null : await get(`https://api.github.com/repos/${tool.github}`, { json: true, headers: ghHeaders() });
+  const meta = repo
+    ? { stars: repo.stargazers_count, repo: tool.github, repoUrl: repo.html_url, license: repo.license?.spdx_id || null, etag }
+    : { ...old.meta, etag };
   if (tool.npm) return fetchNpm(tool, meta);
   const stable = releases.filter((r) => !r.draft && !r.prerelease && !UNSTABLE.test(r.tag_name) && !UNSTABLE.test(r.name || '') && (!tool.tagFilter || tool.tagFilter.test(r.tag_name)));
   const cadence = releases.filter((r) => !r.draft).map((r) => r.published_at);
@@ -220,6 +232,7 @@ function starVelocity(history) {
 }
 
 async function discover(prev, report) {
+  if (QUICK) return prev.discovered || [];
   const prevById = new Map((prev.discovered || []).map((d) => [d.id, d]));
   let candidates;
   try { candidates = await searchCandidates(get, ghHeaders); } catch (e) {
@@ -231,7 +244,7 @@ async function discover(prev, report) {
   await Promise.all(candidates.map(async (r) => {
     const tool = toTool(r);
     try {
-      const { items, meta } = await fetchGithub(tool);
+      const { items, meta } = await fetchGithub(tool, prev.tools?.[tool.id]);
       const latest = items[0];
       if (!latest || NOW - Date.parse(latest.date) > DISCOVERY.maxReleaseAgeDays * DAY) return;
       const old = prevById.get(tool.id);
@@ -273,7 +286,7 @@ async function main() {
     const entry = { items: [], meta: {}, errors: [] };
     if (tool.github) {
       try {
-        const { items, meta } = await fetchGithub(tool);
+        const { items, meta } = await fetchGithub(tool, prev.tools?.[tool.id]);
         entry.items.push(...items); entry.meta = meta;
       } catch (e) {
         entry.errors.push(`github: ${e.message}`);
@@ -298,6 +311,16 @@ async function main() {
   try { discussions = await fetchHN(allTools); report.push(`✓ Hacker News            ${discussions.length} stories`); } catch (e) {
     discussions = prev.discussions || []; report.push(`⚠ Hacker News: ${e.message}`);
   }
+
+  // Did anything actually ship? (Ignores HN vote counts, which move constantly.)
+  const fingerprint = (t) => Object.values(t || {}).flatMap((e) => e.items.map((i) => `${i.id}|${i.version || ''}|${i.title}`)).sort().join('\n');
+  const ids = (list) => (list || []).map((d) => d.id).sort().join();
+  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered);
+  const newIds = new Set(Object.values(prev.tools || {}).flatMap((e) => e.items.map((i) => i.id)));
+  const fresh = Object.values(tools).flatMap((e) => e.items).filter((i) => !newIds.has(i.id));
+  report.push(`${changed ? '★' : '·'} ${changed ? `${fresh.length} new item(s): ${fresh.slice(0, 8).map((i) => i.title).join(' · ')}` : 'No new updates'}`);
+  if (process.env.GITHUB_OUTPUT) await writeFile(process.env.GITHUB_OUTPUT, `changed=${changed}\n`, { flag: 'a' });
+  if (QUICK && !changed) { console.log(report.sort().join('\n')); return; } // nothing new: leave the snapshot untouched
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
   await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions }, null, 1));
