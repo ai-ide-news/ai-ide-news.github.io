@@ -316,3 +316,46 @@ h2 { font-size: clamp(26px, 3.2vw, 38px); letter-spacing: -.035em; line-height: 
 .live-toast .btn { padding: 6px 12px; }
 .live-toast .x { border: 0; background: none; color: var(--ink-3); font-size: 20px; line-height: 1; padding: 4px 6px; cursor: pointer; }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 12px); } }
+
+/* ── important news ───────────────────── */
+.ngrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.ncard { display: flex; flex-direction: column; gap: 8px; padding: 18px 20px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); position: relative; overflow: hidden; transition: border-color .2s, transform .2s var(--ease); animation: rise .5s var(--ease) both; }
+.ncard:hover { border-color: var(--line-2); transform: translateY(-2px); }
+.ncard.major::before { content: ''; position: absolute; inset: 0 0 auto; height: 2px; background: var(--nt, var(--accent)); }
+.ncard-lead { grid-column: span 2; padding: 26px 28px; background: radial-gradient(120% 90% at 0 0, color-mix(in srgb, var(--nt, var(--accent)) 10%, transparent), transparent 60%), var(--card); }
+.ncard-meta { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3); }
+.ntag { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; color: var(--nt); border: 1px solid color-mix(in srgb, var(--nt) 35%, transparent); background: color-mix(in srgb, var(--nt) 9%, transparent); }
+.nmajor { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--on-accent); }
+.ncard-title { font-size: 17px; font-weight: 600; letter-spacing: -.015em; line-height: 1.35; margin: 0; text-wrap: pretty; overflow-wrap: anywhere; }
+.ncard-lead .ncard-title { font-size: clamp(22px, 2.6vw, 32px); font-family: var(--serif); font-weight: 400; letter-spacing: -.01em; line-height: 1.15; }
+.ncard-title a:hover { color: var(--nt); }
+.ncard-sum { margin: 0; color: var(--ink-2); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.ncard-lead.tall { grid-row: span 2; }
+.ncard-lead .ncard-sum { font-size: 15.5px; -webkit-line-clamp: 6; }
+.ncard-foot { margin-top: auto; padding-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font: 12px var(--mono); color: var(--ink-3); }
+.ntool { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-weight: 500; }
+.ntool:hover { color: var(--cc); }
+.ntool .ticon-sm { width: 20px; height: 20px; }
+.srcs { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; margin-left: auto; }
+.src { color: var(--ink-3); }
+.src:hover { color: var(--ink); }
+.src-hn { color: var(--hn); }
+.src-x::before { content: '𝕏 '; color: var(--ink); }
+.ncard { --nt: var(--accent-ink); }
+.ncard[data-tag='security'], .ncard[data-tag='outage'] { --nt: #f87171; }
+.ncard[data-tag='model'] { --nt: var(--k-blog); }
+.ncard[data-tag='launch'] { --nt: var(--k-release); }
+.ncard[data-tag='pricing'] { --nt: #fbbf24; }
+.ncard[data-tag='business'] { --nt: var(--k-changelog); }
+.ncard[data-tag='deprecation'] { --nt: #fb923c; }
+.ncard[data-tag='policy'] { --nt: #2dd4bf; }
+.ncard[data-tag='community'] { --nt: var(--hn); }
+[data-theme='light'] .ncard[data-tag='security'], [data-theme='light'] .ncard[data-tag='outage'] { --nt: #b91c1c; }
+[data-theme='light'] .ncard[data-tag='pricing'] { --nt: #a16207; }
+[data-theme='light'] .ncard[data-tag='deprecation'] { --nt: #c2410c; }
+[data-theme='light'] .ncard[data-tag='policy'] { --nt: #0f766e; }
+@media (max-width: 980px) { .ngrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  .ngrid { grid-template-columns: minmax(0, 1fr); }
+  .ncard-lead, .ncard-lead.tall { grid-column: auto; grid-row: auto; padding: 20px; }
+}

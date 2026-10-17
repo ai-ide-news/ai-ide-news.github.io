@@ -33,7 +33,7 @@ export const TOOLS = [
     feeds: [{ url: 'https://blog.google/technology/developers/rss/', kind: 'blog', filter: /gemini cli|code assist|jules/i }],
   },
   {
-    id: 'copilot-cli', name: 'GitHub Copilot CLI', vendor: 'GitHub', category: 'cli',
+    id: 'copilot-cli', name: 'GitHub Copilot CLI', vendor: 'GitHub', category: 'cli', x: 'github',
     logo: 'lobe:githubcopilot',
     site: 'https://github.com/features/copilot/cli', domain: 'github.com', color: '#8957E5',
     blurb: 'GitHub Copilot as an agent in your terminal.',
@@ -67,7 +67,7 @@ export const TOOLS = [
     github: 'QwenLM/qwen-code', tagFilter: /^v\d+\.\d+\.\d+$/,
   },
   {
-    id: 'kimi-cli', name: 'Kimi CLI', vendor: 'Moonshot AI', category: 'cli',
+    id: 'kimi-cli', name: 'Kimi CLI', vendor: 'Moonshot AI', category: 'cli', x: 'Kimi_Moonshot',
     logo: 'lobe:kimi',
     site: 'https://github.com/MoonshotAI/kimi-cli', domain: 'moonshot.ai', color: '#1783FF',
     blurb: "Moonshot AI's terminal coding agent powered by Kimi models.",
@@ -124,7 +124,7 @@ export const TOOLS = [
     feeds: [{ url: 'https://blog.google/technology/developers/rss/', kind: 'blog', filter: /antigravity/i }],
   },
   {
-    id: 'zed', name: 'Zed', vendor: 'Zed Industries', category: 'ide',
+    id: 'zed', name: 'Zed', vendor: 'Zed Industries', category: 'ide', x: 'zeddotdev',
     logo: 'simple:zedindustries',
     site: 'https://zed.dev', domain: 'zed.dev', color: '#0751CF',
     blurb: 'High-performance, multiplayer code editor with built-in AI agents.',
@@ -132,7 +132,7 @@ export const TOOLS = [
     feeds: [{ url: 'https://zed.dev/blog.rss', kind: 'blog' }],
   },
   {
-    id: 'vscode', name: 'VS Code', vendor: 'Microsoft', category: 'ide',
+    id: 'vscode', name: 'VS Code', vendor: 'Microsoft', category: 'ide', x: 'code',
     logo: 'simple:visualstudiocode',
     site: 'https://code.visualstudio.com', domain: 'code.visualstudio.com', color: '#0098FF',
     blurb: "Microsoft's editor with Copilot agent mode built in.",
@@ -163,7 +163,7 @@ export const TOOLS = [
 
   // ── Extensions ──────────────────────────────────────────
   {
-    id: 'github-copilot', name: 'GitHub Copilot', vendor: 'GitHub', category: 'extension',
+    id: 'github-copilot', name: 'GitHub Copilot', vendor: 'GitHub', category: 'extension', x: 'github',
     logo: 'lobe:githubcopilot',
     site: 'https://github.com/features/copilot', domain: 'github.com', color: '#6E40C9',
     blurb: 'AI pair programmer across VS Code, JetBrains, Xcode and GitHub.com.',

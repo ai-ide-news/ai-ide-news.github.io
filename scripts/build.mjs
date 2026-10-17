@@ -117,6 +117,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
       <span>${SITE_NAME}</span>
     </a>
     <nav class="nav-links" aria-label="Primary">
+      ${news.length ? `<a href="${root}news/" ${active === 'news' ? 'aria-current="page"' : ''}>News</a>` : ''}
       <a href="${root}#versions" ${active === 'versions' ? 'aria-current="page"' : ''}>Versions</a>
       <a href="${root}#feed">Feed</a>
       ${trending.length ? `<a href="${root}#trending">Trending</a>` : ''}
@@ -200,6 +201,33 @@ function discussionList(list, root, limit = 14) {
   }).join('')}</ol>`;
 }
 
+// Important news only (scripts/news.mjs scores and filters it).
+const news = snap.news || [];
+const sourceLink = (s) => `<a class="src${/^X ·/.test(s.name) ? ' src-x' : /^Hacker News/.test(s.name) ? ' src-hn' : ''}" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name.replace(/^X · /, ""))}</a>`;
+function newsCard(n, root, { lead = false } = {}) {
+  const ts = n.toolIds.map((id) => byId[id]).filter(Boolean);
+  const c = ts[0]?.color || '#d4ff3f';
+  return `<article class="ncard${lead ? ` ncard-lead${n.summary ? ' tall' : ''}` : ''}${n.major ? ' major' : ''}" data-tag="${esc(n.tag.toLowerCase())}" style="--c:${c}">
+  <div class="ncard-meta"><span class="ntag ntag-${esc(n.tag.toLowerCase())}">${esc(n.tag)}</span>${n.major ? '<span class="nmajor">Major</span>' : ''}${time(n.date, 'fcard-time')}</div>
+  <h3 class="ncard-title"><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a></h3>
+  ${n.summary ? `<p class="ncard-sum">${esc(n.summary)}</p>` : ''}
+  <div class="ncard-foot">
+    ${ts.slice(0, 3).map((t) => `<a class="ntool" href="${root}tools/${t.id}/" style="--c:${t.color}">${icon(t, root, 'sm')}${esc(t.name)}</a>`).join('')}
+    <span class="srcs">${n.sources.slice(0, 3).map(sourceLink).join('')}</span>
+  </div>
+</article>`;
+}
+// `limit` keeps the 3-column grid free of orphans: a tall lead fills 4 cells, a short one 2.
+function newsGrid(list, root, limit = Infinity) {
+  if (!list.length) return '<p class="muted">No major news in the last 30 days.</p>';
+  const lead = list.find((n) => n.major) || list[0];
+  const rest = list.filter((n) => n !== lead);
+  const cells = lead.summary ? 4 : 2;
+  const n = Math.min(rest.length, limit === Infinity ? rest.length : limit - 1);
+  const fit = n > 3 ? n - ((n + cells) % 3) : n;
+  return `<div class="ngrid">${newsCard(lead, root, { lead: true })}${rest.slice(0, fit).map((x) => newsCard(x, root)).join('')}</div>`;
+}
+
 function versionCard(t, root) {
   const l = t.latest;
   const ver = t.latestRelease ? t.latestRelease.version : null;
@@ -250,9 +278,18 @@ function indexPage() {
 
 <div class="ticker" aria-label="Latest versions"><div class="ticker-track">${ticker}${ticker.replace(/<span class="tick"/g, '<span aria-hidden="true" class="tick"')}</div></div>
 
+${news.length ? `<section id="news" class="wrap section">
+  <div class="section-head">
+    <div><p class="eyebrow">01 — What matters</p><h2>Important news</h2></div>
+    <p class="muted small section-note">Only the stories that change things: launches, new models, pricing &amp; limits, security incidents, deprecations and deals — from official blogs, official X accounts and the biggest Hacker News threads. Routine posts are filtered out.</p>
+  </div>
+  ${newsGrid(news, root, 9)}
+  ${news.length > 7 ? `<p class="more-link"><a class="btn ghost" href="${root}news/">All ${news.length} important stories →</a></p>` : ''}
+</section>` : ''}
+
 <section id="versions" class="wrap section">
   <div class="section-head">
-    <div><p class="eyebrow">01 — Version board</p><h2>Latest versions</h2></div>
+    <div><p class="eyebrow">02 — Version board</p><h2>Latest versions</h2></div>
     ${catTabs()}
   </div>
   <div class="vgrid" id="vgrid">${tools.map((t) => versionCard(t, root)).join('')}</div>
@@ -261,7 +298,7 @@ function indexPage() {
 
 ${trending.length ? `<section id="trending" class="wrap section">
   <div class="section-head">
-    <div><p class="eyebrow">02 — Rising on GitHub</p><h2>Trending AI coding tools</h2></div>
+    <div><p class="eyebrow">03 — Rising on GitHub</p><h2>Trending AI coding tools</h2></div>
     <p class="muted small section-note">Auto-discovered open-source coding agents, IDEs and extensions that are gaining stars and shipping releases. Ranked by star velocity; the list refreshes itself every few hours.</p>
   </div>
   <div class="vgrid">${trending.slice(0, 12).map((t) => versionCard(t, root)).join('')}</div>
@@ -270,7 +307,7 @@ ${trending.length ? `<section id="trending" class="wrap section">
 
 <section id="feed" class="wrap section">
   <div class="section-head">
-    <div><p class="eyebrow">03 — Everything that shipped</p><h2>The update feed</h2></div>
+    <div><p class="eyebrow">04 — Everything that shipped</p><h2>The update feed</h2></div>
     <div class="chips" role="group" aria-label="Filter by type">
       <button class="chip on" data-kind="all">All</button>
       <button class="chip" data-kind="release"><i class="k release"></i>Releases</button>
@@ -282,7 +319,7 @@ ${trending.length ? `<section id="trending" class="wrap section">
     <div class="feed" id="feedlist" data-page="40">${timeline(recent, root)}</div>
     <aside id="discussions" class="side">
       <div class="side-card">
-        <p class="eyebrow">04 — Community</p>
+        <p class="eyebrow">05 — Community</p>
         <h2>Hot on Hacker News</h2>
         <p class="muted small">Top-voted threads about these tools, last 60 days.</p>
         ${discussionList(hottest, root)}
@@ -327,6 +364,7 @@ function toolPage(t) {
       <div class="tool-links">
         <a class="btn" href="${esc(t.site)}" target="_blank" rel="noopener">Official site ↗</a>
         ${t.meta.repoUrl ? `<a class="btn ghost" href="${esc(t.meta.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>` : ''}
+        ${snap.x?.handles?.[t.id]?.handle ? `<a class="btn ghost" href="https://x.com/${esc(snap.x.handles[t.id].handle)}" target="_blank" rel="noopener">𝕏 @${esc(snap.x.handles[t.id].handle)} ↗</a>` : ''}
       </div>
     </div>
   </div>
@@ -389,6 +427,21 @@ function toolsIndexPage() {
   });
 }
 
+function newsPage() {
+  const root = '../';
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">News</p>
+  <h1>Important <em>news</em></h1>
+  <p class="lede">The AI coding stories that actually matter from the last 30 days. Every candidate from official blogs, official X accounts and Hacker News is scored for importance; routine posts never make it here.</p>
+</section>
+<section class="wrap section">${newsGrid(news, root)}</section>`;
+  return layout({
+    root, path: 'news/', active: 'news', title: `AI Coding News — Launches, Models, Security & Pricing | ${SITE_NAME}`,
+    description: `The important AI IDE and coding-agent news: ${news.slice(0, 4).map((n) => n.title).join(' · ')}`, body,
+  });
+}
+
 function rss(items) {
   const x = (s) => esc(s);
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -423,6 +476,7 @@ await icons();
 
 await out('index.html', indexPage());
 await out('tools/index.html', toolsIndexPage());
+await out('news/index.html', newsPage());
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
 
 const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date));
@@ -432,6 +486,7 @@ await out('data.json', JSON.stringify({
   tools: tools.map((t) => ({ id: t.id, name: t.name, vendor: t.vendor, category: t.category, trending: !!t.discovered, site: t.site, latestVersion: t.latestRelease?.version || null, lastUpdate: t.latest?.date || null, stars: t.meta.stars ?? null, url: `${SITE_URL}/tools/${t.id}/` })),
   updates: allItems.slice(0, 300).map(({ html, ...i }) => i),
   discussions: snap.discussions,
+  news: news.map(({ score, ...n }) => n),
 }));
 // Tiny file the open page polls to announce new updates without a full reload of data.json.
 await out('version.json', JSON.stringify({
@@ -441,9 +496,10 @@ await out('version.json', JSON.stringify({
 await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
+<url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 </urlset>`);
 await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 2} pages → dist/`);
+console.log(`Built ${tools.length + 3} pages → dist/`);

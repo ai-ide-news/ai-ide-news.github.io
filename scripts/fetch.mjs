@@ -6,6 +6,8 @@ import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
 import { TOOLS, HN_MATCH, HN_QUERIES, DISCOVERY } from './sources.mjs';
 import { searchCandidates, toTool } from './discover.mjs';
+import { NEWS_FEEDS, LAB_ACCOUNTS, fetchX, pickNews } from './news.mjs';
+import { resolveHandles, toolsByHandle } from './xaccounts.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
 const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
@@ -312,10 +314,42 @@ async function main() {
     discussions = prev.discussions || []; report.push(`⚠ Hacker News: ${e.message}`);
   }
 
+  // X: every tool's own account (found automatically, like the tools themselves) plus the AI labs.
+  // Read on full runs only (keeps requests to X low); quick runs reuse the last batch.
+  let x = { posts: [], userIds: {}, ...prev.x };
+  const handles = await resolveHandles(allTools, prev.x?.handles, { get, ghHeaders, now: NOW, refresh: !QUICK });
+  x.handles = handles;
+  const byHandle = toolsByHandle(handles);
+  if (!QUICK) {
+    const accounts = [...LAB_ACCOUNTS, ...Object.values(handles).map((h) => h.handle).filter(Boolean)];
+    report.push(`✓ X accounts             ${new Set(accounts.map((a) => a.toLowerCase())).size} (${Object.values(handles).filter((h) => h.handle).length}/${allTools.length} tools have one)`);
+    try { x = { ...await fetchX(accounts, prev.x, NOW), handles }; report.push(`✓ X                      ${x.added} new posts via ${x.via}, ${x.posts.length} kept`); } catch (e) {
+      report.push(`⚠ X: ${e.message} (kept ${x.posts.length} previous posts)`);
+    }
+  }
+  const extra = [];
+  await Promise.all(NEWS_FEEDS.map(async (f) => {
+    try {
+      for (const e of await fetchFeed(f.url)) {
+        const text = toText(e.content);
+        if (!f.relevant.test(`${e.title} ${text.slice(0, 300)}`) || Number.isNaN(Date.parse(e.date))) continue;
+        extra.push({ title: e.title, url: e.url, date: new Date(e.date).toISOString(), summary: excerpt(text), source: new URL(f.url).hostname.replace(/^www\./, '') });
+      }
+    } catch (e) { report.push(`⚠ News feed ${f.url}: ${e.message}`); }
+  }));
+  const matchTools = (text) => allTools.filter((t) => (HN_MATCH[t.id] || t.hnMatch)?.test(text)).map((t) => t.id);
+  const news = pickNews({ items: Object.values(tools).flatMap((e) => e.items), extra, discussions, posts: x.posts, matchTools,
+    handleTools: (h) => {
+      const ids = byHandle.get(h.toLowerCase()) || [];
+      return { toolIds: ids, broad: ids.some((id) => !handles[id].own) };
+    },
+  }, NOW);
+  report.push(`✓ News                   ${news.length} important stories (${news.filter((n) => n.major).length} major)`);
+
   // Did anything actually ship? (Ignores HN vote counts, which move constantly.)
   const fingerprint = (t) => Object.values(t || {}).flatMap((e) => e.items.map((i) => `${i.id}|${i.version || ''}|${i.title}`)).sort().join('\n');
   const ids = (list) => (list || []).map((d) => d.id).sort().join();
-  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered);
+  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered) || ids(news) !== ids(prev.news);
   const newIds = new Set(Object.values(prev.tools || {}).flatMap((e) => e.items.map((i) => i.id)));
   const fresh = Object.values(tools).flatMap((e) => e.items).filter((i) => !newIds.has(i.id));
   report.push(`${changed ? '★' : '·'} ${changed ? `${fresh.length} new item(s): ${fresh.slice(0, 8).map((i) => i.title).join(' · ')}` : 'No new updates'}`);
@@ -323,7 +357,7 @@ async function main() {
   if (QUICK && !changed) { console.log(report.sort().join('\n')); return; } // nothing new: leave the snapshot untouched
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions }, null, 1));
+  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions, news, x }, null, 1));
   console.log(report.sort().join('\n'));
 }
 
