@@ -20,8 +20,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Every run except the scheduled 10-minute check is a full refresh.
-  QUICK: ${{ github.event.schedule == '*/10 * * * *' && '1' || '0' }}
+  # The 10-minute check and the watcher's instant "refresh" are quick runs (deploy only if something
+  # shipped); pushes, manual runs and the 3-hourly schedule are full refreshes.
+  QUICK: ${{ (github.event.schedule == '*/10 * * * *' || github.event_name == 'repository_dispatch') && '1' || '0' }}
 
 jobs:
   build:

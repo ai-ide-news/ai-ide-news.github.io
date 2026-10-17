@@ -18,7 +18,7 @@ A live tracker of the latest releases, patches, changelogs and community discuss
 
 On every refresh, `scripts/discover.mjs` searches GitHub for repos in the niche (coding-agent / AI-IDE topics and descriptions), filters out skill packs, guides, MCP servers, proxies and other companion utilities, and keeps only tools that shipped a stable GitHub Release in the last 60 days. Their release notes become their changelog on the site, and a daily star history ranks them by star velocity. Tune it via `DISCOVERY` in `scripts/sources.mjs` (`allow` / `deny` lists, star threshold, cap).
 
-A GitHub Actions workflow checks every source for new releases every 10 minutes (using conditional requests, so unchanged repos cost nothing) and rebuilds + deploys only when something shipped; a full refresh (trending discovery, stars, HN) runs every 3 hours. Open pages poll a tiny `version.json` and show a "new updates" prompt as soon as a new build lands. If a source fails, the previous snapshot for that source is kept.
+A GitHub Actions workflow checks every source for new releases every 10 minutes (using conditional requests, so unchanged repos cost nothing) and rebuilds + deploys only when something shipped; a full refresh (trending discovery, stars, HN) runs every 3 hours. An always-on watcher job (`.github/workflows/watch.yml`) also checks every source once a minute and triggers a deploy the moment something ships (~2–3 min from release to live). Open pages poll a tiny `version.json` and show a "new updates" prompt as soon as a new build lands. If a source fails, the previous snapshot for that source is kept.
 
 ## Develop
 

@@ -1,0 +1,32 @@
+name: Release watcher
+
+# An always-on job that checks every source once a minute and triggers the deploy workflow the
+# moment a new release ships. Each run lasts ~5h40m; the schedule starts the next one, and the
+# concurrency group keeps exactly one watcher running (plus one queued to take over).
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # repository_dispatch to trigger the deploy workflow
+
+concurrency:
+  group: watcher
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Watch for new releases
+        run: node scripts/watch.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
