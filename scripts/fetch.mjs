@@ -125,10 +125,25 @@ function parseFeed(xml) {
   throw new Error('Unknown feed format');
 }
 
+// For official blogs without RSS: `scrape` is a regex with named groups url, title, date
+// run over the blog's index page; each post's meta description becomes its summary.
+async function scrapeIndex(f) {
+  const html = await get(f.url);
+  const posts = [...html.matchAll(f.scrape)].slice(0, 15).map(({ groups: g }) => ({
+    title: toText(g.title), url: new URL(g.url, f.url).href, date: g.date, categories: [],
+  }));
+  await Promise.all(posts.map(async (p) => {
+    const page = await get(p.url).catch(() => '');
+    const desc = page.match(/<meta (?:name|property)="(?:og:)?description" content="([^"]*)"/)?.[1] || '';
+    p.content = desc.replace(/\.$/, '') === p.title ? '' : desc;
+  }));
+  return posts;
+}
+
 async function fetchFeeds(tool) {
   const out = [];
   for (const f of tool.feeds || []) {
-    const entries = await fetchFeed(f.url);
+    const entries = f.scrape ? await scrapeIndex(f) : await fetchFeed(f.url);
     for (const e of entries) {
       if (f.filter && !f.filter.test(`${e.title} ${e.categories.join(' ')} ${e.url}`)) continue;
       if (f.exclude?.test(e.title)) continue;

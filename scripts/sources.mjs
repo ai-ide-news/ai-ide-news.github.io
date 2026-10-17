@@ -36,10 +36,15 @@ export const TOOLS = [
     github: 'github/copilot-cli',
   },
   {
-    id: 'opencode', name: 'OpenCode', vendor: 'SST', category: 'cli',
+    id: 'opencode', name: 'OpenCode', vendor: 'Anomaly', category: 'cli',
     site: 'https://opencode.ai', domain: 'opencode.ai', color: '#E8E8E8',
     blurb: 'The open-source AI coding agent built for the terminal.',
-    github: 'sst/opencode',
+    github: 'anomalyco/opencode',
+    // Anomaly's notes blog (no RSS) is where major releases like OpenCode 2.0 are announced.
+    feeds: [{
+      url: 'https://anoma.ly/notes/', kind: 'blog',
+      scrape: /<a href="(?<url>\/notes\/[^"]+)"[^>]*>\s*<span class="article-index-heading">(?<title>[\s\S]*?)<\/span>\s*<time[^>]*datetime="(?<date>[^"]+)"/g,
+    }],
   },
   {
     id: 'amp', name: 'Amp', vendor: 'Amp', category: 'cli',
