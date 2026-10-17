@@ -69,6 +69,8 @@ async function fetchGithub(tool) {
     get(`https://api.github.com/repos/${tool.github}/releases?per_page=60`, { json: true, headers: ghHeaders() }),
     get(`https://api.github.com/repos/${tool.github}`, { json: true, headers: ghHeaders() }),
   ]);
+  const meta = { stars: repo.stargazers_count, repo: tool.github, repoUrl: repo.html_url, license: repo.license?.spdx_id || null };
+  if (tool.npm) return fetchNpm(tool, meta);
   const stable = releases.filter((r) => !r.draft && !r.prerelease && !UNSTABLE.test(r.tag_name) && !UNSTABLE.test(r.name || '') && (!tool.tagFilter || tool.tagFilter.test(r.tag_name)));
   const cadence = releases.filter((r) => !r.draft).map((r) => r.published_at);
   const items = stable.slice(0, MAX_PER_TOOL).map((r) => {
@@ -83,10 +85,21 @@ async function fetchGithub(tool) {
       url: r.html_url, date: r.published_at, summary: excerpt(text), html, source: 'GitHub Releases',
     };
   });
-  return {
-    items,
-    meta: { stars: repo.stargazers_count, repo: tool.github, repoUrl: repo.html_url, license: repo.license?.spdx_id || null, cadence },
-  };
+  return { items, meta: { ...meta, cadence } };
+}
+
+// ── npm registry (for tools that publish versions without GitHub Release pages) ──
+async function fetchNpm(tool, meta) {
+  const doc = await get(`https://registry.npmjs.org/${tool.npm.replace('/', '%2f')}`, { json: true });
+  const stable = Object.entries(doc.time)
+    .filter(([v]) => /^\d+\.\d+\.\d+$/.test(v) && doc.versions[v])
+    .sort((a, b) => b[1].localeCompare(a[1]));
+  const items = stable.slice(0, MAX_PER_TOOL).map(([v, date]) => ({
+    id: `npm:${tool.npm}@${v}`, toolId: tool.id, kind: 'release', version: `v${v}`,
+    title: `${tool.name} v${v}`, url: `https://www.npmjs.com/package/${tool.npm}/v/${v}`,
+    date, summary: `Published to npm as ${tool.npm}@${v}.`, html: '', source: 'npm',
+  }));
+  return { items, meta: { ...meta, cadence: stable.map(([, d]) => d), npm: tool.npm } };
 }
 
 // ── RSS / Atom feeds ───────────────────────────────────────

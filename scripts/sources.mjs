@@ -39,7 +39,8 @@ export const TOOLS = [
     id: 'opencode', name: 'OpenCode', vendor: 'Anomaly', category: 'cli',
     site: 'https://opencode.ai', domain: 'opencode.ai', color: '#E8E8E8',
     blurb: 'The open-source AI coding agent built for the terminal.',
-    github: 'anomalyco/opencode',
+    // OpenCode 2.x ships as @opencode/cli on npm; its v2 tags have no GitHub Release pages.
+    github: 'anomalyco/opencode', npm: '@opencode/cli',
     // Anomaly's notes blog (no RSS) is where major releases like OpenCode 2.0 are announced.
     feeds: [{
       url: 'https://anoma.ly/notes/', kind: 'blog',
