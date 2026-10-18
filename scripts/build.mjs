@@ -72,7 +72,7 @@ const icon = (t, root, size = 'md') => {
   const m = ICONS[t.id];
   const src = m?.file && `${root}icons/${m.file}`;
   const art = !src ? '' : m.mono
-    ? `<i class="mono" style="--img:url('${src}')"></i>`
+    ? `<i class="mono" style="-webkit-mask-image:url('${src}');mask-image:url('${src}')"></i>`
     : `<img${m.src === 'github-org-avatar' ? ' class="fill"' : ''} src="${src}" alt="" loading="lazy" decoding="async" width="40" height="40">`;
   return `<span class="ticon ticon-${size}${src ? ' has-logo' : ''}${m?.tone ? ` tone-${m.tone}` : ''}" style="--c:${t.color}" aria-hidden="true">${art}<b>${esc(t.name[0])}</b></span>`;
 };
