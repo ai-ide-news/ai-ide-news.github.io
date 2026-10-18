@@ -3,6 +3,34 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
+  // Ad blocker wall: a bait element that cosmetic filters hide, plus a probe of the AdSense
+  // script that network filters block. Either one tripping covers the page.
+  if (document.documentElement.hasAttribute('data-adwall') && navigator.onLine !== false) {
+    const bait = document.createElement('div');
+    bait.className = 'adsbox ad-banner pub_300x250 textads banner-ads';
+    bait.setAttribute('aria-hidden', 'true');
+    bait.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px';
+    bait.innerHTML = '&nbsp;';
+    document.body.append(bait);
+    const hidden = () => !bait.isConnected || bait.offsetHeight === 0 || getComputedStyle(bait).display === 'none';
+    const probe = fetch('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js', { mode: 'no-cors' }).then(() => false, () => true);
+    Promise.all([probe, new Promise((r) => setTimeout(r, 300))]).then(([netBlocked]) => {
+      const blocked = netBlocked || hidden();
+      bait.remove();
+      if (!blocked) return;
+      const wall = document.createElement('div');
+      wall.className = 'adwall';
+      wall.setAttribute('role', 'alertdialog');
+      wall.setAttribute('aria-modal', 'true');
+      wall.setAttribute('aria-labelledby', 'adwall-t');
+      wall.innerHTML = '<div class="adwall-box"><p class="eyebrow">Ad blocker detected</p><h2 id="adwall-t">Please turn off your ad blocker</h2><p>Patchwire is free and ads keep it running. Pause your ad blocker (or allow this site) and reload to keep reading.</p><button type="button" class="btn">I’ve turned it off — reload</button></div>';
+      wall.querySelector('button').addEventListener('click', () => location.reload());
+      document.documentElement.classList.add('adwalled');
+      document.body.append(wall);
+      wall.querySelector('button').focus();
+    });
+  }
+
   // Theme
   $('#theme')?.addEventListener('click', () => {
     const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';

@@ -21,6 +21,8 @@ const ADS = {
 };
 // Cloudflare Web Analytics site token. Unset → no beacon (local builds stay out of the stats).
 const CF_BEACON = (process.env.CF_ANALYTICS_TOKEN || '').trim();
+// Block the site for visitors running an ad blocker. On whenever AdSense is; ADWALL=1 forces it locally.
+const ADWALL = !!ADS.client || process.env.ADWALL === '1';
 
 const snap = JSON.parse(await readFile(new URL('data/snapshot.json', ROOT), 'utf8'));
 const NOW = Date.parse(snap.generatedAt);
@@ -97,7 +99,7 @@ const banner = () => (ad('inline') && `<div class="wrap">${ad('inline')}</div>`)
 function layout({ root, path, title, description, body, jsonld, active = '' }) {
   const canonical = `${SITE_URL}/${path}`;
   return `<!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark"${ADWALL ? ' data-adwall' : ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

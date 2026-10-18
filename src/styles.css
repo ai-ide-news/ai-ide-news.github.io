@@ -478,3 +478,13 @@ body.has-tray .live-toast { bottom: 84px; }
 .ad-label { margin: 0 0 6px; font: 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
 .ad-ph { display: grid; place-items: center; height: 250px; border: 1px dashed var(--line-2); font: 12px var(--mono); color: var(--ink-3); }
 .ad-inline .ad-ph { height: 90px; }
+
+/* ad blocker wall */
+.adwalled, .adwalled body { overflow: hidden; }
+.adwalled body > :not(.adwall) { display: none !important; }
+.adwall { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; background: var(--bg); }
+.adwall-box { max-width: 440px; border-top: 2px solid var(--rule); padding-top: 18px; }
+.adwall .eyebrow { margin: 0 0 8px; font: 11.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); }
+.adwall h2 { margin: 0 0 10px; font: 400 34px/1.1 var(--serif); }
+.adwall p { color: var(--ink-2); }
+.adwall .btn { margin-top: 8px; }
