@@ -117,7 +117,7 @@ h1 em, h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; 
 .ticker-track { display: flex; width: max-content; animation: marquee 90s linear infinite; }
 .ticker:hover .ticker-track { animation-play-state: paused; }
 @keyframes marquee { to { transform: translateX(-50%); } }
-.tick { display: inline-flex; align-items: baseline; gap: 8px; padding: 9px 22px; white-space: nowrap; font-size: 13px; color: var(--ink-2); border-right: 1px solid var(--line); }
+.tick { display: inline-flex; align-items: center; gap: 8px; padding: 9px 22px; white-space: nowrap; font-size: 13px; color: var(--ink-2); border-right: 1px solid var(--line); }
 .tick i { display: none; }
 .tick code { color: var(--ink); font-size: 12.5px; }
 .tick time { color: var(--ink-3); font: 11.5px var(--mono); }
@@ -488,3 +488,4 @@ body.has-tray .live-toast { bottom: 84px; }
 .adwall h2 { margin: 0 0 10px; font: 400 34px/1.1 var(--serif); }
 .adwall p { color: var(--ink-2); }
 .adwall .btn { margin-top: 8px; }
+.tick .ticon-sm { width: 18px; height: 18px; font-size: 10px; flex: none; }

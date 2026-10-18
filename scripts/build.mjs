@@ -271,7 +271,7 @@ function indexPage() {
   const week = recent.filter((i) => NOW - Date.parse(i.date) < 7 * DAY);
   const weekUpdates = week.filter((i) => i.kind !== 'blog').length;
   const shippedToday = new Set(recent.filter((i) => NOW - Date.parse(i.date) < DAY && i.kind !== 'blog').map((i) => i.toolId)).size;
-  const ticker = tools.filter((t) => t.latest).slice(0, 18).map((t) => `<span class="tick" style="--c:${t.color}"><i></i>${esc(t.name)} <code>${esc(t.latestRelease?.version || KIND[t.latest.kind])}</code> ${time(t.latest.date)}</span>`).join('');
+  const ticker = tools.filter((t) => t.latest).slice(0, 18).map((t) => `<span class="tick" style="--c:${t.color}">${icon(t, root, "sm")}${esc(t.name)} <code>${esc(t.latestRelease?.version || KIND[t.latest.kind])}</code> ${time(t.latest.date)}</span>`).join('');
   const hottest = [...snap.discussions].sort((a, b) => b.points - a.points);
 
   const body = `
