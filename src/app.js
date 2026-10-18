@@ -3,9 +3,16 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
-  // Ad blocker wall: a bait element that cosmetic filters hide, plus a probe of the AdSense
-  // script that network filters block. Either one tripping covers the page.
+  // Ad blocker wall: a bait element that cosmetic filters hide, a probe of the AdSense script
+  // that network filters block, and a check that the AdSense script in <head> really came from
+  // Google (uBlock swaps in a local no-op stand-in that never shows up in resource timing).
+  // Any one tripping covers the page.
   if (document.documentElement.hasAttribute('data-adwall') && navigator.onLine !== false) {
+    const ADS_JS = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+    const loaded = new Promise((r) => (document.readyState === 'complete' ? r() : addEventListener('load', r, { once: true })));
+    const swapped = () => !!document.querySelector(`script[src^="${ADS_JS}"]`)
+      && (!performance.getEntriesByType('resource').some((e) => e.name.startsWith(ADS_JS))
+        || /^function\s*\(\)\s*\{\s*;?\s*\}$/.test(String(window.adsbygoogle?.push)));
     const bait = document.createElement('div');
     bait.className = 'adsbox ad-banner pub_300x250 textads banner-ads';
     bait.setAttribute('aria-hidden', 'true');
@@ -13,9 +20,9 @@
     bait.innerHTML = '&nbsp;';
     document.body.append(bait);
     const hidden = () => !bait.isConnected || bait.offsetHeight === 0 || getComputedStyle(bait).display === 'none';
-    const probe = fetch('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js', { mode: 'no-cors' }).then(() => false, () => true);
-    Promise.all([probe, new Promise((r) => setTimeout(r, 300))]).then(([netBlocked]) => {
-      const blocked = netBlocked || hidden();
+    const probe = fetch(ADS_JS, { mode: 'no-cors' }).then(() => false, () => true);
+    Promise.all([probe, loaded.then(() => new Promise((r) => setTimeout(r, 300)))]).then(([netBlocked]) => {
+      const blocked = netBlocked || hidden() || swapped();
       bait.remove();
       if (!blocked) return;
       const wall = document.createElement('div');
