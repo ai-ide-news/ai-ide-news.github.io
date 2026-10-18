@@ -163,7 +163,7 @@ ${body}
   </div>
 </footer>
 <script src="${root}assets/app.js?v=${NOW}" defer></script>
-${CF_BEACON ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${esc(JSON.stringify({ token: CF_BEACON }))}'></script>` : ''}
+${CF_BEACON ? `<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${esc(JSON.stringify({ token: CF_BEACON }))}'></script>` : ''}
 </body>
 </html>`;
 }
