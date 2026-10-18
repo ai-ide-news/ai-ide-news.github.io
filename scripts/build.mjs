@@ -63,7 +63,7 @@ function sparkline(dates, { weeks = 12, w = 132, h = 32 } = {}) {
     return `<g><rect class="hit" x="${(i * (bw + gap)).toFixed(1)}" y="0" width="${(bw + gap).toFixed(1)}" height="${h}"/><rect class="${c ? 'bar' : 'bar zero'}" x="${(i * (bw + gap)).toFixed(1)}" y="${(h - bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="1.5"/><title>${label}</title></g>`;
   }).join('');
   const total = counts.reduce((a, b) => a + b, 0);
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="${total} updates in the last ${weeks} weeks">${bars}</svg>`;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" preserveAspectRatio="none" role="img" aria-label="${total} updates in the last ${weeks} weeks">${bars}</svg>`;
 }
 
 // Real logo per tool (scripts/icons.mjs). Mono logos are CSS masks so they follow the theme;
@@ -91,7 +91,7 @@ function layout({ root, path, title, description, body, jsonld, active = '' }) {
 <meta name="author" content="${AUTHOR.name}">
 <meta name="pw-generated" content="${snap.generatedAt}">
 <link rel="canonical" href="${canonical}">
-<meta name="theme-color" content="#09090b">
+<meta name="theme-color" content="#121211">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${SITE_NAME}">
 <meta property="og:title" content="${esc(title)}">
@@ -109,12 +109,10 @@ ${VERIFY.split(',').filter(Boolean).map((v) => `<meta name="google-site-verifica
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, '\\u003c')}</script>` : ''}
 </head>
 <body>
-<div class="bg" aria-hidden="true"><div class="bg-grid"></div><div class="bg-glow g1"></div><div class="bg-glow g2"></div></div>
 <a class="skip" href="#main">Skip to content</a>
 <header class="nav">
   <div class="wrap nav-in">
     <a class="brand" href="${root}" aria-label="${SITE_NAME} home">
-      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M7 20.5 12.5 11l5 8 3-4.5L25 20.5" fill="none" stroke="#0a0a0a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span>${SITE_NAME}</span>
     </a>
     <nav class="nav-links" aria-label="Primary">
@@ -235,12 +233,11 @@ function versionCard(t, root) {
   const ver = t.latestRelease ? t.latestRelease.version : null;
   const fresh = l && NOW - Date.parse(l.date) < 2 * DAY;
   return `<a class="vcard" href="${root}tools/${t.id}/" data-cat="${t.category}" data-trend="${t.discovered ? 1 : 0}" data-tool="${t.id}" data-text="${esc(`${t.name} ${t.vendor}`.toLowerCase())}" style="--c:${t.color}">
-  <div class="vcard-top">${icon(t, root)}<div class="vcard-name"><strong>${esc(t.name)}</strong><span>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</span></div>${fresh ? '<span class="fresh">New</span>' : ''}${t.discovered ? `<span class="trend" title="Trending on GitHub${t.starsPerWeek > 0 ? ` · +${t.starsPerWeek} stars this week` : ''}">${trendBadge(t)}</span>` : ''}</div>
-  <div class="vcard-ver">${ver ? `<code>${esc(ver)}</code>` : `<span class="vcard-upd">${esc(l?.title || '—')}</span>`}</div>
-  <div class="vcard-foot">
-    <span>${l ? time(l.date) : 'no data'}${t.meta.stars ? ` · ★ ${compact(t.meta.stars)}` : ''}</span>
-    ${sparkline(t.activity)}
-  </div>
+  ${icon(t, root, 'sm')}
+  <span class="vcard-name"><strong>${esc(t.name)}</strong>${fresh ? '<span class="fresh" title="Shipped in the last 48 hours">new</span>' : ''}${t.discovered ? `<span class="trend" title="Trending on GitHub${t.starsPerWeek > 0 ? ` · +${t.starsPerWeek} stars this week` : ''}">${trendBadge(t)}</span>` : ''}<small>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</small></span>
+  <span class="vcard-ver">${ver ? `<code>${esc(ver)}</code>` : `<span class="vcard-upd">${esc(l?.title || '—')}</span>`}</span>
+  <span class="vcard-meta">${l ? time(l.date) : 'no data'}${t.meta.stars ? `<small>★ ${compact(t.meta.stars)}</small>` : ''}</span>
+  ${sparkline(t.activity)}
 </a>`;
 }
 
@@ -262,27 +259,31 @@ function indexPage() {
 
   const body = `
 <section class="hero wrap">
-  <div class="live"><span class="dot"></span>Live · refreshed ${time(snap.generatedAt, 'live-ago')}</div>
-  <h1>Every AI IDE &amp; CLI update,<br><em>the moment it ships.</em></h1>
-  <p class="lede">Release notes, patches and changelogs for Cursor, Claude Code, Codex, Gemini CLI, Copilot, Kiro, Zed and ${tools.length - 7} more — pulled from official sources and stitched into one fast feed.</p>
-  <div class="hero-search">
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    <input id="q" type="search" placeholder="Search tools, versions, features…" aria-label="Search updates" autocomplete="off">
-    <kbd>/</kbd>
+  <div class="dateline"><span>${new Date(NOW).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span><span><span class="dot"></span>Updated ${time(snap.generatedAt, 'live-ago')}</span><span>${tools.length} tools on the wire</span></div>
+  <div class="hero-grid">
+    <div>
+      <h1>Every AI IDE &amp; CLI release, <em>the moment it ships.</em></h1>
+      <p class="lede">Release notes, patches and changelogs for Cursor, Claude Code, Codex, Gemini CLI, Copilot, Kiro, Zed and ${tools.length - 7} more — pulled from official sources into one feed.</p>
+      <div class="hero-search">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="q" type="search" placeholder="Search tools, versions, features…" aria-label="Search updates" autocomplete="off">
+        <kbd>/</kbd>
+      </div>
+    </div>
+    <dl class="stats hero-stats">
+      <div><dt>Tools tracked</dt><dd>${tools.length}${trending.length ? `<small> ${trending.length} trending</small>` : ''}</dd></div>
+      <div><dt>Updates, last 7 days</dt><dd>${weekUpdates}</dd></div>
+      <div><dt>Tools shipped in 24h</dt><dd>${shippedToday}</dd></div>
+      <div><dt>HN threads, 60 days</dt><dd>${snap.discussions.length}</dd></div>
+    </dl>
   </div>
-  <dl class="stats">
-    <div><dt>Tools tracked</dt><dd>${tools.length}${trending.length ? `<small> · ${trending.length} trending</small>` : ''}</dd></div>
-    <div><dt>Updates · 7 days</dt><dd>${weekUpdates}</dd></div>
-    <div><dt>Shipped in 24h</dt><dd>${shippedToday}<small> tools</small></dd></div>
-    <div><dt>HN threads · 60d</dt><dd>${snap.discussions.length}</dd></div>
-  </dl>
 </section>
 
 <div class="ticker" aria-label="Latest versions"><div class="ticker-track">${ticker}${ticker.replace(/<span class="tick"/g, '<span aria-hidden="true" class="tick"')}</div></div>
 
 ${news.length ? `<section id="news" class="wrap section">
   <div class="section-head">
-    <div><p class="eyebrow">01 — What matters</p><h2>Important news</h2></div>
+    <div><p class="eyebrow">What matters</p><h2>Important news</h2></div>
     <p class="muted small section-note">Only the stories that change things: launches, new models, pricing &amp; limits, security incidents, deprecations and deals — from official blogs, official X accounts and the biggest Hacker News threads. Routine posts are filtered out.</p>
   </div>
   ${newsGrid(news, root, 9)}
@@ -291,7 +292,7 @@ ${news.length ? `<section id="news" class="wrap section">
 
 <section id="versions" class="wrap section">
   <div class="section-head">
-    <div><p class="eyebrow">02 — Version board</p><h2>Latest versions</h2></div>
+    <div><p class="eyebrow">Version board</p><h2>Latest versions</h2></div>
     ${catTabs()}
   </div>
   <div class="vgrid" id="vgrid">${tools.map((t) => versionCard(t, root)).join('')}</div>
@@ -300,7 +301,7 @@ ${news.length ? `<section id="news" class="wrap section">
 
 ${trending.length ? `<section id="trending" class="wrap section">
   <div class="section-head">
-    <div><p class="eyebrow">03 — Rising on GitHub</p><h2>Trending AI coding tools</h2></div>
+    <div><p class="eyebrow">Rising on GitHub</p><h2>Trending AI coding tools</h2></div>
     <p class="muted small section-note">Auto-discovered open-source coding agents, IDEs and extensions that are gaining stars and shipping releases. Ranked by star velocity; the list refreshes itself every few hours.</p>
   </div>
   <div class="vgrid">${trending.slice(0, 12).map((t) => versionCard(t, root)).join('')}</div>
@@ -309,7 +310,7 @@ ${trending.length ? `<section id="trending" class="wrap section">
 
 <section id="feed" class="wrap section">
   <div class="section-head">
-    <div><p class="eyebrow">04 — Everything that shipped</p><h2>The update feed</h2></div>
+    <div><p class="eyebrow">Everything that shipped</p><h2>The update feed</h2></div>
     <div class="chips" role="group" aria-label="Filter by type">
       <button class="chip on" data-kind="all">All</button>
       <button class="chip" data-kind="release"><i class="k release"></i>Releases</button>
@@ -321,7 +322,7 @@ ${trending.length ? `<section id="trending" class="wrap section">
     <div class="feed" id="feedlist" data-page="40">${timeline(recent, root)}</div>
     <aside id="discussions" class="side">
       <div class="side-card">
-        <p class="eyebrow">05 — Community</p>
+        <p class="eyebrow">Community</p>
         <h2>Hot on Hacker News</h2>
         <p class="muted small">Top-voted threads about these tools, last 60 days.</p>
         ${discussionList(hottest, root)}
