@@ -387,3 +387,10 @@ h2 { font: 600 clamp(26px, 3vw, 34px)/1.1 var(--font); letter-spacing: -.035em; 
 .plans li b { font: 500 14px var(--mono); white-space: nowrap; }
 .plans li b small { font-weight: 400; color: var(--ink-3); }
 .plans li b.free { color: var(--k-release); }
+
+/* ads */
+.ad { border-top: 1px solid var(--line); padding-top: 8px; min-height: 120px; }
+.ad-inline { margin: 28px 0; }
+.ad-label { margin: 0 0 6px; font: 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.ad-ph { display: grid; place-items: center; height: 250px; border: 1px dashed var(--line-2); font: 12px var(--mono); color: var(--ink-3); }
+.ad-inline .ad-ph { height: 90px; }

@@ -12,6 +12,13 @@ const AUTHOR = { name: 'Abdullah ElTiby', url: 'https://github.com/AbdullahElTib
 const REPO_URL = 'https://github.com/ai-ide-news/ai-ide-news.github.io';
 const VERIFY = process.env.GOOGLE_SITE_VERIFICATION || '';
 const DAY = 86400e3;
+// Google AdSense. Unset → no ad code at all. Client alone → Auto ads; slot ids → fixed placements.
+const ADS = {
+  client: (process.env.ADSENSE_CLIENT || '').trim(),           // ca-pub-XXXXXXXXXXXXXXXX
+  side: (process.env.ADSENSE_SLOT_SIDE || '').trim(),          // sidebar unit
+  inline: (process.env.ADSENSE_SLOT_INLINE || '').trim(),      // between sections
+  preview: process.env.ADS_PREVIEW === '1',                     // local: show placeholder boxes
+};
 
 const snap = JSON.parse(await readFile(new URL('data/snapshot.json', ROOT), 'utf8'));
 const NOW = Date.parse(snap.generatedAt);
@@ -78,6 +85,12 @@ const icon = (t, root, size = 'md') => {
   return `<span class="ticon ticon-${size}${src ? ' has-logo' : ''}${m?.tone ? ` tone-${m.tone}` : ''}" style="--c:${t.color}" aria-hidden="true">${art}<b>${esc(t.name[0])}</b></span>`;
 };
 
+// Labelled ad unit; renders nothing until AdSense and that slot are configured.
+const ad = (kind) => ADS.preview ? `<div class="ad ad-${kind}"><p class="ad-label">Advertisement</p><div class="ad-ph">${kind === 'side' ? 'Sidebar ad · 300×250' : 'Banner ad · responsive'}</div></div>` : (!ADS.client || !ADS[kind] ? '' : `<div class="ad ad-${kind}"><p class="ad-label">Advertisement</p><ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS.client)}" data-ad-slot="${esc(ADS[kind])}" data-ad-format="${kind === 'side' ? 'rectangle' : 'horizontal'}" data-full-width-responsive="true"></ins><script>(adsbygoogle=window.adsbygoogle||[]).push({})</script></div>`);
+
+// Full-width banner between page sections.
+const banner = () => (ad('inline') && `<div class="wrap">${ad('inline')}</div>`);
+
 // ── layout ────────────────────────────────────────────────
 function layout({ root, path, title, description, body, jsonld, active = '' }) {
   const canonical = `${SITE_URL}/${path}`;
@@ -105,6 +118,7 @@ ${VERIFY.split(',').filter(Boolean).map((v) => `<meta name="google-site-verifica
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="${root}assets/styles.css?v=${NOW}">
+${ADS.client ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ADS.client)}" crossorigin="anonymous"></script>` : ''}
 <script>try{const t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;else if(matchMedia('(prefers-color-scheme: light)').matches)document.documentElement.dataset.theme='light'}catch(e){}</script>
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, '\\u003c')}</script>` : ''}
 </head>
@@ -290,6 +304,8 @@ ${news.length ? `<section id="news" class="wrap section">
   ${news.length > 7 ? `<p class="more-link"><a class="btn ghost" href="${root}news/">All ${news.length} important stories →</a></p>` : ''}
 </section>` : ''}
 
+${banner()}
+
 <section id="versions" class="wrap section">
   <div class="section-head">
     <div><p class="eyebrow">Version board</p><h2>Latest versions</h2></div>
@@ -299,6 +315,8 @@ ${news.length ? `<section id="news" class="wrap section">
   <p class="empty" hidden>No tools match your search.</p>
 </section>
 
+${banner()}
+
 ${trending.length ? `<section id="trending" class="wrap section">
   <div class="section-head">
     <div><p class="eyebrow">Rising on GitHub</p><h2>Trending AI coding tools</h2></div>
@@ -307,6 +325,8 @@ ${trending.length ? `<section id="trending" class="wrap section">
   <div class="vgrid">${trending.slice(0, 12).map((t) => versionCard(t, root)).join('')}</div>
   ${trending.length > 12 ? `<p class="more-link"><a class="btn ghost" href="${root}tools/#trending">See all ${trending.length} trending tools →</a></p>` : ''}
 </section>` : ''}
+
+${banner()}
 
 <section id="feed" class="wrap section">
   <div class="section-head">
@@ -321,6 +341,7 @@ ${trending.length ? `<section id="trending" class="wrap section">
   <div class="feed-layout">
     <div class="feed" id="feedlist" data-page="40">${timeline(recent, root)}</div>
     <aside id="discussions" class="side">
+      ${ad('side')}
       <div class="side-card">
         <p class="eyebrow">Community</p>
         <h2>Hot on Hacker News</h2>
@@ -380,6 +401,8 @@ function toolPage(t) {
   <div class="tool-spark"><span class="muted small">Weekly activity · last 26 weeks</span>${sparkline(t.activity, { weeks: 26, w: 520, h: 56 })}</div>
 </section>
 
+${banner()}
+
 <section class="wrap section">
   <div class="feed-layout">
     <div class="feed tool-feed">
@@ -387,6 +410,7 @@ function toolPage(t) {
       ${t.items.length ? timeline(t.items, root, { full: true }) : '<p class="muted">No updates found yet.</p>'}
     </div>
     <aside class="side">
+      ${ad('side')}
       <div class="side-card">
         <p class="eyebrow">Community</p><h2>On Hacker News</h2>
         ${discussionList(t.discussions, root, 10)}
@@ -398,7 +422,9 @@ function toolPage(t) {
       </div>
     </aside>
   </div>
-</section>`;
+</section>
+
+${banner()}`;
 
   return layout({
     root, path: `tools/${t.id}/`,
@@ -421,9 +447,12 @@ function toolsIndexPage() {
   <h1>All <em>${tools.length}</em> tracked tools</h1>
   <p class="lede">Every AI IDE, coding CLI and editor agent we follow — sorted by most recent ship.</p>
 </section>
+
+${banner()}
 <section class="wrap section">
   <div class="section-head"><div></div>${catTabs()}</div>
   <div class="vgrid">${tools.map((t) => versionCard(t, root)).join('')}</div>
+  ${ad('inline')}
 </section>`;
   return layout({
     root, path: 'tools/', title: `All AI IDEs & Coding CLIs — Latest Versions | ${SITE_NAME}`,
@@ -439,7 +468,9 @@ function newsPage() {
   <h1>Important <em>news</em></h1>
   <p class="lede">The AI coding stories that actually matter from the last 30 days. Every candidate from official blogs, official X accounts and Hacker News is scored for importance; routine posts never make it here.</p>
 </section>
-<section class="wrap section">${newsGrid(news, root)}</section>`;
+
+${banner()}
+<section class="wrap section">${newsGrid(news, root)}${ad('inline')}</section>`;
   return layout({
     root, path: 'news/', active: 'news', title: `AI Coding News — Launches, Models, Security & Pricing | ${SITE_NAME}`,
     description: `The important AI IDE and coding-agent news: ${news.slice(0, 4).map((n) => n.title).join(' · ')}`, body,
@@ -493,6 +524,8 @@ function comparePage() {
     <kbd>/</kbd>
   </div>
 </section>
+
+${banner()}
 <section class="wrap section">
   <div class="section-head">
     <div class="chips" role="group" aria-label="Filter by price">
@@ -509,6 +542,7 @@ function comparePage() {
     </table>
   </div>
   <p class="empty" hidden>No tools match these filters.</p>
+  ${ad('inline')}
   <p class="muted small section-note">Prices checked ${fmtDate(PRICING_CHECKED + 'T00:00:00Z')} from each vendor's official pricing page; monthly billing in USD before tax. Vendors change plans often — always confirm on the official page before you subscribe.</p>
 </section>
 ${oss.length ? `<section class="wrap section">
@@ -584,5 +618,7 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 </urlset>`);
 await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
+`);
 await out('.nojekyll', '');
 console.log(`Built ${tools.length + 4} pages → dist/`);
