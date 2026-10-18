@@ -118,7 +118,6 @@ h1 em, h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; 
 .ticker:hover .ticker-track { animation-play-state: paused; }
 @keyframes marquee { to { transform: translateX(-50%); } }
 .tick { display: inline-flex; align-items: center; gap: 8px; padding: 9px 22px; white-space: nowrap; font-size: 13px; color: var(--ink-2); border-right: 1px solid var(--line); }
-.tick i { display: none; }
 .tick code { color: var(--ink); font-size: 12.5px; }
 .tick time { color: var(--ink-3); font: 11.5px var(--mono); }
 
