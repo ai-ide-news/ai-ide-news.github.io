@@ -173,7 +173,7 @@ function feedCard(item, root, { full = false } = {}) {
   const cat = t.category;
   const text = `${t.name} ${item.title} ${item.version || ''} ${t.vendor}`.toLowerCase();
   const notes = full && item.html ? `<details class="notes"><summary>Read full notes</summary><div class="prose">${item.html}</div></details>` : '';
-  return `<article class="fcard" data-kind="${item.kind}" data-cat="${cat}" data-trend="${t.discovered ? 1 : 0}" data-tool="${t.id}" data-text="${esc(text)}" style="--c:${t.color}">
+  return `<article class="fcard" data-id="${esc(item.id)}" data-kind="${item.kind}" data-cat="${cat}" data-trend="${t.discovered ? 1 : 0}" data-tool="${t.id}" data-text="${esc(text)}" style="--c:${t.color}">
   <div class="fcard-rail">${icon(t, root, 'sm')}</div>
   <div class="fcard-body">
     <div class="fcard-meta">
@@ -608,6 +608,8 @@ await out('data.json', JSON.stringify({
 await out('version.json', JSON.stringify({
   generatedAt: snap.generatedAt,
   latest: allItems.filter((i) => i.kind !== 'blog').slice(0, 30).map((i) => ({ id: i.id, title: i.title, tool: byId[i.toolId].name, url: `${SITE_URL}/tools/${i.toolId}/`, date: i.date })),
+  // Pre-rendered home-feed cards, so the open page can insert new updates in place.
+  cards: allItems.filter((i) => NOW - Date.parse(i.date) < 2 * DAY).slice(0, 20).map((i) => ({ id: i.id, date: i.date, html: feedCard(i, '') })),
 }));
 await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

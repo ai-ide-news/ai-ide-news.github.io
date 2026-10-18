@@ -179,6 +179,9 @@ h2 { font: 600 clamp(26px, 3vw, 34px)/1.1 var(--font); letter-spacing: -.035em; 
 .day i { flex: 1; }
 .day small { font: 12px var(--mono); color: var(--ink-3); }
 .fcard { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.fcard.is-new { animation: fresh-in 4s ease-out; }
+@keyframes fresh-in { from { background: color-mix(in srgb, var(--accent) 18%, transparent); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .fcard.is-new { animation: none; } }
 .fcard-meta { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--ink-3); }
 .fcard-tool { font-weight: 600; color: var(--ink); }
 .fcard-tool:hover { text-decoration: underline; text-underline-offset: 3px; }

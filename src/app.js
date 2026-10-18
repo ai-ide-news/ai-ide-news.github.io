@@ -26,7 +26,7 @@
   // Filters
   const state = { cat: 'all', kind: 'all', free: 'all', q: '', page: 40 };
   const feed = $('#feedlist');
-  const cards = feed ? $$('.fcard', feed) : [];
+  let cards = feed ? $$('.fcard', feed) : [];
   const vcards = $$('.vcard');
   const prows = $$('.prow');
   const more = $('#more');
@@ -90,8 +90,9 @@
   more?.addEventListener('click', () => { state.page += 40; apply(); });
   apply();
 
-  // Live updates: poll the tiny version.json and offer a refresh as soon as a new build ships.
-  const built = $('meta[name="pw-generated"]')?.content;
+  // Live updates: poll the tiny version.json; on the home feed, new cards are inserted in place,
+  // elsewhere a refresh is offered.
+  let built = $('meta[name="pw-generated"]')?.content;
   const versionUrl = new URL('../version.json', document.currentScript?.src || location.href);
   let seen = null, toast = null;
   async function checkForUpdates() {
@@ -100,20 +101,71 @@
       const v = await (await fetch(`${versionUrl}?t=${Date.now()}`, { cache: 'no-store' })).json();
       if (!(v.generatedAt > built) || v.generatedAt === seen) return;
       seen = v.generatedAt;
+      const added = feed && v.cards ? insertCards(v.cards) : [];
+      if (added.length) {
+        built = v.generatedAt;
+        $$('time.live-ago').forEach((t) => { t.dateTime = v.generatedAt; });
+        tick();
+        const titles = added.map((c) => $('.fcard-title', c).textContent.trim());
+        showToast(`${added.length} new update${added.length === 1 ? '' : 's'} added: ${titles.slice(0, 2).join(' · ')}${titles.length > 2 ? ' …' : ''}`,
+          'View', () => { added[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); toast.remove(); });
+        return;
+      }
       const fresh = v.latest.filter((i) => i.date > built);
       showToast(fresh.length
         ? `${fresh.length} new update${fresh.length === 1 ? '' : 's'}: ${fresh.slice(0, 2).map((i) => i.title).join(' · ')}${fresh.length > 2 ? ' …' : ''}`
         : 'The site was just refreshed with new data.');
     } catch {}
   }
-  function showToast(text) {
+  // Places each unseen card under its day header (creating it if needed), newest first.
+  function insertCards(list) {
+    const known = new Set(cards.map((c) => c.dataset.id));
+    const tpl = document.createElement('template');
+    const added = [];
+    for (const { id, date, html } of list) {
+      if (known.has(id)) continue;
+      tpl.innerHTML = html.trim();
+      const card = tpl.content.firstElementChild;
+      const day = date.slice(0, 10);
+      let head = $(`.day[data-day="${day}"]`, feed);
+      if (!head) {
+        head = dayHeader(day);
+        feed.insertBefore(head, $$('.day', feed).find((h) => h.dataset.day < day) || null);
+      }
+      let n = head.nextElementSibling;
+      while (n && !n.classList.contains('day') && $('time', n).dateTime >= date) n = n.nextElementSibling;
+      feed.insertBefore(card, n);
+      card.classList.add('is-new');
+      known.add(id);
+      added.push(card);
+    }
+    if (added.length) {
+      cards = $$('.fcard', feed);
+      state.page += added.length;
+      added.sort((a, b) => cards.indexOf(a) - cards.indexOf(b));
+      apply(); tick();
+    }
+    return added;
+  }
+  function dayHeader(day) {
+    const d = new Date(`${day}T00:00:00Z`);
+    const diff = Math.round((Date.parse(new Date().toISOString().slice(0, 10)) - d) / 86400000);
+    const h = document.createElement('h2');
+    h.className = 'day'; h.dataset.day = day;
+    h.innerHTML = '<span></span><i></i><small></small>';
+    $('span', h).textContent = diff === 0 ? 'Today' : diff === 1 ? 'Yesterday' : d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+    $('small', h).textContent = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    return h;
+  }
+  function showToast(text, label = 'Refresh', onClick = () => location.reload()) {
     toast?.remove();
     toast = document.createElement('div');
     toast.className = 'live-toast';
     toast.setAttribute('role', 'status');
-    toast.innerHTML = '<span class="dot"></span><p></p><button type="button" class="btn">Refresh</button><button type="button" class="x" aria-label="Dismiss">×</button>';
+    toast.innerHTML = '<span class="dot"></span><p></p><button type="button" class="btn"></button><button type="button" class="x" aria-label="Dismiss">×</button>';
     $('p', toast).textContent = text;
-    $('.btn', toast).addEventListener('click', () => location.reload());
+    $('.btn', toast).textContent = label;
+    $('.btn', toast).addEventListener('click', onClick);
     $('.x', toast).addEventListener('click', () => toast.remove());
     document.body.append(toast);
   }
