@@ -2,6 +2,7 @@
 import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
 import { TOOLS, CATEGORIES } from './sources.mjs';
 import { resolveIcons } from './icons.mjs';
+import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -122,6 +123,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
       <a href="${root}#feed">Feed</a>
       ${trending.length ? `<a href="${root}#trending">Trending</a>` : ''}
       <a href="${root}#discussions">Discussions</a>
+      <a href="${root}compare/" ${active === 'compare' ? 'aria-current="page"' : ''}>Compare</a>
       <a href="${root}tools/">All tools</a>
     </nav>
     <div class="nav-actions">
@@ -388,6 +390,7 @@ function toolPage(t) {
         <p class="eyebrow">Community</p><h2>On Hacker News</h2>
         ${discussionList(t.discussions, root, 10)}
       </div>
+      ${plansCard(t, root)}
       <div class="side-card">
         <p class="eyebrow">Compare</p><h2>Similar tools</h2>
         <ul class="similar">${similar.map((s) => `<li><a href="${root}tools/${s.id}/" style="--c:${s.color}">${icon(s, root, 'sm')}<span>${esc(s.name)}</span><code>${esc(s.latestRelease?.version || '')}</code></a></li>`).join('')}</ul>
@@ -442,6 +445,83 @@ function newsPage() {
   });
 }
 
+// ── pricing ───────────────────────────────────────────────
+const usd = (n) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
+const planPrice = (p) => (p.price == null ? 'Custom' : p.price === 0 ? 'Free' : `${p.from ? 'from ' : ''}${usd(p.price)}<small>/${p.seat ? 'seat/' : ''}mo</small>`);
+const pricing = (t) => pricingFor(t.id, { discovered: !!t.discovered });
+const startsAt = (pr) => {
+  const paid = pr.plans.filter((p) => p.price > 0);
+  return paid.length ? Math.min(...paid.map((p) => p.price)) : null;
+};
+
+function plansCard(t, root) {
+  const pr = pricing(t);
+  if (!pr) return '';
+  return `<div class="side-card">
+    <p class="eyebrow">Pricing</p><h2>Free &amp; paid plans</h2>
+    ${pr.note ? `<p class="muted small">${esc(pr.note)}</p>` : ''}
+    <ul class="plans">${pr.plans.map((p) => `<li><div><strong>${esc(p.name)}</strong>${p.note ? `<span>${esc(p.note)}</span>` : ''}</div><b class="${p.price === 0 ? 'free' : ''}">${planPrice(p)}</b></li>`).join('')}</ul>
+    <p class="muted small">${pr.url ? `<a href="${esc(pr.url)}" target="_blank" rel="noopener">Official pricing ↗</a> · ` : ''}<a href="${root}compare/">Compare all tools →</a></p>
+  </div>`;
+}
+
+function comparePage() {
+  const root = '../';
+  const rows = tools.filter((t) => !t.discovered).map((t) => ({ t, pr: pricing(t) })).filter((r) => r.pr)
+    .map((r) => ({ ...r, from: startsAt(r.pr), free: r.pr.plans.filter((p) => p.price === 0) }))
+    .sort((a, b) => (a.from ?? -1) - (b.from ?? -1) || a.t.name.localeCompare(b.t.name));
+  const freeCount = rows.filter((r) => r.free.length).length;
+  const row = ({ t, pr, from, free }) => {
+    const paid = pr.plans.filter((p) => p.price !== 0);
+    return `<tr class="prow" data-cat="${t.category}" data-trend="0" data-free="${free.length ? 1 : 0}" data-text="${esc(`${t.name} ${t.vendor} ${pr.plans.map((p) => p.name).join(' ')}`.toLowerCase())}" style="--c:${t.color}">
+  <th scope="row"><a class="ptool" href="${root}tools/${t.id}/">${icon(t, root, 'sm')}<span><strong>${esc(t.name)}</strong><small>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</small></span></a></th>
+  <td>${free.length ? free.map((p) => `<div class="pfree"><span class="pbadge free">Free</span><div><strong>${esc(p.name)}</strong>${p.note ? `<small>${esc(p.note)}</small>` : ''}</div></div>`).join('') : '<span class="pbadge none">No free plan</span>'}</td>
+  <td><div class="pchips">${paid.length ? paid.map((p) => `<span class="pchip"${p.note ? ` title="${esc(p.note)}"` : ''}><span>${esc(p.name)}</span><b>${planPrice(p)}</b>${p.note ? `<small>${esc(p.note)}</small>` : ''}</span>`).join('') : '<span class="muted small">Free only</span>'}</div>${pr.note ? `<p class="pnote">${esc(pr.note)}</p>` : ''}</td>
+  <td class="pfrom">${from == null ? '<span class="pbadge free">$0</span>' : `<b>${usd(from)}</b><small>/mo</small>`}${pr.url ? `<a href="${esc(pr.url)}" target="_blank" rel="noopener" aria-label="${esc(t.name)} official pricing">Pricing ↗</a>` : ''}</td>
+</tr>`;
+  };
+  const oss = tools.filter((t) => t.discovered);
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">Compare</p>
+  <h1>Free &amp; paid <em>plans</em>, side by side</h1>
+  <p class="lede">Every plan for ${rows.length} AI IDEs, coding CLIs and editor agents — what you get for free, and what each paid tier costs per month. ${freeCount} of ${rows.length} have a free option.</p>
+  <div class="hero-search">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <input id="q" type="search" placeholder="Search tools or plans…" aria-label="Search plans" autocomplete="off">
+    <kbd>/</kbd>
+  </div>
+</section>
+<section class="wrap section">
+  <div class="section-head">
+    <div class="chips" role="group" aria-label="Filter by price">
+      <button class="chip on" data-free="all">All plans</button>
+      <button class="chip" data-free="1">Has a free plan</button>
+      <button class="chip" data-free="0">Paid only</button>
+    </div>
+    ${catTabs(false).replace(/\s*<button[^>]*data-cat="trending"[\s\S]*?<\/button>/, '')}
+  </div>
+  <div class="ptable-wrap">
+    <table class="ptable">
+      <thead><tr><th scope="col">Tool</th><th scope="col">Free plan</th><th scope="col">Paid plans <small>(USD / month)</small></th><th scope="col">Starts at</th></tr></thead>
+      <tbody>${rows.map(row).join('')}</tbody>
+    </table>
+  </div>
+  <p class="empty" hidden>No tools match these filters.</p>
+  <p class="muted small section-note">Prices checked ${fmtDate(PRICING_CHECKED + 'T00:00:00Z')} from each vendor's official pricing page; monthly billing in USD before tax. Vendors change plans often — always confirm on the official page before you subscribe.</p>
+</section>
+${oss.length ? `<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Open source</p><h2>Free trending tools</h2></div><p class="muted small section-note">These auto-discovered projects are free and open source — you only pay your model provider (or nothing, with local models).</p></div>
+  <ul class="oss-list">${oss.map((t) => `<li><a href="${root}tools/${t.id}/" style="--c:${t.color}">${icon(t, root, 'sm')}<span>${esc(t.name)}</span><span class="pbadge free">Free</span></a></li>`).join('')}</ul>
+</section>` : ''}`;
+  return layout({
+    root, path: 'compare/', active: 'compare',
+    title: `AI Coding Tools Pricing Compared — Free vs Paid Plans | ${SITE_NAME}`,
+    description: `Compare free and paid plans for ${rows.map((r) => r.t.name).slice(0, 10).join(', ')} and more AI IDEs and coding CLIs. Monthly prices, free tiers and what each plan includes.`,
+    body,
+  });
+}
+
 function rss(items) {
   const x = (s) => esc(s);
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -477,6 +557,7 @@ await icons();
 await out('index.html', indexPage());
 await out('tools/index.html', toolsIndexPage());
 await out('news/index.html', newsPage());
+await out('compare/index.html', comparePage());
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
 
 const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date));
@@ -497,9 +578,10 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
+<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 </urlset>`);
 await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 3} pages → dist/`);
+console.log(`Built ${tools.length + 4} pages → dist/`);

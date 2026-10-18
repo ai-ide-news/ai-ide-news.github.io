@@ -24,10 +24,11 @@
   tick(); setInterval(tick, 60000);
 
   // Filters
-  const state = { cat: 'all', kind: 'all', q: '', page: 40 };
+  const state = { cat: 'all', kind: 'all', free: 'all', q: '', page: 40 };
   const feed = $('#feedlist');
   const cards = feed ? $$('.fcard', feed) : [];
   const vcards = $$('.vcard');
+  const prows = $$('.prow');
   const more = $('#more');
 
   function apply() {
@@ -37,6 +38,8 @@
     const inCat = (el) => state.cat === 'all' || (state.cat === 'trending' ? el.dataset.trend === '1' : el.dataset.cat === state.cat);
 
     vcards.forEach((v) => { v.hidden = !(inCat(v) && match(v)); });
+    prows.forEach((r) => { r.hidden = !(inCat(r) && match(r) && (state.free === 'all' || r.dataset.free === state.free)); });
+    const pempty = $('.ptable-wrap + .empty'); if (pempty) pempty.hidden = prows.some((r) => !r.hidden);
     $$('.vgrid').forEach((g) => { const e = g.nextElementSibling; if (e?.classList.contains('empty')) e.hidden = $$('.vcard', g).some((v) => !v.hidden); });
 
     if (!feed) return;
@@ -70,7 +73,8 @@
   if (location.hash === '#trending' && !$('#trending') && $('.tabs button[data-cat="trending"]')) setCat('trending');
   $$('.chips').forEach((chips) => chips.addEventListener('click', (e) => {
     const b = e.target.closest('.chip'); if (!b) return;
-    state.kind = b.dataset.kind; state.page = 40;
+    if (b.dataset.free) state.free = b.dataset.free; else state.kind = b.dataset.kind;
+    state.page = 40;
     $$('.chip', chips).forEach((x) => x.classList.toggle('on', x === b));
     apply();
   }));
