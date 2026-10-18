@@ -505,13 +505,18 @@ function comparePage() {
   const freeCount = rows.filter((r) => r.free.length).length;
   const row = ({ t, pr, from, free }) => {
     const paid = pr.plans.filter((p) => p.price !== 0);
-    return `<tr class="prow" data-cat="${t.category}" data-trend="0" data-free="${free.length ? 1 : 0}" data-text="${esc(`${t.name} ${t.vendor} ${pr.plans.map((p) => p.name).join(' ')}`.toLowerCase())}" style="--c:${t.color}">
-  <th scope="row"><a class="ptool" href="${root}tools/${t.id}/">${icon(t, root, 'sm')}<span><strong>${esc(t.name)}</strong><small>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</small></span></a></th>
+    return `<tr class="prow" data-id="${t.id}" data-cat="${t.category}" data-trend="0" data-free="${free.length ? 1 : 0}" data-text="${esc(`${t.name} ${t.vendor} ${pr.plans.map((p) => p.name).join(' ')}`.toLowerCase())}" style="--c:${t.color}">
+  <th scope="row"><div class="ptool-cell"><button type="button" class="pick" data-pick="${t.id}" aria-pressed="false" aria-label="Add ${esc(t.name)} to comparison" title="Add to comparison"></button><a class="ptool" href="${root}tools/${t.id}/">${icon(t, root, 'sm')}<span><strong>${esc(t.name)}</strong><small>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</small></span></a></div></th>
   <td>${free.length ? free.map((p) => `<div class="pfree"><span class="pbadge free">Free</span><div><strong>${esc(p.name)}</strong>${p.note ? `<small>${esc(p.note)}</small>` : ''}</div></div>`).join('') : '<span class="pbadge none">No free plan</span>'}</td>
-  <td><div class="pchips">${paid.length ? paid.map((p) => `<span class="pchip"${p.note ? ` title="${esc(p.note)}"` : ''}><span>${esc(p.name)}</span><b>${planPrice(p)}</b>${p.note ? `<small>${esc(p.note)}</small>` : ''}</span>`).join('') : '<span class="muted small">Free only</span>'}</div>${pr.note ? `<p class="pnote">${esc(pr.note)}</p>` : ''}</td>
-  <td class="pfrom">${from == null ? '<span class="pbadge free">$0</span>' : `<b>${usd(from)}</b><small>/mo</small>`}${pr.url ? `<a href="${esc(pr.url)}" target="_blank" rel="noopener" aria-label="${esc(t.name)} official pricing">Pricing ↗</a>` : ''}</td>
+  <td><div class="pchips">${paid.length ? paid.map((p) => `<span class="pchip" data-price="${p.price ?? ''}"${p.note ? ` title="${esc(p.note)}"` : ''}><span>${esc(p.name)}</span><b>${planPrice(p)}</b><em class="ptotal" hidden></em>${p.note ? `<small>${esc(p.note)}</small>` : ''}</span>`).join('') : '<span class="muted small">Free only</span>'}</div>${pr.note ? `<p class="pnote">${esc(pr.note)}</p>` : ''}</td>
+  <td class="pfrom">${from == null ? '<span class="pbadge free">$0</span>' : `<b class="pfrom-v">${usd(from)}</b><small>/mo</small>`}${pr.url ? `<a href="${esc(pr.url)}" target="_blank" rel="noopener" aria-label="${esc(t.name)} official pricing">Pricing ↗</a>` : ''}</td>
 </tr>`;
   };
+  // Client-side data for the budget, team-size, sort and side-by-side controls.
+  const cmpData = Object.fromEntries(rows.map(({ t, pr }) => [t.id, {
+    name: t.name, vendor: t.vendor, color: t.color, href: `${root}tools/${t.id}/`, url: pr.url || '', note: pr.note || '',
+    icon: icon(t, root, 'md'), plans: pr.plans.map((p) => ({ name: p.name, price: p.price, seat: !!p.seat, from: !!p.from, note: p.note || '' })),
+  }]));
   const oss = tools.filter((t) => t.discovered);
   const body = `
 <section class="wrap hero hero-sm">
@@ -535,13 +540,26 @@ ${banner()}
     </div>
     ${catTabs(false).replace(/\s*<button[^>]*data-cat="trending"[\s\S]*?<\/button>/, '')}
   </div>
+  <div class="pctl">
+    <label class="pctl-budget"><span>Budget per seat <output id="budget-out">Any</output></span><input id="budget" type="range" min="0" max="12" step="1" value="12" aria-describedby="budget-out"></label>
+    <div class="pctl-seats"><span id="seats-l">Team size</span><div class="stepper" role="group" aria-labelledby="seats-l"><button type="button" data-step="-1" aria-label="Fewer seats">−</button><input id="seats" type="number" min="1" max="500" value="1" inputmode="numeric" aria-labelledby="seats-l"><button type="button" data-step="1" aria-label="More seats">+</button></div></div>
+    <p class="pctl-hint muted small"><span class="pick-dot" aria-hidden="true"></span>Tick up to 4 tools to compare them side by side.</p>
+  </div>
   <div class="ptable-wrap">
     <table class="ptable">
-      <thead><tr><th scope="col">Tool</th><th scope="col">Free plan</th><th scope="col">Paid plans <small>(USD / month)</small></th><th scope="col">Starts at</th></tr></thead>
+      <thead><tr><th scope="col" aria-sort="none"><button type="button" class="psort" data-sort="name">Tool</button></th><th scope="col">Free plan</th><th scope="col">Paid plans <small>(USD / month)</small></th><th scope="col" aria-sort="ascending"><button type="button" class="psort" data-sort="from">Starts at</button></th></tr></thead>
       <tbody>${rows.map(row).join('')}</tbody>
     </table>
   </div>
   <p class="empty" hidden>No tools match these filters.</p>
+  <div class="ctray" hidden role="region" aria-label="Comparison tray">
+    <div class="wrap ctray-in"><div class="ctray-picks"></div><span class="ctray-n muted small"></span><button type="button" class="btn ghost ctray-clear">Clear</button><button type="button" class="btn ctray-go">Compare</button></div>
+  </div>
+  <dialog class="cmp" aria-labelledby="cmp-title">
+    <div class="cmp-head"><h2 id="cmp-title">Side by side</h2><p class="muted small cmp-sub"></p><button type="button" class="icon-btn cmp-x" aria-label="Close comparison">×</button></div>
+    <div class="cmp-body"></div>
+  </dialog>
+  <script type="application/json" id="cmp-data">${JSON.stringify(cmpData).replace(/</g, '\\u003c')}</script>
   ${ad('inline')}
   <p class="muted small section-note">Prices checked ${fmtDate(PRICING_CHECKED + 'T00:00:00Z')} from each vendor's official pricing page; monthly billing in USD before tax. Vendors change plans often — always confirm on the official page before you subscribe.</p>
 </section>
