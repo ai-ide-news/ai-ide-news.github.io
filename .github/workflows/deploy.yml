@@ -49,6 +49,7 @@ jobs:
           ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
           ADSENSE_SLOT_SIDE: ${{ vars.ADSENSE_SLOT_SIDE }}
           ADSENSE_SLOT_INLINE: ${{ vars.ADSENSE_SLOT_INLINE }}
+          CF_ANALYTICS_TOKEN: ${{ vars.CF_ANALYTICS_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # README lookups when resolving new logos
       - name: Commit data snapshot (keeps history + keeps the schedule alive)
         if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'

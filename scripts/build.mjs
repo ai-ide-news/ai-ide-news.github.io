@@ -19,6 +19,8 @@ const ADS = {
   inline: (process.env.ADSENSE_SLOT_INLINE || '').trim(),      // between sections
   preview: process.env.ADS_PREVIEW === '1',                     // local: show placeholder boxes
 };
+// Cloudflare Web Analytics site token. Unset → no beacon (local builds stay out of the stats).
+const CF_BEACON = (process.env.CF_ANALYTICS_TOKEN || '').trim();
 
 const snap = JSON.parse(await readFile(new URL('data/snapshot.json', ROOT), 'utf8'));
 const NOW = Date.parse(snap.generatedAt);
@@ -161,6 +163,7 @@ ${body}
   </div>
 </footer>
 <script src="${root}assets/app.js?v=${NOW}" defer></script>
+${CF_BEACON ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${esc(JSON.stringify({ token: CF_BEACON }))}'></script>` : ''}
 </body>
 </html>`;
 }
