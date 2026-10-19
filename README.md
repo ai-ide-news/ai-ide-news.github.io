@@ -13,6 +13,7 @@ A live tracker of the latest releases, patches, changelogs and community discuss
 | Official blog feeds | VS Code, Zed, Windsurf, Trae, JetBrains AI, Augment, OpenAI (Codex), Google (Gemini CLI / Antigravity) |
 | Hacker News (Algolia API) | Community discussion |
 | GitHub Search API | Auto-discovering trending open-source coding agents, IDEs & extensions |
+| OpenRouter models API | New models from the major labs (release date, context window, API price) |
 
 ### Trending auto-discovery
 

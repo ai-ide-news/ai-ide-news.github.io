@@ -8,6 +8,7 @@ import { TOOLS, HN_MATCH, HN_QUERIES, DISCOVERY } from './sources.mjs';
 import { searchCandidates, toTool } from './discover.mjs';
 import { NEWS_FEEDS, LAB_ACCOUNTS, fetchX, pickNews } from './news.mjs';
 import { resolveHandles, toolsByHandle } from './xaccounts.mjs';
+import { fetchModels } from './models.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
 const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
@@ -314,6 +315,12 @@ async function main() {
     discussions = prev.discussions || []; report.push(`⚠ Hacker News: ${e.message}`);
   }
 
+  // New models from the major labs (one request, so quick runs check it too).
+  let models = prev.models || [];
+  try { models = await fetchModels(get, NOW); report.push(`✓ Models                 ${models.length} models from ${new Set(models.map((m) => m.lab)).size} labs`); } catch (e) {
+    report.push(`⚠ Models: ${e.message} (kept ${models.length} previous)`);
+  }
+
   // X: every tool's own account (found automatically, like the tools themselves) plus the AI labs.
   // Read on full runs only (keeps requests to X low); quick runs reuse the last batch.
   let x = { posts: [], userIds: {}, ...prev.x };
@@ -349,15 +356,16 @@ async function main() {
   // Did anything actually ship? (Ignores HN vote counts, which move constantly.)
   const fingerprint = (t) => Object.values(t || {}).flatMap((e) => e.items.map((i) => `${i.id}|${i.version || ''}|${i.title}`)).sort().join('\n');
   const ids = (list) => (list || []).map((d) => d.id).sort().join();
-  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered) || ids(news) !== ids(prev.news);
+  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered) || ids(news) !== ids(prev.news) || ids(models) !== ids(prev.models);
   const newIds = new Set(Object.values(prev.tools || {}).flatMap((e) => e.items.map((i) => i.id)));
-  const fresh = Object.values(tools).flatMap((e) => e.items).filter((i) => !newIds.has(i.id));
+  const oldModels = new Set((prev.models || []).map((m) => m.id));
+  const fresh = [...Object.values(tools).flatMap((e) => e.items).filter((i) => !newIds.has(i.id)), ...(prev.models ? models.filter((m) => !oldModels.has(m.id)).map((m) => ({ title: `New model: ${m.name}` })) : [])];
   report.push(`${changed ? '★' : '·'} ${changed ? `${fresh.length} new item(s): ${fresh.slice(0, 8).map((i) => i.title).join(' · ')}` : 'No new updates'}`);
   if (process.env.GITHUB_OUTPUT) await writeFile(process.env.GITHUB_OUTPUT, `changed=${changed}\n`, { flag: 'a' });
   if (QUICK && !changed) { console.log(report.sort().join('\n')); return; } // nothing new: leave the snapshot untouched
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions, news, x }, null, 1));
+  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions, news, models, x }, null, 1));
   console.log(report.sort().join('\n'));
 }
 

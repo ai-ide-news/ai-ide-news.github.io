@@ -135,6 +135,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
     </a>
     <nav class="nav-links" aria-label="Primary">
       ${news.length ? `<a href="${root}news/" ${active === 'news' ? 'aria-current="page"' : ''}>News</a>` : ''}
+      ${models.length ? `<a href="${root}models/" ${active === 'models' ? 'aria-current="page"' : ''}>Models</a>` : ''}
       <a href="${root}#versions" ${active === 'versions' ? 'aria-current="page"' : ''}>Versions</a>
       <a href="${root}#feed">Feed</a>
       ${trending.length ? `<a href="${root}#trending">Trending</a>` : ''}
@@ -245,6 +246,108 @@ function newsGrid(list, root, limit = Infinity) {
   return `<div class="ngrid">${newsCard(lead, root, { lead: true })}${rest.slice(0, fit).map((x) => newsCard(x, root)).join('')}</div>`;
 }
 
+// ── models ────────────────────────────────────────────────
+// New models from the major labs (scripts/models.mjs, via OpenRouter's public catalog).
+const models = snap.models || [];
+const tokens = (n) => (n == null ? '—' : n % 1048576 === 0 ? `${n / 1048576}M` : n >= 1e6 ? `${+(n / 1e6).toFixed(2)}M` : `${Math.round(n / 1000)}K`);
+const mprice = (n) => (n === 0 ? 'Free' : `$${n < 0.1 ? +n.toFixed(3) : n.toFixed(2)}`);
+const labTile = (m) => `<span class="ticon ticon-sm" style="--c:${m.color}" aria-hidden="true"><b>${esc(m.lab[0])}</b></span>`;
+const modelTags = (m) => [
+  m.free && '<span class="pbadge free">Free tier</span>',
+  m.reasoning && '<span class="pbadge">Reasoning</span>',
+  m.openWeights && '<span class="pbadge">Open weights</span>',
+  m.modalities.includes('image') && '<span class="pbadge">Vision</span>',
+].filter(Boolean).join('');
+const modelText = (m) => esc(`${m.name} ${m.lab} ${m.id} ${m.reasoning ? 'reasoning' : ''} ${m.openWeights ? 'open weights' : ''} ${m.free ? 'free' : ''} ${m.modalities.join(' ')}`.toLowerCase());
+
+function modelCard(m) {
+  const fresh = NOW - Date.parse(m.date) < 3 * DAY;
+  return `<a class="mcard" href="${esc(m.url)}" target="_blank" rel="noopener" style="--c:${m.color}">
+  ${labTile(m)}
+  <span class="vcard-name"><strong>${esc(m.name)}</strong>${fresh ? '<span class="fresh" title="Listed in the last 3 days">new</span>' : ''}<small>${esc(m.lab)} · ${tokens(m.context)} context</small></span>
+  <span class="mcard-price" title="USD per million input / output tokens">${m.input === 0 && m.output === 0 ? 'Free' : `${mprice(m.input)} / ${mprice(m.output)}`}<small>per 1M in / out</small></span>
+  <span class="vcard-meta">${time(m.date)}<small>${fmtDate(m.date).replace(/, \d{4}$/, '')}</small></span>
+</a>`;
+}
+
+function modelRow(m) {
+  return `<tr class="prow mrow" data-cat="${m.labId}" data-trend="0" data-free="${m.free ? 1 : 0}" data-text="${modelText(m)}" data-date="${m.date}" data-context="${m.context || 0}" data-input="${m.input}" data-output="${m.output}" data-name="${esc(m.name.toLowerCase())}" style="--c:${m.color}">
+  <th scope="row"><a class="ptool" href="${esc(m.url)}" target="_blank" rel="noopener">${labTile(m)}<span><strong>${esc(m.name)}</strong><small>${esc(m.lab)} · <code>${esc(m.id)}</code></small></span></a>${m.summary ? `<p class="msum">${esc(m.summary)}</p>` : ''}<div class="mtags">${modelTags(m)}</div></th>
+  <td class="mnum">${fmtDate(m.date)}<small>${time(m.date)}</small></td>
+  <td class="mnum">${tokens(m.context)}${m.maxOutput ? `<small>${tokens(m.maxOutput)} out</small>` : ''}</td>
+  <td class="mnum">${mprice(m.input)}</td>
+  <td class="mnum">${mprice(m.output)}</td>
+</tr>`;
+}
+
+function modelsSection(root) {
+  if (!models.length) return '';
+  return `<section id="models" class="wrap section">
+  <div class="section-head">
+    <div><p class="eyebrow">Just released</p><h2>New models</h2></div>
+    <p class="muted small section-note">The newest models from Anthropic, OpenAI, Google, xAI, DeepSeek, Qwen and other major labs, with context window and API price per million tokens.</p>
+  </div>
+  <div class="vgrid mgrid">${models.slice(0, 10).map(modelCard).join('')}</div>
+  <p class="more-link"><a class="btn ghost" href="${root}models/">All ${models.length} models →</a></p>
+</section>`;
+}
+
+function modelsPage() {
+  const root = '../';
+  const labs = Object.values(Object.groupBy(models, (m) => m.labId)).sort((a, b) => b.length - a.length);
+  const month = models.filter((m) => NOW - Date.parse(m.date) < 30 * DAY);
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">Models</p>
+  <h1>Every new <em>AI model</em>, as it lands</h1>
+  <p class="lede">${models.length} models from ${labs.length} labs — ${month.length} new in the last 30 days. Release date, context window and API price for each, straight from OpenRouter's public model catalog.</p>
+  <div class="hero-search">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <input id="q" type="search" placeholder="Search models, labs, reasoning, vision…" aria-label="Search models" autocomplete="off">
+    <kbd>/</kbd>
+  </div>
+</section>
+
+${banner()}
+<section class="wrap section">
+  <div class="section-head">
+    <div class="chips" role="group" aria-label="Filter by price">
+      <button class="chip on" data-free="all">All models</button>
+      <button class="chip" data-free="1">Has a free tier</button>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Filter by lab">
+      <button role="tab" aria-selected="true" data-cat="all">All <i>${models.length}</i></button>
+      ${labs.map((l) => `<button role="tab" aria-selected="false" data-cat="${l[0].labId}">${esc(l[0].lab)} <i>${l.length}</i></button>`).join('')}
+    </div>
+  </div>
+  <div class="ptable-wrap">
+    <table class="ptable mtable">
+      <thead><tr>
+        <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="name">Model</button></th>
+        <th scope="col" aria-sort="descending"><button type="button" class="psort msort" data-sort="date">Released</button></th>
+        <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="context">Context</button></th>
+        <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="input">Input <small>/ 1M</small></button></th>
+        <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="output">Output <small>/ 1M</small></button></th>
+      </tr></thead>
+      <tbody>${models.map(modelRow).join('')}</tbody>
+    </table>
+  </div>
+  <p class="empty" hidden>No models match these filters.</p>
+  ${ad('inline')}
+  <p class="muted small section-note">Dates are when each model was listed on OpenRouter, usually its launch day. Prices are OpenRouter's USD rate per million tokens; first-party API prices can differ. “Free tier” means a rate-limited free variant exists.</p>
+</section>`;
+  return layout({
+    root, path: 'models/', active: 'models',
+    title: `New AI Models — Latest Releases, Context & API Pricing | ${SITE_NAME}`,
+    description: `The newest AI models from ${labs.slice(0, 6).map((l) => l[0].lab).join(', ')} and more: ${models.slice(0, 5).map((m) => m.name).join(', ')}. Release dates, context windows and API prices, updated automatically.`,
+    jsonld: {
+      '@context': 'https://schema.org', '@type': 'ItemList', name: 'New AI models',
+      itemListElement: models.slice(0, 50).map((m, i) => ({ '@type': 'ListItem', position: i + 1, name: m.name, url: m.url })),
+    },
+    body,
+  });
+}
+
 function versionCard(t, root) {
   const l = t.latest;
   const ver = t.latestRelease ? t.latestRelease.version : null;
@@ -306,6 +409,8 @@ ${news.length ? `<section id="news" class="wrap section">
   ${newsGrid(news, root, 9)}
   ${news.length > 7 ? `<p class="more-link"><a class="btn ghost" href="${root}news/">All ${news.length} important stories →</a></p>` : ''}
 </section>` : ''}
+
+${modelsSection(root)}
 
 ${banner()}
 
@@ -614,6 +719,7 @@ await out('index.html', indexPage());
 await out('tools/index.html', toolsIndexPage());
 await out('news/index.html', newsPage());
 await out('compare/index.html', comparePage());
+if (models.length) await out('models/index.html', modelsPage());
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
 
 const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date));
@@ -624,6 +730,7 @@ await out('data.json', JSON.stringify({
   updates: allItems.slice(0, 300).map(({ html, ...i }) => i),
   discussions: snap.discussions,
   news: news.map(({ score, ...n }) => n),
+  models: models.map(({ color, labId, ...m }) => m),
 }));
 // Tiny file the open page polls to announce new updates without a full reload of data.json.
 await out('version.json', JSON.stringify({
@@ -636,7 +743,7 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
-<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 </urlset>`);
@@ -644,4 +751,4 @@ await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap
 if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
 `);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 4} pages → dist/`);
+console.log(`Built ${tools.length + 4 + (models.length ? 1 : 0)} pages → dist/`);

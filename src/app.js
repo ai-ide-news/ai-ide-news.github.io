@@ -124,7 +124,21 @@
   }
   more?.addEventListener('click', () => { state.page += 40; apply(); });
   if ($('#cmp-data')) comparePlans();
+  if ($('.mtable')) sortModels();
   apply();
+
+  // Models page: click a column header to sort (newest first by default).
+  function sortModels() {
+    const tbody = $('.mtable tbody');
+    let sort = { key: 'date', dir: -1 };
+    $$('.msort').forEach((b) => b.addEventListener('click', () => {
+      const key = b.dataset.sort;
+      sort = { key, dir: sort.key === key ? -sort.dir : key === 'name' || key === 'input' || key === 'output' ? 1 : -1 };
+      const val = (r) => (key === 'name' || key === 'date' ? r.dataset[key] : +r.dataset[key]);
+      $$('.mrow', tbody).sort((a, b) => (val(a) < val(b) ? -1 : val(a) > val(b) ? 1 : 0) * sort.dir).forEach((r) => tbody.append(r));
+      $$('.msort').forEach((x) => x.closest('th').setAttribute('aria-sort', x === b ? (sort.dir > 0 ? 'ascending' : 'descending') : 'none'));
+    }));
+  }
 
   // Compare page: budget + team-size pricing, sortable columns, and a pick-up-to-4 side-by-side view.
   function comparePlans() {
