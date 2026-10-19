@@ -3,6 +3,7 @@ import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
 import { TOOLS, CATEGORIES } from './sources.mjs';
 import { resolveIcons } from './icons.mjs';
 import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
+import { LAB_ICONS } from './models.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -251,7 +252,7 @@ function newsGrid(list, root, limit = Infinity) {
 const models = snap.models || [];
 const tokens = (n) => (n == null ? '—' : n % 1048576 === 0 ? `${n / 1048576}M` : n >= 1e6 ? `${+(n / 1e6).toFixed(2)}M` : `${Math.round(n / 1000)}K`);
 const mprice = (n) => (n === 0 ? 'Free' : `$${n < 0.1 ? +n.toFixed(3) : n.toFixed(2)}`);
-const labTile = (m) => `<span class="ticon ticon-sm" style="--c:${m.color}" aria-hidden="true"><b>${esc(m.lab[0])}</b></span>`;
+const labTile = (m, root) => icon({ id: `lab-${m.labId}`, name: m.lab, color: m.color }, root, 'sm');
 const modelTags = (m) => [
   m.free && '<span class="pbadge free">Free tier</span>',
   m.reasoning && '<span class="pbadge">Reasoning</span>',
@@ -260,19 +261,19 @@ const modelTags = (m) => [
 ].filter(Boolean).join('');
 const modelText = (m) => esc(`${m.name} ${m.lab} ${m.id} ${m.reasoning ? 'reasoning' : ''} ${m.openWeights ? 'open weights' : ''} ${m.free ? 'free' : ''} ${m.modalities.join(' ')}`.toLowerCase());
 
-function modelCard(m) {
+function modelCard(m, root) {
   const fresh = NOW - Date.parse(m.date) < 3 * DAY;
   return `<a class="mcard" href="${esc(m.url)}" target="_blank" rel="noopener" style="--c:${m.color}">
-  ${labTile(m)}
+  ${labTile(m, root)}
   <span class="vcard-name"><strong>${esc(m.name)}</strong>${fresh ? '<span class="fresh" title="Listed in the last 3 days">new</span>' : ''}<small>${esc(m.lab)} · ${tokens(m.context)} context</small></span>
   <span class="mcard-price" title="USD per million input / output tokens">${m.input === 0 && m.output === 0 ? 'Free' : `${mprice(m.input)} / ${mprice(m.output)}`}<small>per 1M in / out</small></span>
   <span class="vcard-meta">${time(m.date)}<small>${fmtDate(m.date).replace(/, \d{4}$/, '')}</small></span>
 </a>`;
 }
 
-function modelRow(m) {
+function modelRow(m, root) {
   return `<tr class="prow mrow" data-cat="${m.labId}" data-trend="0" data-free="${m.free ? 1 : 0}" data-text="${modelText(m)}" data-date="${m.date}" data-context="${m.context || 0}" data-input="${m.input}" data-output="${m.output}" data-name="${esc(m.name.toLowerCase())}" style="--c:${m.color}">
-  <th scope="row"><a class="ptool" href="${esc(m.url)}" target="_blank" rel="noopener">${labTile(m)}<span><strong>${esc(m.name)}</strong><small>${esc(m.lab)} · <code>${esc(m.id)}</code></small></span></a>${m.summary ? `<p class="msum">${esc(m.summary)}</p>` : ''}<div class="mtags">${modelTags(m)}</div></th>
+  <th scope="row"><a class="ptool" href="${esc(m.url)}" target="_blank" rel="noopener">${labTile(m, root)}<span><strong>${esc(m.name)}</strong><small>${esc(m.lab)} · <code>${esc(m.id)}</code></small></span></a>${m.summary ? `<p class="msum">${esc(m.summary)}</p>` : ''}<div class="mtags">${modelTags(m)}</div></th>
   <td class="mnum">${fmtDate(m.date)}<small>${time(m.date)}</small></td>
   <td class="mnum">${tokens(m.context)}${m.maxOutput ? `<small>${tokens(m.maxOutput)} out</small>` : ''}</td>
   <td class="mnum">${mprice(m.input)}</td>
@@ -287,7 +288,7 @@ function modelsSection(root) {
     <div><p class="eyebrow">Just released</p><h2>New models</h2></div>
     <p class="muted small section-note">The newest models from Anthropic, OpenAI, Google, xAI, DeepSeek, Qwen and other major labs, with context window and API price per million tokens.</p>
   </div>
-  <div class="vgrid mgrid">${models.slice(0, 10).map(modelCard).join('')}</div>
+  <div class="vgrid mgrid">${models.slice(0, 10).map((m) => modelCard(m, root)).join('')}</div>
   <p class="more-link"><a class="btn ghost" href="${root}models/">All ${models.length} models →</a></p>
 </section>`;
 }
@@ -329,7 +330,7 @@ ${banner()}
         <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="input">Input <small>/ 1M</small></button></th>
         <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="output">Output <small>/ 1M</small></button></th>
       </tr></thead>
-      <tbody>${models.map(modelRow).join('')}</tbody>
+      <tbody>${models.map((m) => modelRow(m, root)).join('')}</tbody>
     </table>
   </div>
   <p class="empty" hidden>No models match these filters.</p>
@@ -699,7 +700,7 @@ ${items.map((i) => `<item><title>${x(i.title)}</title><link>${x(i.url)}</link><g
 async function icons() {
   await mkdir(new URL('icons/', DIST), { recursive: true });
   const cacheDir = new URL('data/icons/', ROOT);
-  ICONS = await resolveIcons(tools, cacheDir);
+  ICONS = await resolveIcons([...tools, ...LAB_ICONS], cacheDir);
   await Promise.all(Object.values(ICONS).filter((m) => m.file).map((m) => cp(new URL(m.file, cacheDir), new URL(`icons/${m.file}`, DIST))));
 }
 

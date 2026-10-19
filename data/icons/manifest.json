@@ -381,6 +381,158 @@
    "mono": false,
    "src": "github-org-avatar",
    "tone": null
+  },
+  "lab-qwen": {
+   "logo": "lobe:qwen",
+   "checked": 1792436198361,
+   "file": "lab-qwen.svg",
+   "mono": false,
+   "src": "lobehub:qwen-color",
+   "tone": null
+  },
+  "lab-google": {
+   "logo": "lobe:gemini",
+   "checked": 1792436198238,
+   "file": "lab-google.svg",
+   "mono": false,
+   "src": "lobehub:gemini-color",
+   "tone": null
+  },
+  "lab-deepseek": {
+   "logo": "lobe:deepseek",
+   "checked": 1792436197818,
+   "file": "lab-deepseek.svg",
+   "mono": false,
+   "src": "lobehub:deepseek-color",
+   "tone": null
+  },
+  "lab-anthropic": {
+   "logo": "lobe:anthropic",
+   "checked": 1792436198475,
+   "file": "lab-anthropic.svg",
+   "mono": true,
+   "src": "lobehub:anthropic",
+   "tone": null
+  },
+  "lab-xai": {
+   "logo": "lobe:xai",
+   "checked": 1792436198487,
+   "file": "lab-xai.svg",
+   "mono": true,
+   "src": "lobehub:xai",
+   "tone": null
+  },
+  "lab-moonshot-ai": {
+   "logo": "lobe:kimi",
+   "checked": 1792436198489,
+   "file": "lab-moonshot-ai.svg",
+   "mono": false,
+   "src": "lobehub:kimi-color",
+   "tone": "light"
+  },
+  "lab-mistral": {
+   "logo": "lobe:mistral",
+   "checked": 1792436198595,
+   "file": "lab-mistral.svg",
+   "mono": false,
+   "src": "lobehub:mistral-color",
+   "tone": null
+  },
+  "lab-z-ai": {
+   "logo": "lobe:zai",
+   "checked": 1792436198778,
+   "file": "lab-z-ai.svg",
+   "mono": true,
+   "src": "lobehub:zai",
+   "tone": null
+  },
+  "lab-meta": {
+   "logo": "lobe:meta",
+   "checked": 1792436198688,
+   "file": "lab-meta.svg",
+   "mono": false,
+   "src": "lobehub:meta-color",
+   "tone": null
+  },
+  "lab-minimax": {
+   "logo": "lobe:minimax",
+   "checked": 1792436198781,
+   "file": "lab-minimax.svg",
+   "mono": false,
+   "src": "lobehub:minimax-color",
+   "tone": null
+  },
+  "lab-microsoft": {
+   "logo": "lobe:microsoft",
+   "checked": 1792436198882,
+   "file": "lab-microsoft.svg",
+   "mono": false,
+   "src": "lobehub:microsoft-color",
+   "tone": null
+  },
+  "lab-amazon": {
+   "logo": "lobe:nova",
+   "checked": 1792436198973,
+   "file": "lab-amazon.svg",
+   "mono": false,
+   "src": "lobehub:nova-color",
+   "tone": null
+  },
+  "lab-openai": {
+   "logo": "lobe:openai",
+   "checked": 1792436199254,
+   "file": "lab-openai.svg",
+   "mono": true,
+   "src": "lobehub:openai",
+   "tone": null
+  },
+  "lab-cohere": {
+   "logo": "lobe:cohere",
+   "checked": 1792436199069,
+   "file": "lab-cohere.svg",
+   "mono": false,
+   "src": "lobehub:cohere-color",
+   "tone": null
+  },
+  "lab-nvidia": {
+   "logo": "lobe:nvidia",
+   "checked": 1792436199163,
+   "file": "lab-nvidia.svg",
+   "mono": false,
+   "src": "lobehub:nvidia-color",
+   "tone": null
+  },
+  "lab-bytedance": {
+   "logo": "lobe:bytedance",
+   "checked": 1792436199267,
+   "file": "lab-bytedance.svg",
+   "mono": false,
+   "src": "lobehub:bytedance-color",
+   "tone": null
+  },
+  "lab-tencent": {
+   "logo": "lobe:hunyuan",
+   "checked": 1792436199356,
+   "file": "lab-tencent.svg",
+   "mono": false,
+   "src": "lobehub:hunyuan-color",
+   "tone": null
+  },
+  "lab-stepfun": {
+   "logo": "lobe:stepfun",
+   "checked": 1792436199451,
+   "file": "lab-stepfun.svg",
+   "mono": false,
+   "src": "lobehub:stepfun-color",
+   "tone": null
+  },
+  "lab-xiaomi": {
+   "logo": "lobe:xiaomimimo",
+   "checked": 1792436199549,
+   "file": "lab-xiaomi.svg",
+   "mono": true,
+   "src": "lobehub:xiaomimimo",
+   "tone": null
   }
  }
 }
