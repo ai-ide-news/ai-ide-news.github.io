@@ -137,10 +137,10 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
     <nav class="nav-links" aria-label="Primary">
       ${news.length ? `<a href="${root}news/" ${active === 'news' ? 'aria-current="page"' : ''}>News</a>` : ''}
       ${models.length ? `<a href="${root}models/" ${active === 'models' ? 'aria-current="page"' : ''}>Models</a>` : ''}
-      <a href="${root}#versions" ${active === 'versions' ? 'aria-current="page"' : ''}>Versions</a>
-      <a href="${root}#feed">Feed</a>
+      <a href="${root}#versions" ${active === 'versions' ? 'aria-current="page"' : ''}>Latest versions</a>
+      <a href="${root}#feed">Changelog</a>
       ${trending.length ? `<a href="${root}#trending">Trending</a>` : ''}
-      <a href="${root}#discussions">Discussions</a>
+      <a href="${root}#discussions">Community</a>
       <a href="${root}compare/" ${active === 'compare' ? 'aria-current="page"' : ''}>Compare</a>
       <a href="${root}tools/">All tools</a>
     </nav>
@@ -383,8 +383,8 @@ function indexPage() {
   <div class="dateline"><span>${new Date(NOW).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span><span><span class="dot"></span>Updated ${time(snap.generatedAt, 'live-ago')}</span><span>${tools.length} tools on the wire</span></div>
   <div class="hero-grid">
     <div>
-      <h1>Every AI IDE &amp; CLI release, <em>the moment it ships.</em></h1>
-      <p class="lede">Release notes, patches and changelogs for Cursor, Claude Code, Codex, Gemini CLI, Copilot, Kiro, Zed and ${tools.length - 7} more — pulled from official sources into one feed.</p>
+      <h1>What changed in your AI coding tools, <em>and why it matters.</em></h1>
+      <p class="lede">New versions, model launches, pricing changes and security alerts for Cursor, Claude Code, Codex, Gemini CLI, Copilot, Kiro, Zed and ${tools.length - 7} more — straight from official sources, with the noise filtered out.</p>
       <div class="hero-search">
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <input id="q" type="search" placeholder="Search tools, versions, features…" aria-label="Search updates" autocomplete="off">
