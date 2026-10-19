@@ -9,6 +9,7 @@ import { searchCandidates, toTool } from './discover.mjs';
 import { NEWS_FEEDS, LAB_ACCOUNTS, fetchX, pickNews } from './news.mjs';
 import { resolveHandles, toolsByHandle } from './xaccounts.mjs';
 import { fetchModels } from './models.mjs';
+import { fetchBenchmarks } from './benchmarks.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
 const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
@@ -321,6 +322,15 @@ async function main() {
     report.push(`⚠ Models: ${e.message} (kept ${models.length} previous)`);
   }
 
+  // Benchmark scores (Epoch AI, ~2 MB zip): full runs only, or when the last copy is over a day old.
+  let benchmarks = prev.benchmarks || null;
+  if (!QUICK || !benchmarks || NOW - Date.parse(benchmarks.fetchedAt) > DAY) {
+    try {
+      benchmarks = { fetchedAt: new Date(NOW).toISOString(), scores: await fetchBenchmarks() };
+      report.push(`✓ Benchmarks             ${Object.keys(benchmarks.scores).length} models scored`);
+    } catch (e) { report.push(`⚠ Benchmarks: ${e.message} (kept previous)`); }
+  }
+
   // X: every tool's own account (found automatically, like the tools themselves) plus the AI labs.
   // Read on full runs only (keeps requests to X low); quick runs reuse the last batch.
   let x = { posts: [], userIds: {}, ...prev.x };
@@ -365,7 +375,7 @@ async function main() {
   if (QUICK && !changed) { console.log(report.sort().join('\n')); return; } // nothing new: leave the snapshot untouched
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions, news, models, x }, null, 1));
+  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions, news, models, benchmarks, x }, null, 1));
   console.log(report.sort().join('\n'));
 }
 

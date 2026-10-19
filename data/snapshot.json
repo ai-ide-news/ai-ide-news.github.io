@@ -26108,6 +26108,1121 @@
    "url": "https://openrouter.ai/qwen/qwen3-32b"
   }
  ],
+ "benchmarks": {
+  "fetchedAt": "2026-10-19T18:57:33.762Z",
+  "scores": {
+   "claude-fable-5-1": {
+    "fswe": 0.5629,
+    "hle": 0.465,
+    "arc2": 0.9,
+    "fm": 0.9018
+   },
+   "gpt-5-6-sol": {
+    "fswe": 0.322,
+    "dswe": 0.7267,
+    "gpqa": 0.935,
+    "arc2": 0.925,
+    "fm": 0.8912
+   },
+   "glm-5-3": {
+    "fswe": 0.3018,
+    "dswe": 0.6896,
+    "gpqa": 0.9091,
+    "fm": 0.6877
+   },
+   "kimi-k3": {
+    "fswe": 0.2587,
+    "dswe": 0.6851,
+    "gpqa": 0.9312,
+    "arc2": 0.6042,
+    "fm": 0.7218
+   },
+   "grok-4-6": {
+    "fswe": 0.2529,
+    "dswe": 0.6748,
+    "gpqa": 0.94,
+    "arc2": 0.6708,
+    "fm": 0.6596
+   },
+   "gemini-3-7-flash": {
+    "fswe": 0.2026,
+    "dswe": 0.6549,
+    "gpqa": 0.9482,
+    "arc2": 0.8458,
+    "fm": 0.7158
+   },
+   "qwen3-8-max": {
+    "fswe": 0.1781,
+    "dswe": 0.5746,
+    "gpqa": 0.9268,
+    "fm": 0.7474
+   },
+   "muse-spark-1-2": {
+    "fswe": 0.1197,
+    "dswe": 0.5487
+   },
+   "inkling": {
+    "fswe": 0.0412,
+    "gpqa": 0.8826,
+    "arc2": 0.3653,
+    "fm": 0.3333
+   },
+   "gpt-6-astra": {
+    "fswe": 0.6551,
+    "dswe": 0.7412,
+    "gpqa": 0.9577,
+    "hle": 0.548,
+    "arc2": 0.95,
+    "fm": 0.9368
+   },
+   "claude-opus-5": {
+    "fswe": 0.5201,
+    "dswe": 0.7365,
+    "gpqa": 0.9388,
+    "arc2": 0.9042,
+    "fm": 0.8561
+   },
+   "claude-fable-5": {
+    "fswe": 0.4696,
+    "dswe": 0.6991,
+    "gpqa": 0.8586,
+    "arc2": 0.8917,
+    "fm": 0.8702
+   },
+   "gemini-3-8-flash": {
+    "fswe": 0.1963,
+    "dswe": 0.7383,
+    "gpqa": 0.9539,
+    "hle": 0.4452,
+    "arc2": 0.8917,
+    "fm": 0.6842
+   },
+   "claude-opus-5-5": {
+    "fswe": 0.6233,
+    "gpqa": 0.9059,
+    "arc2": 0.9333,
+    "fm": 0.9123
+   },
+   "grok-4-7": {
+    "fswe": 0.295,
+    "gpqa": 0.9274,
+    "arc2": 0.6139,
+    "fm": 0.5298
+   },
+   "claude-sonnet-5-5": {
+    "fswe": 0.6189,
+    "gpqa": 0.9558,
+    "hle": 0.4612,
+    "fm": 0.8877
+   },
+   "gemini-4-argon": {
+    "fswe": 0.5496,
+    "gpqa": 0.964,
+    "fm": 0.8596
+   },
+   "glm-5-3-flash": {
+    "fswe": 0.1813,
+    "dswe": 0.6339,
+    "gpqa": 0.9015,
+    "arc2": 0.6583,
+    "fm": 0.5579
+   },
+   "claude-haiku-5-5": {
+    "fswe": 0.4377,
+    "gpqa": 0.8965,
+    "hle": 0.3012,
+    "fm": 0.7509
+   },
+   "muse-spark-1-3": {
+    "fswe": 0.258,
+    "fm": 0.7439
+   },
+   "gpt-5-6-terra": {
+    "dswe": 0.6962,
+    "gpqa": 0.9331,
+    "arc2": 0.839,
+    "fm": 0.8596
+   },
+   "gpt-5-6-luna": {
+    "dswe": 0.6719,
+    "gpqa": 0.916,
+    "arc2": 0.5954,
+    "fm": 0.8211
+   },
+   "gpt-5-5": {
+    "dswe": 0.6704,
+    "tb": 0.8472,
+    "gpqa": 0.9066,
+    "arc2": 0.85,
+    "fm": 0.8526
+   },
+   "claude-opus-4-8": {
+    "dswe": 0.5897,
+    "gpqa": 0.9104,
+    "arc2": 0.7208,
+    "fm": 0.8
+   },
+   "claude-sonnet-5": {
+    "dswe": 0.5385,
+    "gpqa": 0.9053,
+    "fm": 0.6561
+   },
+   "muse-spark-1-1": {
+    "dswe": 0.5332
+   },
+   "gpt-5-4": {
+    "dswe": 0.5177,
+    "swe": 0.7686,
+    "tb": 0.818,
+    "metr": 341.7353,
+    "gpqa": 0.933,
+    "hle": 0.3624,
+    "arc2": 0.7395,
+    "fm": 0.786
+   },
+   "glm-5-2": {
+    "dswe": 0.4378,
+    "swe": 0.787,
+    "gpqa": 0.9186,
+    "arc2": 0.2278,
+    "fm": 0.5921
+   },
+   "kimi-k2-7-code": {
+    "dswe": 0.3053,
+    "gpqa": 0.8788,
+    "fm": 0.5404
+   },
+   "claude-sonnet-4-6": {
+    "dswe": 0.2993,
+    "swe": 0.7521,
+    "tb": 0.5343,
+    "gpqa": 0.8737,
+    "arc2": 0.6042
+   },
+   "gemini-3-1-pro": {
+    "dswe": 0.1173,
+    "tb": 0.8022,
+    "metr": 384.1474,
+    "gpqa": 0.9444,
+    "hle": 0.4644,
+    "arc2": 0.771,
+    "fm": 0.5965
+   },
+   "grok-4-5": {
+    "dswe": 0.5376,
+    "gpqa": 0.9343,
+    "arc2": 0.5264,
+    "fm": 0.5719
+   },
+   "gemini-3-6-flash": {
+    "dswe": 0.4668,
+    "gpqa": 0.9413,
+    "arc2": 0.6042,
+    "fm": 0.5895
+   },
+   "gemini-3-5-flash": {
+    "dswe": 0.3739,
+    "swe": 0.7934,
+    "gpqa": 0.928,
+    "arc2": 0.7208,
+    "fm": 0.6281
+   },
+   "qwen3-7-max": {
+    "swe": 0.7727,
+    "gpqa": 0.9091,
+    "fm": 0.6456
+   },
+   "deepseek-v4-pro": {
+    "swe": 0.7764,
+    "gpqa": 0.9167,
+    "arc2": 0.6125,
+    "fm": 0.6456
+   },
+   "qwen3-6-max": {
+    "swe": 0.7665,
+    "gpqa": 0.8737
+   },
+   "glm-5-1": {
+    "swe": 0.7417,
+    "gpqa": 0.899,
+    "fm": 0.3684
+   },
+   "qwen3-6-plus": {
+    "swe": 0.5785,
+    "gpqa": 0.8838,
+    "fm": 0.3825
+   },
+   "kimi-k2-6": {
+    "swe": 0.7665,
+    "gpqa": 0.9078,
+    "fm": 0.5719
+   },
+   "gpt-5-5-pre-release": {
+    "swe": 0.8058,
+    "gpqa": 0.94
+   },
+   "claude-opus-4-7": {
+    "swe": 0.8347,
+    "tb": 0.8022,
+    "gpqa": 0.9015,
+    "hle": 0.362,
+    "arc2": 0.7583,
+    "fm": 0.7018
+   },
+   "gpt-5-3-codex": {
+    "swe": 0.7479,
+    "tb": 0.7843,
+    "metr": 349.5307
+   },
+   "gemini-3-1-pro-preview-customtools": {
+    "swe": 0.7562
+   },
+   "gemini-3-flash": {
+    "swe": 0.7541,
+    "tb": 0.6427,
+    "gpqa": 0.8939,
+    "arc2": 0.3361,
+    "fm": 0.5123
+   },
+   "claude-opus-4-6": {
+    "swe": 0.7872,
+    "tb": 0.798,
+    "metr": 718.8068,
+    "gpqa": 0.9053,
+    "hle": 0.3444,
+    "arc2": 0.6917,
+    "fm": 0.6596
+   },
+   "gpt-5-1": {
+    "swe": 0.6798,
+    "tb": 0.476,
+    "gpqa": 0.8763,
+    "hle": 0.2368,
+    "arc2": 0.1764
+   },
+   "kimi-k2-5": {
+    "swe": 0.7376,
+    "tb": 0.432,
+    "hle": 0.2437,
+    "arc2": 0.1181
+   },
+   "glm-5": {
+    "swe": 0.7208,
+    "tb": 0.5242,
+    "gpqa": 0.8782,
+    "arc2": 0.0486
+   },
+   "gemini-2-5-pro": {
+    "swe": 0.5756,
+    "tb": 0.3264,
+    "gpqa": 0.8529,
+    "arc2": 0.0486,
+    "fm": 0.2456
+   },
+   "gemini-3-pro": {
+    "swe": 0.7293,
+    "tb": 0.6943,
+    "metr": 224.3259,
+    "gpqa": 0.9261,
+    "hle": 0.3752,
+    "arc2": 0.3111
+   },
+   "gpt-5-2": {
+    "swe": 0.7376,
+    "tb": 0.6494,
+    "metr": 352.2493,
+    "gpqa": 0.914,
+    "hle": 0.278,
+    "arc2": 0.5291,
+    "fm": 0.674
+   },
+   "o3": {
+    "swe": 0.6232,
+    "metr": 119.7326,
+    "gpqa": 0.8182,
+    "hle": 0.2032,
+    "arc2": 0.0653,
+    "fm": 0.3333
+   },
+   "claude-opus-4-1": {
+    "swe": 0.7335,
+    "tb": 0.38,
+    "metr": 113.6851,
+    "gpqa": 0.7727,
+    "hle": 0.1152,
+    "fm": 0.1263
+   },
+   "gpt-4o": {
+    "swe": 0.3099,
+    "metr": 9.1705,
+    "gpqa": 0.4921,
+    "hle": 0.0272,
+    "arc2": 0,
+    "fm": 0.0035
+   },
+   "gpt-4-1": {
+    "swe": 0.4854,
+    "gpqa": 0.6692,
+    "hle": 0.054,
+    "arc2": 0.0042,
+    "fm": 0.0596
+   },
+   "gpt-5": {
+    "swe": 0.7355,
+    "tb": 0.4961,
+    "metr": 203.0126,
+    "gpqa": 0.8617,
+    "hle": 0.2532,
+    "arc2": 0.0986,
+    "fm": 0.5544
+   },
+   "claude-opus-4": {
+    "swe": 0.7066,
+    "metr": 100.3661,
+    "gpqa": 0.7626,
+    "hle": 0.1072,
+    "arc2": 0.0861
+   },
+   "claude-opus-4-5": {
+    "swe": 0.7665,
+    "tb": 0.6315,
+    "metr": 292.9946,
+    "gpqa": 0.8605,
+    "hle": 0.252,
+    "arc2": 0.3764,
+    "fm": 0.3439
+   },
+   "claude-sonnet-4-5": {
+    "swe": 0.7128,
+    "tb": 0.4652,
+    "metr": 121.9466,
+    "gpqa": 0.8232,
+    "hle": 0.1372,
+    "arc2": 0.1361,
+    "fm": 0.2386
+   },
+   "claude-3-7-sonnet": {
+    "swe": 0.6095,
+    "metr": 60.3889,
+    "gpqa": 0.785,
+    "hle": 0.0804,
+    "arc2": 0.009
+   },
+   "gpt-5-mini": {
+    "swe": 0.6467,
+    "tb": 0.3483,
+    "gpqa": 0.75,
+    "hle": 0.1944,
+    "arc2": 0.0444,
+    "fm": 0.4667
+   },
+   "gpt-5-2-codex": {
+    "tb": 0.6652
+   },
+   "gpt-5-1-codex-mini": {
+    "tb": 0.6157
+   },
+   "gpt-5-1-codex-max": {
+    "tb": 0.6045,
+    "metr": 223.7147
+   },
+   "gpt-5-1-codex": {
+    "tb": 0.578
+   },
+   "grok-4-20": {
+    "tb": 0.573,
+    "arc2": 0.6514
+   },
+   "minimax-m2-7": {
+    "tb": 0.4506
+   },
+   "gpt-5-codex": {
+    "tb": 0.4433
+   },
+   "minimax-m2-5": {
+    "tb": 0.427,
+    "arc2": 0.0486
+   },
+   "deepseek-v3-2": {
+    "tb": 0.3955,
+    "arc2": 0.0403
+   },
+   "minimax-m2-1": {
+    "tb": 0.3663
+   },
+   "kimi-k2-thinking": {
+    "tb": 0.3573,
+    "metr": 54.1941
+   },
+   "claude-haiku-4-5": {
+    "tb": 0.3551,
+    "gpqa": 0.7121,
+    "arc2": 0.0403
+   },
+   "glm-4-7": {
+    "tb": 0.3339,
+    "gpqa": 0.8333
+   },
+   "minimax-m2": {
+    "tb": 0.3004
+   },
+   "kimi-k2-instruct": {
+    "tb": 0.278
+   },
+   "grok-4": {
+    "tb": 0.272,
+    "metr": 110.0753,
+    "gpqa": 0.87,
+    "arc2": 0.1598
+   },
+   "qwen3-coder-480b-a35b-instruct": {
+    "tb": 0.2719
+   },
+   "grok-code-fast-1": {
+    "tb": 0.2584
+   },
+   "qwen3-6-35b-a3b": {
+    "tb": 0.2463,
+    "gpqa": 0.8485,
+    "fm": 0.2035
+   },
+   "glm-4-6": {
+    "tb": 0.2453
+   },
+   "gpt-5-nano": {
+    "tb": 0.218,
+    "gpqa": 0.6944,
+    "arc2": 0.0261,
+    "fm": 0.2
+   },
+   "gpt-oss-120b": {
+    "tb": 0.187,
+    "metr": 41.9835,
+    "gpqa": 0.7576
+   },
+   "gemini-2-5-flash-preview-09": {
+    "tb": 0.171
+   },
+   "gemini-2-5-flash": {
+    "tb": 0.1708
+   },
+   "qwen3-5-9b": {
+    "tb": 0.0921,
+    "gpqa": 0.7898
+   },
+   "gpt-oss-20b": {
+    "tb": 0.034,
+    "gpqa": 0.608
+   },
+   "claude-mythos-preview-early": {
+    "metr": 1044.7801
+   },
+   "o4-mini": {
+    "metr": 76.509,
+    "gpqa": 0.7961,
+    "hle": 0.1808,
+    "arc2": 0.0611,
+    "fm": 0.3614
+   },
+   "claude-sonnet-4": {
+    "metr": 74.942,
+    "gpqa": 0.7828,
+    "hle": 0.0776,
+    "arc2": 0.0593
+   },
+   "o1": {
+    "metr": 38.8316,
+    "gpqa": 0.7677,
+    "hle": 0.0796,
+    "fm": 0.1474
+   },
+   "gemini-2-5-pro-preview-06-05": {
+    "metr": 38.7343,
+    "gpqa": 0.8485,
+    "hle": 0.2164,
+    "arc2": 0
+   },
+   "deepseek-r1": {
+    "metr": 31.1678,
+    "gpqa": 0.7633,
+    "arc2": 0.013
+   },
+   "deepseek-v3": {
+    "metr": 23.1171,
+    "gpqa": 0.6761
+   },
+   "claude-3-5-sonnet": {
+    "metr": 20.5229,
+    "gpqa": 0.553,
+    "hle": 0.0408
+   },
+   "gpt-4-turbo": {
+    "metr": 6.5673,
+    "gpqa": 0.4659,
+    "fm": 0.007
+   },
+   "gpt-4-0125": {
+    "metr": 5.3661,
+    "gpqa": 0.4227
+   },
+   "gpt-4": {
+    "metr": 5.364,
+    "gpqa": 0.3573
+   },
+   "qwen2-5-72b-instruct": {
+    "metr": 5.1658,
+    "gpqa": 0.4915
+   },
+   "gpt-4-1106": {
+    "metr": 4.045,
+    "gpqa": 0.4236
+   },
+   "claude-3-opus": {
+    "metr": 3.9523,
+    "gpqa": 0.4716
+   },
+   "qwen2-72b-instruct": {
+    "metr": 2.2443,
+    "gpqa": 0.4078
+   },
+   "gpt-3-5-turbo-instruct": {
+    "metr": 0.5992
+   },
+   "davinci-002": {
+    "metr": 0.1441
+   },
+   "gpt2-xl": {
+    "metr": 0.0538
+   },
+   "muse-spark-open-816b-a42b": {
+    "gpqa": 0.8857,
+    "fm": 0.6982
+   },
+   "mistral-large-4-0": {
+    "gpqa": 0.8807,
+    "fm": 0.586
+   },
+   "deepseek-v4-1-flash": {
+    "gpqa": 0.8984,
+    "arc2": 0.7292,
+    "fm": 0.6737
+   },
+   "gpt-6-1-sol": {
+    "gpqa": 0.9539,
+    "arc2": 0.9417,
+    "fm": 0.9368
+   },
+   "gpt-6-luna": {
+    "gpqa": 0.9047,
+    "arc2": 0.5931,
+    "fm": 0.7895
+   },
+   "gpt-6-sol": {
+    "gpqa": 0.9432,
+    "arc2": 0.8958,
+    "fm": 0.8982
+   },
+   "granite-4-0-micro": {
+    "gpqa": 0.2828
+   },
+   "seed-oss-36b-instruct": {
+    "gpqa": 0.7153
+   },
+   "qwen3-32b": {
+    "gpqa": 0.6572
+   },
+   "qwen3-30b-a3b-thinking": {
+    "gpqa": 0.7008
+   },
+   "qwen3-30b-a3b-instruct": {
+    "gpqa": 0.5562
+   },
+   "qwen3-30b-a3b": {
+    "gpqa": 0.6168
+   },
+   "qwen2-5-7b-instruct": {
+    "gpqa": 0.3548
+   },
+   "mistral-small-3-1": {
+    "gpqa": 0.4192
+   },
+   "mistral-small-3": {
+    "gpqa": 0.4729
+   },
+   "magistral-small": {
+    "gpqa": 0.5606,
+    "arc2": 0
+   },
+   "llama-3-2-1b-instruct": {
+    "gpqa": 0.2393
+   },
+   "glm-4-7-flash": {
+    "gpqa": 0.6054
+   },
+   "granite-4-0-1b": {
+    "gpqa": 0.2399
+   },
+   "qwen3-5-35b-a3b": {
+    "gpqa": 0.8346
+   },
+   "qwen3-4b-instruct": {
+    "gpqa": 0.4583
+   },
+   "qwen3-4b": {
+    "gpqa": 0.5234
+   },
+   "qwen3-14b": {
+    "gpqa": 0.6376
+   },
+   "qwen3-1-7b": {
+    "gpqa": 0.3801
+   },
+   "mistral-small-3-2": {
+    "gpqa": 0.4905
+   },
+   "granite-4-0-350m": {
+    "gpqa": 0.1124
+   },
+   "gemma-3-4b-it": {
+    "gpqa": 0.2323
+   },
+   "gemma-3-1b-it": {
+    "gpqa": 0.1995
+   },
+   "gemma-3-12b-it": {
+    "gpqa": 0.3946
+   },
+   "deepseek-r1-distill-qwen-32b": {
+    "gpqa": 0.6414
+   },
+   "deepseek-r1-distill-qwen-1-5b": {
+    "gpqa": 0.3359
+   },
+   "deepseek-r1-0528-qwen3-8b": {
+    "gpqa": 0.0928
+   },
+   "qwq-32b": {
+    "gpqa": 0.6534
+   },
+   "llama-3-1-8b-instruct": {
+    "gpqa": 0.2696
+   },
+   "qwen3-8b": {
+    "gpqa": 0.5676
+   },
+   "gemma-3-27b-it": {
+    "gpqa": 0.4773
+   },
+   "inkling-small": {
+    "gpqa": 0.8851,
+    "arc2": 0.4014,
+    "fm": 0.4632
+   },
+   "nemotron-3-ultra": {
+    "gpqa": 0.8535
+   },
+   "minimax-m3": {
+    "gpqa": 0.9091
+   },
+   "gpt-5-4-mini": {
+    "gpqa": 0.8687,
+    "arc2": 0.189,
+    "fm": 0.5123
+   },
+   "qwen3-6-27b": {
+    "gpqa": 0.8586,
+    "fm": 0.3509
+   },
+   "qwen3-5-397b-a17b": {
+    "gpqa": 0.8636,
+    "fm": 0.3123
+   },
+   "qwen3-5-plus": {
+    "gpqa": 0.8485
+   },
+   "qwen3-6-flash": {
+    "gpqa": 0.8333,
+    "fm": 0.2246
+   },
+   "qwen3-7-plus": {
+    "gpqa": 0.8788,
+    "fm": 0.3439
+   },
+   "qwen3-7-flash": {
+    "gpqa": 0.8232,
+    "fm": 0.193
+   },
+   "gpt-5-4-nano": {
+    "gpqa": 0.7847,
+    "arc2": 0.0569,
+    "fm": 0.4491
+   },
+   "qwen3-5-flash": {
+    "gpqa": 0.8232,
+    "fm": 0.1825
+   },
+   "gemma-4-31b-it": {
+    "gpqa": 0.7576
+   },
+   "gemma-4-26b-a4b-it": {
+    "gpqa": 0.7323
+   },
+   "gemini-3-5-flash-lite": {
+    "gpqa": 0.8333,
+    "arc2": 0.1028,
+    "fm": 0.2596
+   },
+   "gemini-3-1-flash-lite": {
+    "gpqa": 0.8182,
+    "hle": 0.0864,
+    "fm": 0.2772
+   },
+   "gpt-5-5-instant": {
+    "gpqa": 0.8251,
+    "fm": 0.2632
+   },
+   "deepseek-v4-flash": {
+    "gpqa": 0.9104,
+    "arc2": 0.6139,
+    "fm": 0.5754
+   },
+   "o3-mini": {
+    "gpqa": 0.7702,
+    "arc2": 0.0299,
+    "fm": 0.186
+   },
+   "deepseek-chat": {
+    "gpqa": 0.7121
+   },
+   "grok-4-20-0309-reasoning": {
+    "gpqa": 0.8933,
+    "fm": 0.4491
+   },
+   "grok-4-3": {
+    "gpqa": 0.8883,
+    "fm": 0.4281
+   },
+   "gpt-5-5-pro-pre-release": {
+    "gpqa": 0.9392
+   },
+   "muse-spark": {
+    "gpqa": 0.898,
+    "hle": 0.4056
+   },
+   "gpt-5-4-pro": {
+    "gpqa": 0.946,
+    "hle": 0.4432,
+    "arc2": 0.8333,
+    "fm": 0.8246
+   },
+   "kimi-k2p5": {
+    "gpqa": 0.876
+   },
+   "deepseek-reasoner": {
+    "gpqa": 0.8342
+   },
+   "qwen3-235b-a22b-thinking": {
+    "gpqa": 0.8005
+   },
+   "kimi-k2-thinking-turbo": {
+    "gpqa": 0.8422
+   },
+   "qwen3-max": {
+    "gpqa": 0.726,
+    "fm": 0.1895
+   },
+   "qwen3-235b-a22b": {
+    "gpqa": 0.7071
+   },
+   "gemini-2-5-pro-preview-05-06": {
+    "gpqa": 0.6667,
+    "hle": 0.178
+   },
+   "grok-3-mini-beta": {
+    "gpqa": 0.7626
+   },
+   "grok-3-beta": {
+    "gpqa": 0.6758
+   },
+   "mistral-medium": {
+    "gpqa": 0.5953,
+    "hle": 0.0452
+   },
+   "gpt-4-1-mini": {
+    "gpqa": 0.6585,
+    "arc2": 0,
+    "fm": 0.0667
+   },
+   "gpt-4-1-nano": {
+    "gpqa": 0.4893,
+    "arc2": 0
+   },
+   "qwq-plus": {
+    "gpqa": 0.654
+   },
+   "llama-4-scout-17b-16e-instruct": {
+    "gpqa": 0.5183,
+    "arc2": 0
+   },
+   "llama-4-maverick-17b-128e-instruct-fp8": {
+    "gpqa": 0.6698
+   },
+   "qwen-turbo": {
+    "gpqa": 0.4179
+   },
+   "qwen-plus": {
+    "gpqa": 0.4811
+   },
+   "qwen-max": {
+    "gpqa": 0.5612
+   },
+   "gemini-2-5-pro-exp-03-25": {
+    "gpqa": 0.8384,
+    "hle": 0.1816
+   },
+   "mistral-small": {
+    "gpqa": 0.4747
+   },
+   "claude-3-5-haiku": {
+    "gpqa": 0.3813
+   },
+   "gemini-1-5-flash-8b-001": {
+    "gpqa": 0.3295
+   },
+   "deepseek-r1-distill-qwen-14b": {
+    "gpqa": 0.447
+   },
+   "deepseek-r1-distill-llama-70b": {
+    "gpqa": 0.5574
+   },
+   "gpt-4-5": {
+    "gpqa": 0.6869,
+    "hle": 0.0544,
+    "arc2": 0.008
+   },
+   "mistral-large": {
+    "gpqa": 0.5133
+   },
+   "o1-mini": {
+    "gpqa": 0.6237,
+    "arc2": 0.0083
+   },
+   "gemini-2-0-pro-exp-02-05": {
+    "gpqa": 0.6566
+   },
+   "gemini-2-0-flash-thinking-exp-01-21": {
+    "gpqa": 0.5707,
+    "hle": 0.0656
+   },
+   "gemini-2-0-flash-001": {
+    "gpqa": 0.6414,
+    "arc2": 0.013
+   },
+   "phi-4": {
+    "gpqa": 0.5606
+   },
+   "phi-3-medium-128k-instruct": {
+    "gpqa": 0.2759
+   },
+   "qwen2-5-32b-instruct": {
+    "gpqa": 0.4609
+   },
+   "gemini-1-5-flash-001": {
+    "gpqa": 0.4037
+   },
+   "claude-2-0": {
+    "gpqa": 0.3466
+   },
+   "claude-3-sonnet": {
+    "gpqa": 0.4059
+   },
+   "claude-2-1": {
+    "gpqa": 0.3295
+   },
+   "gemma-2-27b-it": {
+    "gpqa": 0.3649
+   },
+   "claude-3-haiku": {
+    "gpqa": 0.363
+   },
+   "gemini-1-5-flash-002": {
+    "gpqa": 0.4732
+   },
+   "gemma-2-9b-it": {
+    "gpqa": 0.2746
+   },
+   "gpt-3-5-turbo": {
+    "gpqa": 0.2803,
+    "fm": 0
+   },
+   "gemini-1-5-pro-001": {
+    "gpqa": 0.4586
+   },
+   "gpt-4o-mini": {
+    "gpqa": 0.3772,
+    "arc2": 0,
+    "fm": 0.007
+   },
+   "gemini-1-5-pro-002": {
+    "gpqa": 0.5723,
+    "hle": 0.046,
+    "arc2": 0.008
+   },
+   "llama-3-1-70b-instruct": {
+    "gpqa": 0.4419
+   },
+   "llama-3-1-405b-instruct": {
+    "gpqa": 0.5092
+   },
+   "yi-1-5-34b-chat": {
+    "gpqa": 0.3198
+   },
+   "yi-34b-chat": {
+    "gpqa": 0.1474
+   },
+   "grok-2": {
+    "gpqa": 0.5379
+   },
+   "qwen1-5-72b-chat": {
+    "gpqa": 0.2882
+   },
+   "qwen1-5-32b-chat": {
+    "gpqa": 0.3074
+   },
+   "hermes-2-theta-llama-3-70b": {
+    "gpqa": 0.3747
+   },
+   "llama-2-70b-chat-hf": {
+    "gpqa": 0.2633
+   },
+   "meta-llama-3-70b-instruct": {
+    "gpqa": 0.4056
+   },
+   "meta-llama-3-8b-instruct": {
+    "gpqa": 0.2607
+   },
+   "mistral-7b-instruct-v0-3": {
+    "gpqa": 0.1518
+   },
+   "deepseek-llm-67b-chat": {
+    "gpqa": 0.2462
+   },
+   "mixtral-8x7b-instruct-v0-1": {
+    "gpqa": 0.3059
+   },
+   "wizardlm-2-8x22b": {
+    "gpqa": 0.4343
+   },
+   "dbrx-instruct": {
+    "gpqa": 0.3289
+   },
+   "gemini-1-0-pro-001": {
+    "gpqa": 0.3396
+   },
+   "ministral-3b": {
+    "gpqa": 0.2525
+   },
+   "open-mixtral-8x22b": {
+    "gpqa": 0.3406
+   },
+   "ministral-8b": {
+    "gpqa": 0.2715
+   },
+   "open-mixtral-8x7b": {
+    "gpqa": 0.2983
+   },
+   "open-mistral-7b": {
+    "gpqa": 0.1323
+   },
+   "open-mistral-nemo": {
+    "gpqa": 0.2989
+   },
+   "llama-3-2-90b-vision-instruct": {
+    "gpqa": 0.4104
+   },
+   "llama-3-1-tulu-3-70b-dpo": {
+    "gpqa": 0.4628
+   },
+   "eurus-2-7b-prime": {
+    "gpqa": 0.339
+   },
+   "llama-3-3-70b-instruct": {
+    "gpqa": 0.4744
+   },
+   "gpt-5-pro": {
+    "hle": 0.3164,
+    "arc2": 0.1833,
+    "fm": 0.5579
+   },
+   "gemini-2-5-flash-preview-04-17": {
+    "hle": 0.1208
+   },
+   "gemini-2-5-flash-preview-05-20": {
+    "hle": 0.1096,
+    "arc2": 0.0254
+   },
+   "glm-4-5": {
+    "hle": 0.0832
+   },
+   "glm-4-5-air": {
+    "hle": 0.0812
+   },
+   "o1-pro": {
+    "hle": 0.0812
+   },
+   "llama-4-maverick-17b-128e-instruct": {
+    "hle": 0.0568,
+    "arc2": 0
+   },
+   "amazon-nova-pro-v1:0": {
+    "hle": 0.044
+   },
+   "amazon-nova-lite-v1:0": {
+    "hle": 0.0364
+   },
+   "gemini-3-deep-think": {
+    "arc2": 0.8458
+   },
+   "gpt-5-5-pro": {
+    "arc2": 0.8458,
+    "fm": 0.8772
+   },
+   "gpt-5-2-pro": {
+    "arc2": 0.5416,
+    "fm": 0.74
+   },
+   "qwen3-8-27b": {
+    "arc2": 0.4236
+   },
+   "tiny-recursion-model": {
+    "arc2": 0.0625
+   },
+   "grok-4-fast": {
+    "arc2": 0.0528
+   },
+   "o3-pro": {
+    "arc2": 0.0486
+   },
+   "codex-mini": {
+    "arc2": 0.0127
+   },
+   "qwen3-235b-a22b-instruct": {
+    "arc2": 0.0125
+   },
+   "grok-3-mini": {
+    "arc2": 0.0042
+   },
+   "grok-3": {
+    "arc2": 0
+   },
+   "magistral-medium": {
+    "arc2": 0
+   },
+   "muse-wonder-1-0": {
+    "fm": 0.8211
+   }
+  }
+ },
  "x": {
   "posts": [
    {

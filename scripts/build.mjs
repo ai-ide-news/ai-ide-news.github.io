@@ -4,6 +4,7 @@ import { TOOLS, CATEGORIES } from './sources.mjs';
 import { resolveIcons } from './icons.mjs';
 import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
 import { LAB_ICONS } from './models.mjs';
+import { BENCHMARKS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -249,7 +250,15 @@ function newsGrid(list, root, limit = Infinity) {
 
 // ── models ────────────────────────────────────────────────
 // New models from the major labs (scripts/models.mjs, via OpenRouter's public catalog).
-const models = snap.models || [];
+// Each model carries its best scores from Epoch AI's benchmarking hub (scripts/benchmarks.mjs), when it has any.
+const benchScores = snap.benchmarks?.scores || {};
+const models = (snap.models || []).map((m) => ({ ...m, bench: benchScores[benchKey(m.id)] || {} }));
+const scored = models.filter((m) => Object.keys(m.bench).length);
+const BENCH_DEFAULT = BENCHMARKS.find((b) => b.id === 'gpqa');
+const benchMax = Object.fromEntries(BENCHMARKS.map((b) => [b.id, Math.max(0, ...models.map((m) => m.bench[b.id] ?? 0))]));
+const benchVal = (b, v) => (b.unit === 'min' ? (v >= 60 ? `${+(v / 60).toFixed(1)} h` : `${Math.round(v)} min`) : `${(v * 100).toFixed(1)}%`);
+const benchCell = (m, b) => (m.bench[b.id] == null ? '<span class="muted">—</span>'
+  : `<span class="mbench">${benchVal(b, m.bench[b.id])}<i style="--w:${Math.round((m.bench[b.id] / benchMax[b.id]) * 100)}%"></i></span>`);
 const tokens = (n) => (n == null ? '—' : n % 1048576 === 0 ? `${n / 1048576}M` : n >= 1e6 ? `${+(n / 1e6).toFixed(2)}M` : `${Math.round(n / 1000)}K`);
 const mprice = (n) => (n === 0 ? 'Free' : `$${n < 0.1 ? +n.toFixed(3) : n.toFixed(2)}`);
 const labTile = (m, root) => icon({ id: `lab-${m.labId}`, name: m.lab, color: m.color }, root, 'sm');
@@ -272,12 +281,14 @@ function modelCard(m, root) {
 }
 
 function modelRow(m, root) {
-  return `<tr class="prow mrow" data-cat="${m.labId}" data-trend="0" data-free="${m.free ? 1 : 0}" data-text="${modelText(m)}" data-date="${m.date}" data-context="${m.context || 0}" data-input="${m.input}" data-output="${m.output}" data-name="${esc(m.name.toLowerCase())}" style="--c:${m.color}">
-  <th scope="row"><a class="ptool" href="${esc(m.url)}" target="_blank" rel="noopener">${labTile(m, root)}<span><strong>${esc(m.name)}</strong><small>${esc(m.lab)} · <code>${esc(m.id)}</code></small></span></a>${m.summary ? `<p class="msum">${esc(m.summary)}</p>` : ''}<div class="mtags">${modelTags(m)}</div></th>
+  const bdata = BENCHMARKS.map((b) => (m.bench[b.id] == null ? '' : ` data-b-${b.id}="${m.bench[b.id]}"`)).join('');
+  return `<tr class="prow mrow" data-id="${esc(m.id)}"${bdata} data-cat="${m.labId}" data-trend="0" data-free="${m.free ? 1 : 0}" data-text="${modelText(m)}" data-date="${m.date}" data-context="${m.context || 0}" data-input="${m.input}" data-output="${m.output}" data-name="${esc(m.name.toLowerCase())}" style="--c:${m.color}">
+  <th scope="row"><div class="ptool-cell"><button type="button" class="pick" data-pick="${esc(m.id)}" aria-pressed="false" aria-label="Add ${esc(m.name)} to comparison" title="Add to comparison"></button><a class="ptool" href="${esc(m.url)}" target="_blank" rel="noopener">${labTile(m, root)}<span><strong>${esc(m.name)}</strong><small>${esc(m.lab)} · <code>${esc(m.id)}</code></small></span></a></div>${m.summary ? `<p class="msum">${esc(m.summary)}</p>` : ''}<div class="mtags">${modelTags(m)}</div></th>
   <td class="mnum">${fmtDate(m.date)}<small>${time(m.date)}</small></td>
   <td class="mnum">${tokens(m.context)}${m.maxOutput ? `<small>${tokens(m.maxOutput)} out</small>` : ''}</td>
   <td class="mnum">${mprice(m.input)}</td>
   <td class="mnum">${mprice(m.output)}</td>
+  <td class="mnum mbench-cell">${benchCell(m, BENCH_DEFAULT)}</td>
 </tr>`;
 }
 
@@ -301,7 +312,7 @@ function modelsPage() {
 <section class="wrap hero hero-sm">
   <p class="eyebrow">Models</p>
   <h1>Every new <em>AI model</em>, as it lands</h1>
-  <p class="lede">${models.length} models from ${labs.length} labs — ${month.length} new in the last 30 days. Release date, context window and API price for each, straight from OpenRouter's public model catalog.</p>
+  <p class="lede">${models.length} models from ${labs.length} labs — ${month.length} new in the last 30 days. Release date, context window, API price and benchmark scores for each — tick any models to compare them side by side.</p>
   <div class="hero-search">
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <input id="q" type="search" placeholder="Search models, labs, reasoning, vision…" aria-label="Search models" autocomplete="off">
@@ -321,6 +332,11 @@ ${banner()}
       ${labs.map((l) => `<button role="tab" aria-selected="false" data-cat="${l[0].labId}">${esc(l[0].lab)} <i>${l.length}</i></button>`).join('')}
     </div>
   </div>
+  ${scored.length ? `<div class="pctl">
+    <label class="pctl-bench"><span>Benchmark column</span><select id="bench">${BENCHMARKS.map((b) => `<option value="${b.id}"${b === BENCH_DEFAULT ? ' selected' : ''}>${esc(b.name)} (${models.filter((m) => m.bench[b.id] != null).length})</option>`).join('')}</select></label>
+    <label class="pctl-check"><input type="checkbox" id="scored-only"> Only models with benchmark scores <i>${scored.length}</i></label>
+    <p class="pctl-hint muted small"><span class="pick-dot" aria-hidden="true"></span>Tick up to 4 models to compare their benchmarks.</p>
+  </div>` : ''}
   <div class="ptable-wrap">
     <table class="ptable mtable">
       <thead><tr>
@@ -329,17 +345,33 @@ ${banner()}
         <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="context">Context</button></th>
         <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="input">Input <small>/ 1M</small></button></th>
         <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="output">Output <small>/ 1M</small></button></th>
+        <th scope="col" aria-sort="none"><button type="button" class="psort msort" data-sort="bench" title="${esc(BENCH_DEFAULT.desc)}">${esc(BENCH_DEFAULT.name)}</button></th>
       </tr></thead>
       <tbody>${models.map((m) => modelRow(m, root)).join('')}</tbody>
     </table>
   </div>
   <p class="empty" hidden>No models match these filters.</p>
+  <div class="ctray" hidden role="region" aria-label="Comparison tray">
+    <div class="wrap ctray-in"><div class="ctray-picks"></div><span class="ctray-n muted small"></span><button type="button" class="btn ghost ctray-clear">Clear</button><button type="button" class="btn ctray-go">Compare</button></div>
+  </div>
+  <dialog class="cmp" aria-labelledby="cmp-title">
+    <div class="cmp-head"><h2 id="cmp-title">Side by side</h2><p class="muted small cmp-sub"></p><button type="button" class="icon-btn cmp-x" aria-label="Close comparison">×</button></div>
+    <div class="cmp-body"></div>
+  </dialog>
+  <script type="application/json" id="mcmp-data">${JSON.stringify({
+    benchmarks: BENCHMARKS.map(({ id, name, desc, unit }) => ({ id, name, desc, unit })),
+    models: Object.fromEntries(models.map((m) => [m.id, {
+      name: m.name, lab: m.lab, color: m.color, url: m.url, icon: labTile(m, root), released: fmtDate(m.date),
+      context: tokens(m.context), maxOutput: m.maxOutput ? tokens(m.maxOutput) : '', input: m.input, output: m.output,
+      tags: modelTags(m), bench: m.bench,
+    }])),
+  }).replace(/</g, '\\u003c')}</script>
   ${ad('inline')}
-  <p class="muted small section-note">Dates are when each model was listed on OpenRouter, usually its launch day. Prices are OpenRouter's USD rate per million tokens; first-party API prices can differ. “Free tier” means a rate-limited free variant exists.</p>
+  <p class="muted small section-note">Dates are when each model was listed on OpenRouter, usually its launch day. Prices are OpenRouter's USD rate per million tokens; first-party API prices can differ. “Free tier” means a rate-limited free variant exists. Benchmark scores are the best result per model (across reasoning settings and agents) from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}'s benchmarking hub</a>, licensed CC BY 4.0${snap.benchmarks?.fetchedAt ? `, updated ${fmtDate(snap.benchmarks.fetchedAt)}` : ''}; “—” means the model hasn't been scored yet.</p>
 </section>`;
   return layout({
     root, path: 'models/', active: 'models',
-    title: `New AI Models — Latest Releases, Context & API Pricing | ${SITE_NAME}`,
+    title: `New AI Models — Benchmarks, Context & API Pricing Compared | ${SITE_NAME}`,
     description: `The newest AI models from ${labs.slice(0, 6).map((l) => l[0].lab).join(', ')} and more: ${models.slice(0, 5).map((m) => m.name).join(', ')}. Release dates, context windows and API prices, updated automatically.`,
     jsonld: {
       '@context': 'https://schema.org', '@type': 'ItemList', name: 'New AI models',
@@ -732,6 +764,7 @@ await out('data.json', JSON.stringify({
   discussions: snap.discussions,
   news: news.map(({ score, ...n }) => n),
   models: models.map(({ color, labId, ...m }) => m),
+  benchmarkSource: BENCH_SOURCE,
 }));
 // Tiny file the open page polls to announce new updates without a full reload of data.json.
 await out('version.json', JSON.stringify({

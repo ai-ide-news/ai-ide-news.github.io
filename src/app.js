@@ -124,20 +124,137 @@
   }
   more?.addEventListener('click', () => { state.page += 40; apply(); });
   if ($('#cmp-data')) comparePlans();
-  if ($('.mtable')) sortModels();
+  if ($('.mtable')) compareModels();
   apply();
 
-  // Models page: click a column header to sort (newest first by default).
-  function sortModels() {
+  // Models page: sortable columns, a switchable benchmark column, and a pick-up-to-4 benchmark comparison.
+  function compareModels() {
+    const data = JSON.parse($('#mcmp-data').textContent);
+    const B = Object.fromEntries(data.benchmarks.map((b) => [b.id, b]));
+    const MAX = 4;
     const tbody = $('.mtable tbody');
+    const tray = $('.ctray'), dialog = $('.cmp'), benchSel = $('#bench'), scoredOnly = $('#scored-only');
+    const params = new URLSearchParams(location.search);
+    const picks = (params.get('vs') || '').split(',').filter((id) => data.models[id]).slice(0, MAX);
     let sort = { key: 'date', dir: -1 };
+    const defaultBench = benchSel?.value || data.benchmarks[0].id;
+    let bench = B[params.get('bench')] ? params.get('bench') : defaultBench;
+
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    const fmt = (b, v) => (b.unit === 'min' ? (v >= 60 ? `${+(v / 60).toFixed(1)} h` : `${Math.round(v)} min`) : `${(v * 100).toFixed(1)}%`);
+    const price = (n) => (n === 0 ? 'Free' : `$${n < 0.1 ? +n.toFixed(3) : n.toFixed(2)}`);
+    const score = (r) => r.dataset[`b${bench[0].toUpperCase()}${bench.slice(1)}`];
+
+    function resort() {
+      const key = sort.key;
+      // Unscored models always sink to the bottom of a benchmark sort.
+      const val = (r) => (key === 'bench' ? (score(r) == null ? Infinity * sort.dir : +score(r)) : key === 'name' || key === 'date' ? r.dataset[key] : +r.dataset[key]);
+      $$('.mrow', tbody).sort((a, b) => (val(a) < val(b) ? -1 : val(a) > val(b) ? 1 : 0) * sort.dir).forEach((r) => tbody.append(r));
+      $$('.msort').forEach((x) => x.closest('th').setAttribute('aria-sort', x.dataset.sort === key ? (sort.dir > 0 ? 'ascending' : 'descending') : 'none'));
+    }
     $$('.msort').forEach((b) => b.addEventListener('click', () => {
       const key = b.dataset.sort;
       sort = { key, dir: sort.key === key ? -sort.dir : key === 'name' || key === 'input' || key === 'output' ? 1 : -1 };
-      const val = (r) => (key === 'name' || key === 'date' ? r.dataset[key] : +r.dataset[key]);
-      $$('.mrow', tbody).sort((a, b) => (val(a) < val(b) ? -1 : val(a) > val(b) ? 1 : 0) * sort.dir).forEach((r) => tbody.append(r));
-      $$('.msort').forEach((x) => x.closest('th').setAttribute('aria-sort', x === b ? (sort.dir > 0 ? 'ascending' : 'descending') : 'none'));
+      resort();
     }));
+
+    // Benchmark column: rewrite every cell for the chosen benchmark, with a bar relative to the best score.
+    function renderBench() {
+      const b = B[bench];
+      const top = Math.max(0, ...$$('.mrow', tbody).map((r) => +(score(r) ?? 0)));
+      const head = $('.msort[data-sort="bench"]');
+      head.textContent = b.name; head.title = b.desc;
+      $$('.mrow', tbody).forEach((r) => {
+        const v = score(r);
+        $('.mbench-cell', r).innerHTML = v == null ? '<span class="muted">—</span>' : `<span class="mbench">${fmt(b, +v)}<i style="--w:${Math.round((v / top) * 100)}%"></i></span>`;
+        r.dataset.scored = String(Number(data.benchmarks.some((x) => data.models[r.dataset.id].bench[x.id] != null)));
+      });
+      if (sort.key === 'bench') resort();
+    }
+    function filterScored() {
+      $$('.mrow', tbody).forEach((r) => { r.dataset.fits = scoredOnly?.checked && r.dataset.scored === '0' ? '0' : '1'; });
+      apply();
+    }
+    benchSel?.addEventListener('change', () => { bench = benchSel.value; renderBench(); sync(); });
+    scoredOnly?.addEventListener('change', filterScored);
+
+    function sync() {
+      const p = new URLSearchParams(location.search);
+      picks.length ? p.set('vs', picks.join(',')) : p.delete('vs');
+      bench !== defaultBench ? p.set('bench', bench) : p.delete('bench');
+      const qs = p.toString();
+      history.replaceState(null, '', location.pathname + (qs ? `?${qs}` : '') + location.hash);
+    }
+
+    function togglePick(id) {
+      const i = picks.indexOf(id);
+      if (i >= 0) picks.splice(i, 1); else if (picks.length < MAX) picks.push(id);
+      renderTray(); sync();
+      if (dialog.open) picks.length ? renderCompare() : dialog.close();
+    }
+    tbody.addEventListener('click', (e) => { const b = e.target.closest('.pick'); if (b) togglePick(b.dataset.pick); });
+    function renderTray() {
+      $$('.pick', tbody).forEach((b) => {
+        const on = picks.includes(b.dataset.pick);
+        b.setAttribute('aria-pressed', String(on));
+        b.disabled = !on && picks.length >= MAX;
+        b.closest('.mrow').classList.toggle('picked', on);
+      });
+      tray.hidden = !picks.length;
+      document.body.classList.toggle('has-tray', !!picks.length);
+      $('.ctray-picks', tray).innerHTML = picks.map((id) => `<button type="button" class="ctray-pick" data-pick="${esc(id)}" title="Remove ${esc(data.models[id].name)}">${data.models[id].icon}<span>${esc(data.models[id].name)}</span><i aria-hidden="true">×</i></button>`).join('');
+      $('.ctray-n', tray).textContent = picks.length < 2 ? `Pick ${2 - picks.length} more to compare` : `${picks.length} of ${MAX} selected`;
+      $('.ctray-go', tray).disabled = picks.length < 2;
+    }
+    tray.addEventListener('click', (e) => {
+      const p = e.target.closest('.ctray-pick'); if (p) return togglePick(p.dataset.pick);
+      if (e.target.closest('.ctray-clear')) { picks.length = 0; renderTray(); sync(); }
+      if (e.target.closest('.ctray-go')) { renderCompare(); dialog.showModal(); }
+    });
+
+    // Side-by-side view: one column per model, the best score in each benchmark row highlighted.
+    function renderCompare() {
+      const cols = picks.map((id) => ({ id, ...data.models[id] }));
+      const benches = data.benchmarks.filter((b) => cols.some((c) => c.bench[b.id] != null));
+      const wins = Object.fromEntries(cols.map((c) => [c.id, 0]));
+      const best = {};
+      for (const b of benches) {
+        const vals = cols.map((c) => c.bench[b.id]).filter((v) => v != null);
+        best[b.id] = Math.max(...vals);
+        if (vals.length > 1) cols.forEach((c) => { if (c.bench[b.id] === best[b.id]) wins[c.id]++; });
+      }
+      const contested = benches.filter((b) => cols.filter((c) => c.bench[b.id] != null).length > 1).length;
+      const cheapest = Math.min(...cols.map((c) => c.input + c.output));
+      $('.cmp-sub', dialog).textContent = `${benches.length} benchmark${benches.length === 1 ? '' : 's'} with scores · best result per model from Epoch AI.`;
+      const row = (label, fn, title = '') => `<tr><th scope="row"${title ? ` title="${esc(title)}"` : ''}>${label}</th>${cols.map((c) => `<td>${fn(c)}</td>`).join('')}</tr>`;
+      const benchRow = (b) => row(`${esc(b.name)}<small>${esc(b.desc)}</small>`, (c) => {
+        const v = c.bench[b.id];
+        if (v == null) return '<span class="muted">Not scored</span>';
+        const lead = v === best[b.id] && cols.filter((x) => x.bench[b.id] != null).length > 1;
+        return `<div class="cmp-score${lead ? ' lead' : ''}"><b>${fmt(b, v)}</b>${lead ? '<span class="pbadge free">Best</span>' : ''}<i style="--w:${Math.round((v / best[b.id]) * 100)}%"></i></div>`;
+      });
+      $('.cmp-body', dialog).innerHTML = `<div class="cmp-scroll"><table class="cmp-table" style="--n:${cols.length}">
+        <thead><tr><td></td>${cols.map((c) => `<th scope="col" style="--c:${c.color}"><a href="${esc(c.url)}" target="_blank" rel="noopener" class="cmp-tool">${c.icon}<span><strong>${esc(c.name)}</strong><small>${esc(c.lab)}</small></span></a><button type="button" class="cmp-rm" data-pick="${esc(c.id)}" aria-label="Remove ${esc(c.name)}">Remove</button></th>`).join('')}</tr></thead>
+        <tbody>
+          ${contested ? row('Benchmark wins', (c) => `<b class="cmp-big">${wins[c.id]}<small> / ${contested}</small></b>`, 'Benchmarks where this model has the top score among those picked') : ''}
+          ${benches.map(benchRow).join('')}
+          ${benches.length ? '' : row('Benchmarks', () => '<span class="muted">No scores yet</span>')}
+          ${row('Price / 1M tokens', (c) => `<b class="cmp-inline">${price(c.input)} in · ${price(c.output)} out</b>${c.input + c.output === cheapest && cols.length > 1 ? ' <span class="pbadge free">Cheapest</span>' : ''}`)}
+          ${row('Context', (c) => `<span class="cmp-inline">${esc(c.context)}${c.maxOutput ? ` <small>· ${esc(c.maxOutput)} max output</small>` : ''}</span>`)}
+          ${row('Released', (c) => `<span class="cmp-inline">${esc(c.released)}</span>`)}
+          ${row('Features', (c) => (c.tags ? `<div class="mtags cmp-tags">${c.tags}</div>` : '<span class="muted">—</span>'))}
+          ${row('Details', (c) => `<a href="${esc(c.url)}" target="_blank" rel="noopener">OpenRouter ↗</a>`)}
+        </tbody></table></div>`;
+    }
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog || e.target.closest('.cmp-x')) dialog.close();
+      const rm = e.target.closest('.cmp-rm'); if (rm) togglePick(rm.dataset.pick);
+    });
+
+    // Restore state from a shared link
+    if (benchSel) benchSel.value = bench;
+    renderBench(); filterScored(); renderTray();
+    if (picks.length >= 2) { renderCompare(); dialog.showModal(); }
   }
 
   // Compare page: budget + team-size pricing, sortable columns, and a pick-up-to-4 side-by-side view.
