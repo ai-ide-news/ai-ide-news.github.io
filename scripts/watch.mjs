@@ -27,16 +27,26 @@ async function syncSnapshot() {
   } catch {}
 }
 
+// Returns true once the deploy is triggered. Network errors are caught so a transient blip
+// (e.g. a connect timeout to api.github.com) doesn't kill the whole watcher shift.
 async function dispatch() {
-  if (!REPO || !TOKEN) return console.log('  (no GITHUB_REPOSITORY/GITHUB_TOKEN — not dispatching)');
-  const res = await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json', 'User-Agent': 'patchwire-watcher' },
-    body: JSON.stringify({ event_type: 'refresh' }),
-  });
-  console.log(res.ok ? '  → deploy triggered' : `  ✗ dispatch failed: ${res.status} ${await res.text()}`);
+  if (!REPO || !TOKEN) return console.log('  (no GITHUB_REPOSITORY/GITHUB_TOKEN — not dispatching)'), true;
+  try {
+    const res = await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json', 'User-Agent': 'patchwire-watcher' },
+      body: JSON.stringify({ event_type: 'refresh' }),
+      signal: AbortSignal.timeout(30e3),
+    });
+    console.log(res.ok ? '  → deploy triggered' : `  ✗ dispatch failed: ${res.status} ${await res.text()}`);
+    return res.ok;
+  } catch (err) {
+    console.log(`  ✗ dispatch failed: ${err.cause?.code || err.name}: ${err.cause?.message || err.message} — retrying next check`);
+    return false;
+  }
 }
 
+let pending = false; // a change was detected but its dispatch hasn't succeeded yet
 while (Date.now() - started < RUN_MINUTES * 60e3) {
   const t0 = Date.now();
   await syncSnapshot();
@@ -47,7 +57,7 @@ while (Date.now() - started < RUN_MINUTES * 60e3) {
   const changed = (await generatedAt()) !== before; // QUICK runs only rewrite the snapshot when something shipped
   const line = (run.stdout || '').split('\n').find((l) => /^[★·] /.test(l)) || run.stderr?.trim().split('\n').pop();
   console.log(`${new Date().toISOString()} ${line || ''}`);
-  if (changed) await dispatch();
+  if (changed || pending) pending = !(await dispatch());
   await sleep(Math.max(5e3, CHECK_SECONDS * 1e3 - (Date.now() - t0)));
 }
 console.log('Watcher shift over; the next scheduled run takes over.');
