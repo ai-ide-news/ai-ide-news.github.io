@@ -503,17 +503,69 @@ body.has-tray .live-toast { bottom: 84px; }
 .ptool small code { font-size: 11.5px; }
 .mtable .msum, .mtable .mtags { margin-left: 70px; }
 .mbench { display: inline-flex; flex-direction: column; gap: 5px; min-width: 64px; }
-.mbench i, .cmp-score i { display: block; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--accent) var(--w), var(--line) var(--w)); }
+.mbench i { display: block; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--accent) var(--w), var(--line) var(--w)); }
 .pctl-bench, .pctl-check { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--ink-3); }
 .pctl-bench select { padding: 6px 28px 6px 10px; border: 1px solid var(--line-2); border-radius: var(--r); background: var(--bg); color: var(--ink); font: 500 13px var(--mono); }
 .pctl-check input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
 .pctl-check i { font: normal 12px var(--mono); color: var(--ink-3); }
-.cmp-table tbody th small { font-family: var(--font); font-weight: 400; margin-top: 3px; }
-.cmp-score { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-.cmp-score b { font: 500 18px var(--mono); }
-.cmp-score i { flex-basis: 100%; height: 4px; }
-.cmp-score:not(.lead) b { color: var(--ink-2); }
-.cmp-tags { margin: 0; }
+/* Benchmark showdown: benchmarks as rows, models as columns, one highlighted column */
+.sd-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 4px 0 16px; }
+.sd-add { flex: 1 1 280px; max-width: 420px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border: 1px solid var(--line-2); border-radius: var(--r); color: var(--ink-3); }
+.sd-add:focus-within { border-color: var(--ink); color: var(--ink); }
+.sd-add input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: 14px var(--font); padding: 10px 0; outline: none; }
+.sd-reset { margin-left: auto; }
+.sd-wrap { overflow-x: auto; border-top: 2px solid var(--rule); border-bottom: 1px solid var(--line-2); }
+.sd { width: 100%; border-collapse: separate; border-spacing: 0; min-width: calc(200px + var(--n, 1) * 128px); font-size: 14px; }
+.sd th, .sd td { padding: 12px 14px; text-align: center; vertical-align: middle; border-bottom: 1px solid var(--line); }
+.sd tbody tr:last-child > * { border-bottom: 0; }
+.sd th[scope='row'], .sd-corner { position: sticky; left: 0; z-index: 2; background: var(--bg); text-align: left; width: 200px; min-width: 170px; border-right: 1px solid var(--line-2); }
+.sd-corner { font: 600 15px var(--font); color: var(--ink); vertical-align: bottom; }
+.sd thead th { border-bottom: 1px solid var(--line-2); vertical-align: bottom; }
+.sd-m { position: relative; min-width: 120px; }
+.sd-focus { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; padding: 4px 6px; border: 0; background: none; color: var(--ink); font: inherit; line-height: 1.2; }
+.sd-focus strong { font-size: 14.5px; font-weight: 600; }
+.sd-focus small { font: 11.5px var(--mono); color: var(--ink-3); }
+.sd-focus:hover strong { text-decoration: underline; text-underline-offset: 3px; }
+.sd-x { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink-3); font-size: 16px; line-height: 1; opacity: 0; transition: opacity .15s; }
+.sd-m:hover .sd-x, .sd-x:focus-visible { opacity: 1; }
+.sd-x:hover { color: var(--accent-ink); background: var(--bg-2); }
+@media (hover: none) { .sd-x { opacity: .7; } }
+.sd-rank { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 0; border: 0; background: none; color: var(--ink); text-align: left; font: inherit; }
+.sd-label { font-weight: 600; font-size: 14.5px; }
+.sd-rank small, .sd-spec small { font-size: 12px; font-weight: 400; color: var(--ink-3); line-height: 1.35; }
+.sd-rank::after { content: 'Rank ↓'; font: 11px var(--mono); color: var(--ink-3); opacity: 0; transition: opacity .15s; }
+.sd-rank:hover::after { opacity: 1; }
+.sd-rank[aria-pressed='true']::after { content: 'Ranked ↓ · clear'; opacity: 1; color: var(--accent-ink); }
+.sd tr.ranked > * { background: var(--bg-2); }
+.sd tbody tr:hover > * { background: var(--bg-2); }
+.sd td { font: 15px/1.3 var(--mono); color: var(--ink-2); }
+.sd td i { display: block; height: 3px; margin: 7px auto 0; max-width: 92px; border-radius: 2px; background: linear-gradient(90deg, var(--ink-3) var(--w), var(--line) var(--w)); }
+.sd td.best { color: var(--ink); font-weight: 700; }
+.sd td.best i { background: linear-gradient(90deg, var(--accent) var(--w), var(--line) var(--w)); }
+.sd-na { color: var(--ink-3) !important; }
+.sd-d { display: block; margin-top: 2px; font: 11.5px var(--mono); color: var(--ink-3); }
+.sd-d.up { color: var(--k-release); }
+.sd-d.down { color: var(--accent-ink); }
+.sd-spec td { font-size: 13.5px; }
+.sd-spec .pbadge { margin: 4px auto 0; display: table; }
+.sd-wins { font-size: 17px; color: var(--ink); }
+.sd-spec th[scope='row'] { background: var(--bg); }
+.sd tbody tr.sd-spec:first-of-type > *, .sd tr:not(.sd-spec) + .sd-spec > * { border-top: 2px solid var(--line-2); }
+/* Highlighted column: tinted, outlined like a card */
+.sd .hl { background: color-mix(in srgb, var(--accent) 9%, var(--bg)) !important; box-shadow: inset 2px 0 var(--accent), inset -2px 0 var(--accent); }
+.sd thead .hl { box-shadow: inset 2px 0 var(--accent), inset -2px 0 var(--accent), inset 0 2px var(--accent); border-radius: 10px 10px 0 0; }
+.sd tbody tr:last-child .hl { box-shadow: inset 2px 0 var(--accent), inset -2px 0 var(--accent), inset 0 -2px var(--accent); border-radius: 0 0 10px 10px; }
+.sd .hl.best, .sd .hl { color: var(--ink); }
+.sd-empty { padding: 40px 16px !important; color: var(--ink-3); font: 14px var(--font) !important; }
+.sd-foot { margin: 12px 0 0; }
+@media (max-width: 640px) {
+  .sd th[scope='row'], .sd-corner { width: 130px; min-width: 130px; }
+  .sd-rank small { display: none; }
+  .sd th, .sd td { padding: 10px 8px; }
+  .sd { min-width: calc(130px + var(--n, 1) * 104px); }
+  .sd-m { min-width: 100px; }
+  .sd-reset { margin-left: 0; }
+}
 @media (max-width: 640px) {
   .mcard { grid-template-columns: 28px minmax(0, 1fr) auto; grid-template-areas: 'i n m' 'i p m'; row-gap: 2px; }
   .mcard > .ticon { grid-area: i; align-self: start; margin-top: 2px; }

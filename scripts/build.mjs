@@ -255,6 +255,7 @@ const benchScores = snap.benchmarks?.scores || {};
 const models = (snap.models || []).map((m) => ({ ...m, bench: benchScores[benchKey(m.id)] || {} }));
 const scored = models.filter((m) => Object.keys(m.bench).length);
 const BENCH_DEFAULT = BENCHMARKS.find((b) => b.id === 'gpqa');
+const SHOWDOWN_START = 5;
 const benchMax = Object.fromEntries(BENCHMARKS.map((b) => [b.id, Math.max(0, ...models.map((m) => m.bench[b.id] ?? 0))]));
 const benchVal = (b, v) => (b.unit === 'min' ? (v >= 60 ? `${+(v / 60).toFixed(1)} h` : `${Math.round(v)} min`) : `${(v * 100).toFixed(1)}%`);
 const benchCell = (m, b) => (m.bench[b.id] == null ? '<span class="muted">—</span>'
@@ -308,11 +309,14 @@ function modelsPage() {
   const root = '../';
   const labs = Object.values(Object.groupBy(models, (m) => m.labId)).sort((a, b) => b.length - a.length);
   const month = models.filter((m) => NOW - Date.parse(m.date) < 30 * DAY);
+  // Showdown starts with each lab's newest well-scored flagship (small "flash/mini/lite" tiers skipped), newest first.
+  const recent = scored.filter((m) => Object.keys(m.bench).length >= 3 && !/\b(flash|mini|nano|lite|haiku|air)\b/i.test(m.name));
+  const showdown = recent.filter((m, i) => recent.findIndex((x) => x.labId === m.labId) === i).slice(0, SHOWDOWN_START).map((m) => m.id);
   const body = `
 <section class="wrap hero hero-sm">
   <p class="eyebrow">Models</p>
   <h1>Every new <em>AI model</em>, as it lands</h1>
-  <p class="lede">${models.length} models from ${labs.length} labs — ${month.length} new in the last 30 days. Release date, context window, API price and benchmark scores for each — tick any models to compare them side by side.</p>
+  <p class="lede">${models.length} models from ${labs.length} labs — ${month.length} new in the last 30 days. Release date, context window, API price and benchmark scores for each, with a head-to-head benchmark table you can build yourself.</p>
   <div class="hero-search">
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <input id="q" type="search" placeholder="Search models, labs, reasoning, vision…" aria-label="Search models" autocomplete="off">
@@ -321,6 +325,24 @@ function modelsPage() {
 </section>
 
 ${banner()}
+${showdown.length ? `<section id="showdown" class="wrap section sd-section" data-start="${showdown.join(',')}">
+  <div class="section-head">
+    <div><p class="eyebrow">Head to head</p><h2>Benchmark showdown</h2></div>
+    <p class="muted small section-note">Click a model to highlight it, click a benchmark to rank the models by it. Bold is the best score in each row.</p>
+  </div>
+  <div class="sd-ctl">
+    <div class="sd-add">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="sd-q" type="search" list="sd-list" placeholder="Add a model to compare…" aria-label="Add a model to the showdown" autocomplete="off">
+      <datalist id="sd-list">${scored.map((m) => `<option value="${esc(m.name)}">${esc(m.lab)}</option>`).join('')}</datalist>
+    </div>
+    <label class="pctl-check"><input type="checkbox" id="sd-diff"> Show gap to highlighted model</label>
+    <label class="pctl-check"><input type="checkbox" id="sd-bars" checked> Bars</label>
+    <button type="button" class="btn ghost sd-reset">Reset</button>
+  </div>
+  <div class="sd-wrap"><table class="sd" aria-describedby="sd-foot"></table></div>
+  <p id="sd-foot" class="muted small sd-foot"></p>
+</section>` : ''}
 <section class="wrap section">
   <div class="section-head">
     <div class="chips" role="group" aria-label="Filter by price">
@@ -335,7 +357,7 @@ ${banner()}
   ${scored.length ? `<div class="pctl">
     <label class="pctl-bench"><span>Benchmark column</span><select id="bench">${BENCHMARKS.map((b) => `<option value="${b.id}"${b === BENCH_DEFAULT ? ' selected' : ''}>${esc(b.name)} (${models.filter((m) => m.bench[b.id] != null).length})</option>`).join('')}</select></label>
     <label class="pctl-check"><input type="checkbox" id="scored-only"> Only models with benchmark scores <i>${scored.length}</i></label>
-    <p class="pctl-hint muted small"><span class="pick-dot" aria-hidden="true"></span>Tick up to 4 models to compare their benchmarks.</p>
+    <p class="pctl-hint muted small"><span class="pick-dot" aria-hidden="true"></span>Tick a model to add it to the showdown.</p>
   </div>` : ''}
   <div class="ptable-wrap">
     <table class="ptable mtable">
@@ -352,12 +374,8 @@ ${banner()}
   </div>
   <p class="empty" hidden>No models match these filters.</p>
   <div class="ctray" hidden role="region" aria-label="Comparison tray">
-    <div class="wrap ctray-in"><div class="ctray-picks"></div><span class="ctray-n muted small"></span><button type="button" class="btn ghost ctray-clear">Clear</button><button type="button" class="btn ctray-go">Compare</button></div>
+    <div class="wrap ctray-in"><div class="ctray-picks"></div><span class="ctray-n muted small"></span><button type="button" class="btn ctray-go">View showdown ↑</button></div>
   </div>
-  <dialog class="cmp" aria-labelledby="cmp-title">
-    <div class="cmp-head"><h2 id="cmp-title">Side by side</h2><p class="muted small cmp-sub"></p><button type="button" class="icon-btn cmp-x" aria-label="Close comparison">×</button></div>
-    <div class="cmp-body"></div>
-  </dialog>
   <script type="application/json" id="mcmp-data">${JSON.stringify({
     benchmarks: BENCHMARKS.map(({ id, name, desc, unit }) => ({ id, name, desc, unit })),
     models: Object.fromEntries(models.map((m) => [m.id, {
