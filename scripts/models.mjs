@@ -47,8 +47,12 @@ const clip = (s, n = 240) => (s.length > n ? `${s.slice(0, s.lastIndexOf(' ', n)
 export async function fetchModels(get, now) {
   const { data } = await get(API, { json: true });
   const freeIds = new Set(data.filter((m) => m.id.endsWith(':free')).map((m) => m.id.replace(/:free$/, '')));
+  const baseIds = new Set(data.map((m) => m.id));
   const out = [];
-  for (const m of data) {
+  for (const listing of data) {
+    // A model listed only as ":free" (no paid listing) stands in for its own base id.
+    const freeOnly = listing.id.endsWith(':free') && !baseIds.has(listing.id.replace(/:free$/, ''));
+    const m = freeOnly ? { ...listing, id: listing.id.replace(/:free$/, ''), name: listing.name?.replace(/\s*\(free\)$/i, '') } : listing;
     const [author] = m.id.split('/');
     const lab = MODEL_LABS[author];
     // Skip variants (:free, :batch, :thinking…) and "~latest" aliases; the base model represents them.
