@@ -256,3 +256,49 @@ export function pickNews({ items, extra, discussions, posts, matchTools, handleT
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, MAX_NEWS);
 }
+
+// ── Images ────────────────────────────────────────────────
+// Each story's picture: the X post's photo / video poster / link-card image, or the article's
+// og:image. Looked up once per story and carried over between runs (null = it has none).
+const IMG_UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
+const STATUS = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/\w+\/status\/(\d+)/;
+const httpsUrl = (u, base) => { try { const v = new URL(u.replace(/&amp;/g, '&'), base); return v.protocol === 'https:' ? v.href : null; } catch { return null; } };
+
+async function tweetImage(id) {
+  // The keyless embed endpoint; its token is derived from the post id the same way x.com's embed does.
+  const token = ((Number(id) / 1e15) * Math.PI).toString(36).replace(/(0+|\.)/g, '');
+  const res = await fetch(`https://cdn.syndication.twimg.com/tweet-result?id=${id}&token=${token}&lang=en`, { headers: { 'User-Agent': X_UA }, signal: AbortSignal.timeout(15000) });
+  if (!res.ok) throw new Error(`X embed ${res.status}`);
+  const j = await res.json();
+  const card = j.card?.binding_values || {};
+  const quoted = j.quoted_tweet?.mediaDetails?.[0]?.media_url_https;
+  return httpsUrl(j.mediaDetails?.[0]?.media_url_https || j.video?.poster || quoted
+    || (card.summary_photo_image_large || card.thumbnail_image_large || card.photo_image_full_size_large)?.image_value?.url || '');
+}
+
+async function pageImage(url) {
+  const res = await fetch(url, { headers: { 'User-Agent': IMG_UA, Accept: 'text/html' }, redirect: 'follow', signal: AbortSignal.timeout(15000) });
+  if (!res.ok || !/html/.test(res.headers.get('content-type') || '')) return null;
+  const head = (await res.text()).slice(0, 200000);
+  for (const key of ['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src']) {
+    const tag = head.match(new RegExp(`<meta[^>]+(?:property|name)=["']${key}["'][^>]*>`, 'i'))?.[0];
+    const src = tag?.match(/content=["']([^"']+)["']/i)?.[1];
+    if (src) return httpsUrl(src, res.url);
+  }
+  return null;
+}
+
+export async function newsImages(news, prevNews = []) {
+  const known = new Map(prevNews.filter((n) => n.image !== undefined).map((n) => [n.id, n.image]));
+  const todo = news.filter((n) => !known.has(n.id));
+  for (let i = 0; i < todo.length; i += 6) {
+    await Promise.all(todo.slice(i, i + 6).map(async (n) => {
+      try {
+        const urls = [n.url, ...n.sources.map((s) => s.url)];
+        const tweet = urls.map((u) => u.match(STATUS)?.[1]).find(Boolean);
+        known.set(n.id, (tweet ? await tweetImage(tweet) : null) ?? (n.url.match(STATUS) ? null : await pageImage(n.url)));
+      } catch { /* try again next run */ }
+    }));
+  }
+  return news.map((n) => (known.has(n.id) ? { ...n, image: known.get(n.id) } : n));
+}

@@ -6,7 +6,7 @@ import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
 import { TOOLS, HN_MATCH, HN_QUERIES, DISCOVERY } from './sources.mjs';
 import { searchCandidates, toTool } from './discover.mjs';
-import { NEWS_FEEDS, LAB_ACCOUNTS, fetchX, pickNews } from './news.mjs';
+import { NEWS_FEEDS, LAB_ACCOUNTS, fetchX, pickNews, newsImages } from './news.mjs';
 import { resolveHandles, toolsByHandle } from './xaccounts.mjs';
 import { fetchModels, fetchProviders } from './models.mjs';
 import { fetchBenchmarks } from './benchmarks.mjs';
@@ -516,7 +516,7 @@ async function main() {
   if (QUICK && !changed) { console.log(report.sort().join('\n')); return; } // nothing new: leave the snapshot untouched
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), providersAt: providersFresh, tools, discovered, discussions, news, models, benchmarks, aa, opencode, ecosystem, x }, null, 1));
+  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), providersAt: providersFresh, tools, discovered, discussions, news: await newsImages(news, prev.news), models, benchmarks, aa, opencode, ecosystem, x }, null, 1));
   console.log(report.sort().join('\n'));
 }
 

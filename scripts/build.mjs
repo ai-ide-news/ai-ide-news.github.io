@@ -266,6 +266,7 @@ function newsCard(n, root, { lead = false } = {}) {
   <div class="ncard-meta"><span class="ntag ntag-${esc(n.tag.toLowerCase())}">${esc(n.tag)}</span>${n.major ? '<span class="nmajor">Major</span>' : ''}${time(n.date, 'fcard-time')}</div>
   <h3 class="ncard-title"><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a></h3>
   ${n.summary ? `<p class="ncard-sum">${esc(n.summary)}</p>` : ''}
+  ${n.image ? `<a class="ncard-img" href="${esc(n.url)}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"><img src="${esc(n.image)}" alt="" loading="${lead ? 'eager' : 'lazy'}" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></a>` : ''}
   <div class="ncard-foot">
     ${ts.slice(0, 3).map((t) => `<a class="ntool" href="${root}tools/${t.id}/" style="--c:${t.color}">${icon(t, root, 'sm')}${esc(t.name)}</a>`).join('')}
     <span class="srcs">${n.sources.slice(0, 3).map(sourceLink).join('')}</span>
