@@ -1,7 +1,7 @@
 {
   "name": "ai-ide-news",
   "version": "1.0.0",
-  "description": "Patchwire: live tracker of AI IDE & AI coding CLI releases, patches and news",
+  "description": "aiticker: live tracker of AI IDE & AI coding CLI releases, patches and news",
   "scripts": {
     "fetch": "node scripts/fetch.mjs",
     "build": "node scripts/build.mjs",

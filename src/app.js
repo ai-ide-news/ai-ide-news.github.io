@@ -30,7 +30,7 @@
       wall.setAttribute('role', 'alertdialog');
       wall.setAttribute('aria-modal', 'true');
       wall.setAttribute('aria-labelledby', 'adwall-t');
-      wall.innerHTML = '<div class="adwall-box"><p class="eyebrow">Ad blocker detected</p><h2 id="adwall-t">Please turn off your ad blocker</h2><p>Patchwire is free and ads keep it running. Pause your ad blocker (or allow this site) and reload to keep reading.</p><button type="button" class="btn">I’ve turned it off — reload</button></div>';
+      wall.innerHTML = '<div class="adwall-box"><p class="eyebrow">Ad blocker detected</p><h2 id="adwall-t">Please turn off your ad blocker</h2><p>aiticker is free and ads keep it running. Pause your ad blocker (or allow this site) and reload to keep reading.</p><button type="button" class="btn">I’ve turned it off — reload</button></div>';
       wall.querySelector('button').addEventListener('click', () => location.reload());
       document.documentElement.classList.add('adwalled');
       document.body.append(wall);
@@ -781,7 +781,7 @@
           ${row('Cheapest paid', (c) => `<b class="cmp-big">${c.min == null ? (c.free.length ? 'Free' : 'Custom') : `${money(c.min)}<small>/mo</small>`}</b>${c.min != null && c.min === low && cols.length > 1 ? '<span class="pbadge free">Lowest</span>' : ''}`)}
           ${state.budget === Infinity ? '' : row('Best in budget', (c) => (c.best ? `<strong>${esc(c.best.name)}</strong> <span class="cmp-inline">${priceCell(c.best)}</span>` : '<span class="pbadge none">Over budget</span>'))}
           ${row('Free plan', (c) => (c.free.length ? c.free.map((p) => `<div><span class="pbadge free">Free</span> <strong>${esc(p.name)}</strong>${p.note ? `<small>${esc(p.note)}</small>` : ''}</div>`).join('') : '<span class="pbadge none">None</span>'))}
-          ${row('All plans', (c) => `<ul class="cmp-plans">${c.plans.map((p) => `<li class="${state.budget !== Infinity && !fits(p) ? 'over' : ''}"><span>${esc(p.name)}${p.note ? `<small>${esc(p.note)}</small>` : ''}</span><b>${priceCell(p)}</b></li>`).join('')}</ul>`)}
+          ${row('All plans', (c) => `<ul class="cmp-plans">${c.plans.map((p) => `<li class="${state.budget !== Infinity && !fits(p) ? 'over' : ''}"><span>${esc(p.name)}${p.note ? `<small>${esc(p.note)}</small>` : ''}${p.since ? `<small>Since ${esc(p.since)}</small>` : ''}</span><b>${priceCell(p)}</b></li>`).join('')}</ul>`)}
           ${row('Notes', (c) => (c.note ? `<small>${esc(c.note)}</small>` : '<span class="muted">—</span>'))}
           ${row('Official', (c) => (c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener">Pricing page ↗</a>` : '<span class="muted">—</span>'))}
         </tbody></table></div>`;

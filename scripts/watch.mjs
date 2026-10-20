@@ -34,7 +34,7 @@ async function dispatch() {
   try {
     const res = await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json', 'User-Agent': 'patchwire-watcher' },
+      headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json', 'User-Agent': 'aiticker-watcher' },
       body: JSON.stringify({ event_type: 'refresh' }),
       signal: AbortSignal.timeout(30e3),
     });

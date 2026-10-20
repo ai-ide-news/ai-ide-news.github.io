@@ -163,7 +163,7 @@ ${sec('tokens', `  ${head('tokens', 'What are', 'tokens?')}
   <p>Tokens matter because they are how models are <strong>measured and billed</strong>. Prices are quoted per million tokens, with separate prices for what you send in, called input, and what the model writes back, called output. Output is usually several times more expensive.</p>
   ${demo('tok', 'Token counter', `
     <label class="eyebrow" for="tokin">Type anything</label>
-    <textarea id="tokin" rows="3" spellcheck="false">Patchwire tracks AI coding tools. function add(a, b) { return a + b; }</textarea>
+    <textarea id="tokin" rows="3" spellcheck="false">aiticker tracks AI coding tools. function add(a, b) { return a + b; }</textarea>
     <div class="ltok-out" id="tokout" aria-live="polite"></div>
     <p class="ltok-stats" id="tokstats" data-in="${tokM.input}" data-out="${tokM.output}" data-name="${esc(tokM.name)}"></p>`, 'An approximation — every model family has its own tokenizer, so exact counts differ a little.')}
   <div class="lcallout"><p class="eyebrow">Real example</p><p>${link(tokM)} costs <strong>${per(tokM.input)}</strong> per million input tokens and <strong>${per(tokM.output)}</strong> per million output tokens. Asking it to review a 500-line file — about 6,000 tokens in — and getting a 1,000-token reply back costs about <strong>${money((6000 * tokM.input + 1000 * tokM.output) / 1e6)}</strong>. At the other end, ${link(cheap)} charges just ${per(cheap.input)} per million input tokens.</p></div>`)}

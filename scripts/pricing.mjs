@@ -1,5 +1,6 @@
 // Free and paid plans for every curated tool, hand-checked against each vendor's pricing page.
 // price: USD per month (0 = free, null = custom/contact sales). seat: priced per user. from: starting price.
+// since: when the plan (or the tier it was renamed from) first launched, 'YYYY-MM' — left out where unknown.
 // Tools without an entry (e.g. auto-discovered GitHub projects) are treated as free & open source.
 
 export const PRICING_CHECKED = '2026-10-18';
@@ -10,30 +11,30 @@ export const PRICING = {
   'claude-code': {
     url: 'https://claude.com/pricing',
     plans: [
-      { name: 'Free', price: 0, note: 'Claude chat only — no Claude Code' },
-      { name: 'Pro', price: 20, note: 'Claude Code included · $17/mo billed yearly' },
-      { name: 'Max', price: 100, from: true, note: '5× or 20× Pro usage' },
-      { name: 'Team', price: 25, seat: true, note: 'Premium seat $125 · annual billing cheaper' },
-      { name: 'Enterprise', price: 20, seat: true, note: 'Plus usage at API rates · 20-seat minimum' },
+      { name: 'Free', price: 0, note: 'Claude chat only — no Claude Code', since: '2023-07' },
+      { name: 'Pro', price: 20, note: 'Claude Code included · $17/mo billed yearly', since: '2023-09' },
+      { name: 'Max', price: 100, from: true, note: '5× or 20× Pro usage', since: '2025-04' },
+      { name: 'Team', price: 25, seat: true, note: 'Premium seat $125 · annual billing cheaper', since: '2024-05' },
+      { name: 'Enterprise', price: 20, seat: true, note: 'Plus usage at API rates · 20-seat minimum', since: '2024-09' },
     ],
   },
   codex: {
     url: 'https://chatgpt.com/codex/pricing/',
     plans: [
-      { name: 'Free', price: 0, note: 'Limited Codex usage with a ChatGPT account' },
-      { name: 'Go', price: 8, note: 'Regional pricing' },
-      { name: 'Plus', price: 20, note: 'Codex in CLI, IDE and cloud' },
-      { name: 'Pro', price: 100, from: true, note: 'Higher limits · $100 / $200 / $500 tiers' },
-      { name: 'Business', price: 25, seat: true, note: '$20/seat billed yearly' },
-      { name: 'Enterprise', price: null },
+      { name: 'Free', price: 0, note: 'Limited Codex usage with a ChatGPT account', since: '2022-11' },
+      { name: 'Go', price: 8, note: 'Regional pricing', since: '2025-08' },
+      { name: 'Plus', price: 20, note: 'Codex in CLI, IDE and cloud', since: '2023-02' },
+      { name: 'Pro', price: 100, from: true, note: 'Higher limits · $100 / $200 / $500 tiers', since: '2024-12' },
+      { name: 'Business', price: 25, seat: true, note: '$20/seat billed yearly', since: '2024-01' },
+      { name: 'Enterprise', price: null, since: '2023-08' },
     ],
   },
   'gemini-cli': {
     url: 'https://geminicli.com/docs/quota-and-pricing/',
     plans: [
-      { name: 'Open source', price: 0, note: 'Gemini API key, pay-as-you-go' },
-      { name: 'Google AI Pro', price: 19.99 },
-      { name: 'Google AI Ultra', price: 99.99, from: true, note: '$99.99 or $199.99 tiers' },
+      { name: 'Open source', price: 0, note: 'Gemini API key, pay-as-you-go', since: '2025-06' },
+      { name: 'Google AI Pro', price: 19.99, since: '2025-05' },
+      { name: 'Google AI Ultra', price: 99.99, from: true, note: '$99.99 or $199.99 tiers', since: '2025-05' },
       { name: 'Code Assist Standard', price: 19, seat: true },
       { name: 'Code Assist Enterprise', price: 45, seat: true },
     ],
@@ -87,30 +88,30 @@ export const PRICING = {
   cursor: {
     url: 'https://cursor.com/pricing',
     plans: [
-      { name: 'Free', price: 0, note: 'Limited agent and chat requests' },
-      { name: 'Plus', price: 8, note: 'Shared usage pool, Grok models' },
-      { name: 'Premium', price: 30, note: '4× Plus usage' },
-      { name: 'Super', price: 100, note: '15× Plus usage' },
-      { name: 'Ultra', price: 200, note: '50× Plus usage' },
+      { name: 'Free', price: 0, note: 'Limited agent and chat requests', since: '2023-03' },
+      { name: 'Plus', price: 8, note: 'Shared usage pool, Grok models', since: '2026-10' },
+      { name: 'Premium', price: 30, note: '4× Plus usage', since: '2026-10' },
+      { name: 'Super', price: 100, note: '15× Plus usage', since: '2026-10' },
+      { name: 'Ultra', price: 200, note: '50× Plus usage', since: '2025-06' },
       { name: 'Teams', price: 30, seat: true, from: true, note: 'Pooled usage, admin tools' },
     ],
   },
   kiro: {
     url: 'https://kiro.dev/pricing/',
     plans: [
-      { name: 'Free', price: 0, note: '50 credits/mo' },
-      { name: 'Pro', price: 20, note: '1,000 credits/mo' },
-      { name: 'Pro+', price: 40, note: '2,000 credits/mo' },
-      { name: 'Pro Max', price: 100, note: '5,000 credits/mo' },
-      { name: 'Power', price: 200, note: '10,000 credits/mo' },
+      { name: 'Free', price: 0, note: '50 credits/mo', since: '2025-08' },
+      { name: 'Pro', price: 20, note: '1,000 credits/mo', since: '2025-08' },
+      { name: 'Pro+', price: 40, note: '2,000 credits/mo', since: '2025-08' },
+      { name: 'Pro Max', price: 100, note: '5,000 credits/mo', since: '2026-06' },
+      { name: 'Power', price: 200, note: '10,000 credits/mo', since: '2025-08' },
     ],
   },
   antigravity: {
     url: 'https://antigravity.google/pricing',
     plans: [
-      { name: 'Individuals', price: 0, note: 'Weekly rate limits · unlimited Tab completions' },
-      { name: 'Google AI Pro', price: 19.99, note: 'Higher rate limits' },
-      { name: 'Google AI Ultra', price: 99.99, from: true, note: 'Highest rate limits' },
+      { name: 'Individuals', price: 0, note: 'Weekly rate limits · unlimited Tab completions', since: '2025-11' },
+      { name: 'Google AI Pro', price: 19.99, note: 'Higher rate limits', since: '2025-05' },
+      { name: 'Google AI Ultra', price: 99.99, from: true, note: 'Highest rate limits', since: '2025-05' },
       { name: 'Business', price: 30, seat: true, from: true, note: 'Via Google Cloud · pay-as-you-go option' },
     ],
   },
@@ -126,8 +127,8 @@ export const PRICING = {
   windsurf: {
     url: 'https://windsurf.com/pricing',
     plans: [
-      { name: 'Free', price: 0, note: 'Light agent quota · unlimited Tab' },
-      { name: 'Pro', price: 20, note: 'Daily/weekly quotas' },
+      { name: 'Free', price: 0, note: 'Light agent quota · unlimited Tab', since: '2024-11' },
+      { name: 'Pro', price: 20, note: 'Daily/weekly quotas', since: '2024-11' },
       { name: 'Max', price: 200, note: 'Much higher quotas' },
       { name: 'Teams', price: 40, seat: true, note: 'Plus $80/mo team fee' },
       { name: 'Enterprise', price: null },
@@ -136,7 +137,7 @@ export const PRICING = {
   trae: {
     url: 'https://www.trae.ai/pricing',
     plans: [
-      { name: 'Free', price: 0, note: 'Auto mode · 5,000 autocompletes/mo' },
+      { name: 'Free', price: 0, note: 'Auto mode · 5,000 autocompletes/mo', since: '2025-01' },
       { name: 'Pro', price: 20, note: '$20 usage/mo · all models' },
       { name: 'Pro+', price: 60, note: '$60 usage/mo' },
       { name: 'Ultra', price: 200, note: '$200 usage/mo' },
@@ -145,25 +146,25 @@ export const PRICING = {
   'jetbrains-ai': {
     url: 'https://www.jetbrains.com/ai-ides/buy/',
     plans: [
-      { name: 'AI Free', price: 0, note: 'Unlimited local completion · small credit quota' },
-      { name: 'AI Pro', price: 10, note: '10 AI credits/mo' },
-      { name: 'AI Ultimate', price: 30, note: '35 AI credits/mo' },
+      { name: 'AI Free', price: 0, note: 'Unlimited local completion · small credit quota', since: '2025-04' },
+      { name: 'AI Pro', price: 10, note: '10 AI credits/mo', since: '2023-12' },
+      { name: 'AI Ultimate', price: 30, note: '35 AI credits/mo', since: '2025-04' },
       { name: 'AI Enterprise', price: 60, seat: true },
     ],
   },
   'github-copilot': {
     url: 'https://github.com/features/copilot/plans',
     plans: [
-      { name: 'Free', price: 0, note: '2,000 completions + 50 chats/mo' },
-      { name: 'Pro', price: 10, note: '$15 of AI credits incl. flex' },
-      { name: 'Pro+', price: 39, note: '$70 of AI credits incl. flex' },
-      { name: 'Max', price: 100, note: '$200 of AI credits incl. flex' },
+      { name: 'Free', price: 0, note: '2,000 completions + 50 chats/mo', since: '2024-12' },
+      { name: 'Pro', price: 10, note: '$15 of AI credits incl. flex', since: '2022-06' },
+      { name: 'Pro+', price: 39, note: '$70 of AI credits incl. flex', since: '2025-04' },
+      { name: 'Max', price: 100, note: '$200 of AI credits incl. flex', since: '2026-06' },
     ],
   },
   cline: {
     url: 'https://cline.bot/pricing',
     plans: [
-      { ...BYOK, note: 'VS Code + CLI · inference at cost or BYOK' },
+      { ...BYOK, note: 'VS Code + CLI · inference at cost or BYOK', since: '2024-07' },
       { name: 'Enterprise', price: null, note: 'JetBrains, SSO, team dashboard' },
     ],
   },
@@ -196,7 +197,7 @@ export const PRICING = {
   augment: {
     url: 'https://www.augmentcode.com/pricing',
     plans: [
-      { name: 'Standard', price: 20, note: '$20 usage/mo · up to 50 seats, flat' },
+      { name: 'Standard', price: 20, note: '$20 usage/mo · up to 50 seats, flat', since: '2026-09' },
       { name: 'Business', price: 100, note: '$100 usage/mo · up to 50 seats, flat' },
       { name: 'Enterprise', price: null },
     ],

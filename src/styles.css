@@ -1,4 +1,4 @@
-/* Patchwire — a wire-service front page: Geist headlines, hairline rules, mono data. */
+/* aiticker — a wire-service front page: Geist headlines, hairline rules, mono data. */
 :root {
   --font: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
@@ -205,6 +205,9 @@ h1 em, h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; 
 .stats dd { margin: 4px 0 0; font: 600 26px/1.15 var(--font); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .stats dd small { font: 12px var(--mono); color: var(--ink-3); }
 .stats dd code { font-size: 20px; font-weight: 500; }
+.stats.stats-5 { grid-template-columns: repeat(5, 1fr); }
+.stats dd a { color: inherit; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 4px; }
+.est { font: 11px var(--mono); color: var(--ink-3); }
 .hero-stats { grid-template-columns: 1fr; border-top: 2px solid var(--rule); }
 .hero-stats > div, .hero-stats > div + div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-left: 0; }
 .hero-stats > div + div { border-top: 1px solid var(--line); }
@@ -399,7 +402,8 @@ h2 { font: 600 clamp(26px, 3vw, 34px)/1.1 var(--font); letter-spacing: -.035em; 
 @media (max-width: 640px) {
   .hero-grid { padding-top: 32px; }
   .stats { grid-template-columns: 1fr 1fr; }
-  .stats > div:nth-child(3) { border-left: 0; padding-left: 0; }
+  .stats.stats-5 { grid-template-columns: 1fr 1fr; }
+  .stats > div:nth-child(2n+1) { border-left: 0; padding-left: 0; }
   .stats > div:nth-child(n+3) { border-top: 1px solid var(--line); }
   .stats dd { font-size: 22px; }
   .hero-stats { grid-template-columns: 1fr; }
@@ -608,6 +612,7 @@ body.has-tray .live-toast { bottom: 84px; }
 .plans li b { font: 500 14px var(--mono); white-space: nowrap; }
 .plans li b small { font-weight: 400; color: var(--ink-3); }
 .plans li b.free { color: var(--k-release); }
+.plans li span.since, .pchip small.since, .pfree small.since { font: 11px var(--mono); color: var(--ink-3); }
 
 /* ads */
 .ad { border-top: 1px solid var(--line); padding-top: 8px; min-height: 120px; }
@@ -806,6 +811,10 @@ a:hover > .pt { opacity: 1; r: 7; }
 .lab-grid a { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; font-weight: 500; }
 .lab-grid a:hover span { text-decoration: underline; text-underline-offset: 3px; }
 .lab-grid small { margin-left: auto; font: 12px var(--mono); color: var(--ink-3); }
+.co-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.co-grid span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.co-grid small { flex: none; white-space: nowrap; }
+.side-card .co-grid { grid-template-columns: 1fr; }
 @media (max-width: 720px) {
   .specs { grid-template-columns: 1fr; }
   .dtable .mtags { margin-left: 0; }

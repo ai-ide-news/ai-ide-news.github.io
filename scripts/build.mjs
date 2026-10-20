@@ -4,6 +4,7 @@ import { TOOLS, CATEGORIES } from './sources.mjs';
 import { resolveIcons } from './icons.mjs';
 import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
 import { LAB_ICONS } from './models.mjs';
+import { TOOL_LAUNCH, COMPANIES, fmtLaunch } from './launches.mjs';
 import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
 import { AA_SOURCE } from './aa.mjs';
 import { OPENCODE_SOURCE } from './opencode.mjs';
@@ -12,7 +13,7 @@ import { learnBody, LEARN_SECTIONS } from './learn.mjs';
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
 const SITE_URL = (process.env.SITE_URL || 'https://ai-ide-news.github.io').replace(/\/$/, '');
-const SITE_NAME = 'Patchwire';
+const SITE_NAME = 'aiticker';
 const AUTHOR = { name: 'Abdullah ElTiby', url: 'https://github.com/AbdullahElTiby' };
 const REPO_URL = 'https://github.com/ai-ide-news/ai-ide-news.github.io';
 const VERIFY = process.env.GOOGLE_SITE_VERIFICATION || '';
@@ -61,6 +62,24 @@ const tools = [...TOOLS, ...discovered].map((t) => {
   return { ...t, items, meta: entry.meta || {}, latest, latestRelease, updates, activity, discussions, lastActive: latest?.date || '1970-01-01T00:00:00Z' };
 }).sort((a, b) => b.lastActive.localeCompare(a.lastActive));
 const byId = Object.fromEntries(tools.map((t) => [t.id, t]));
+
+// ── first releases ────────────────────────────────────────
+// A tool's launch: hand-checked for curated tools, otherwise its earliest fetched release when that
+// history is complete (not cut off by the fetch cap or a cadenceFrom gap).
+const MAX_HISTORY = 1000;
+function firstRelease(t) {
+  if (TOOL_LAUNCH[t.id]) return TOOL_LAUNCH[t.id];
+  const c = t.meta.cadence || [];
+  if (!c.length || t.meta.cadenceFrom || c.length >= MAX_HISTORY) return null;
+  const date = c.reduce((a, b) => (a < b ? a : b)).slice(0, 10);
+  const src = t.meta.npm ? 'npm' : t.cask ? 'Homebrew' : 'GitHub';
+  return { date, note: `First ${src} release` };
+}
+const launchAgo = (d) => {
+  const yrs = (NOW - Date.parse(d.length === 4 ? `${d}-07-01` : d.length === 7 ? `${d}-15` : d)) / (365.25 * DAY);
+  return yrs < 1 ? `${Math.max(1, Math.round(yrs * 12))} mo ago` : `${yrs < 10 ? yrs.toFixed(1).replace(/\.0$/, '') : Math.round(yrs)} yr ago`;
+};
+const est = (name) => (COMPANIES[name]?.founded ? ` <span class="est" title="${esc(COMPANIES[name].parent ? `Part of ${COMPANIES[name].parent}, founded ${COMPANIES[name].founded}` : `Founded ${COMPANIES[name].founded}`)}">est. ${COMPANIES[name].founded}</span>` : '');
 const trending = tools.filter((t) => t.discovered).sort((a, b) => b.score - a.score);
 const trendBadge = (t) => (t.starsPerWeek > 0 ? `↗ +${compact(t.starsPerWeek)}★` : '↗');
 
@@ -119,6 +138,7 @@ function navGroups(root, active) {
     ['Tools', 'Pick your setup', [
       ['All tools', `${root}tools/`, `${tools.length} IDEs, CLIs and agents`, 'tools'],
       ['Compare', `${root}compare/`, 'Plans and pricing side by side', 'compare'],
+      ['Companies', `${root}companies/`, `${companies.length} labs and tool makers`, 'companies'],
     ]],
     models.length && ['Models', 'Under the hood', [
       ['Models', `${root}models/`, 'Benchmarks, prices, leaderboard', 'models'],
@@ -322,6 +342,45 @@ const modelTags = (m) => [
 const modelPath = (m) => `models/${m.labId}/${m.id.split('/').slice(1).join('/')}/`;
 const labPath = (labId) => `models/${labId}/`;
 const labs = Object.values(Object.groupBy(models, (m) => m.labId)).sort((a, b) => b.length - a.length);
+
+// ── companies ─────────────────────────────────────────────
+// One page per company, derived from whoever makes a tracked tool or model, so a new vendor or lab gets one
+// on the next build. Names normalise so display names and GitHub org spellings meet ("mistralai", "zai-org").
+const coKey = (s = '') => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+const coInfo = (name) => COMPANIES[name] || Object.entries(COMPANIES).find(([k]) => coKey(k) === coKey(name))?.[1] || {};
+const companies = (() => {
+  const byKey = new Map(), list = [];
+  const slugs = new Set();
+  const slugFor = (s) => { let x = s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'company'; while (slugs.has(x)) x += '-co'; slugs.add(x); return x; };
+  for (const l of labs) {
+    const c = { name: l[0].lab, slug: slugFor(l[0].labId), labId: l[0].labId, color: l[0].color, iconId: `lab-${l[0].labId}`, models: l, tools: [] };
+    byKey.set(coKey(c.name), c).set(coKey(c.labId), c);
+    list.push(c);
+  }
+  for (const t of tools) {
+    const k = coKey(coInfo(t.vendor).alias || t.vendor);
+    let c = byKey.get(k) || byKey.get(k.replace(/(ai|org)$/, ''));
+    if (!c) {
+      c = { name: t.vendor, slug: slugFor(t.vendor), color: t.color, iconId: t.id, models: [], tools: [] };
+      byKey.set(k, c);
+      list.push(c);
+    }
+    c.tools.push(t);
+  }
+  for (const c of list) {
+    c.info = coInfo(c.name);
+    c.last = [c.tools[0]?.lastActive, c.models[0]?.date].filter(Boolean).sort().at(-1) || '1970-01-01T00:00:00Z';
+  }
+  return list.sort((a, b) => (b.tools.length + b.models.length) - (a.tools.length + a.models.length) || b.last.localeCompare(a.last));
+})();
+const coPath = (c) => `companies/${c.slug}/`;
+const coByVendor = new Map(companies.flatMap((c) => c.tools.map((t) => [t.vendor, c])));
+const coByLab = new Map(companies.filter((c) => c.labId).map((c) => [c.labId, c]));
+const coByName = (name) => companies.find((c) => coKey(c.name) === coKey(name));
+const coTile = (c, root, size = 'sm') => icon({ id: c.iconId, name: c.name, color: c.color }, root, size);
+const coCounts = (c) => [c.tools.length && `${c.tools.length} tool${c.tools.length === 1 ? '' : 's'}`, c.models.length && `${c.models.length} model${c.models.length === 1 ? '' : 's'}`].filter(Boolean).join(' · ');
+const vendorLink = (name, root) => `<a class="lab-link" href="${root}${coPath(coByVendor.get(name))}">${esc(name)}</a>`;
+const coGrid = (list, root) => `<ul class="lab-grid co-grid">${list.map((c) => `<li><a href="${root}${coPath(c)}" style="--c:${c.color}">${coTile(c, root)}<span>${esc(c.name)}</span><small>${coCounts(c)}</small></a></li>`).join('')}</ul>`;
 // Showdown starts with each lab's newest well-scored flagship (small "flash/mini/lite" tiers skipped), newest first.
 const flagships = scored.filter((m) => BENCH_SETS[0].ids.filter((id) => m.bench[id] != null).length >= 3 && !/\b(flash|mini|nano|lite|haiku|air)\b/i.test(m.name));
 const showdown = flagships.filter((m, i) => flagships.findIndex((x) => x.labId === m.labId) === i).slice(0, SHOWDOWN_START).map((m) => m.id);
@@ -369,7 +428,7 @@ function modelsSection(root) {
 // Composite indexes: each benchmark score as a share of the best score any model has on it,
 // averaged over the set's benchmarks the model has (at least `min`), then ×100.
 const LB_INDEXES = [
-  { id: 'intel', name: 'Intelligence', tone: 'accent', desc: 'Patchwire index across reasoning, knowledge, maths and coding', ids: ['gpqa', 'hle', 'arc2', 'fm', 'simple', 'critpt', 'swe', 'tb'], min: 4 },
+  { id: 'intel', name: 'Intelligence', tone: 'accent', desc: 'aiticker index across reasoning, knowledge, maths and coding', ids: ['gpqa', 'hle', 'arc2', 'fm', 'simple', 'critpt', 'swe', 'tb'], min: 4 },
   { id: 'code', name: 'Coding', tone: 'release', desc: 'Index across SWE-bench, Terminal-Bench, DeepSWE and 7 more coding benchmarks', ids: ['swe', 'tb', 'dswe', 'fswe', 'cursor', 'fcode', 'aider', 'scicode', 'gso', 'mirror'], min: 3 },
   { id: 'agents', name: 'Agents', tone: 'changelog', desc: 'Index across APEX-Agents, OSWorld, GDPval, Remote Labor Index and more', ids: ['apex', 'rli', 'osw2', 'osw', 'gdpval', 'ptb', 'tb'], min: 2 },
   { id: 'reason', name: 'Reasoning', tone: 'blog', desc: "Index across GPQA, Humanity's Last Exam, ARC-AGI, SimpleBench and more", ids: ['gpqa', 'hle', 'arc2', 'arc1', 'simple', 'critpt', 'chess', 'lmca'], min: 3 },
@@ -784,22 +843,25 @@ function labPage(list) {
   const others = labs.filter((l) => l[0].labId !== labId);
   const span = (Date.parse(newest.date) - Date.parse(list.at(-1).date)) / DAY;
   const cadence = list.length > 2 ? span / (list.length - 1) : null;
+  const co = COMPANIES[lab] || {};
   const body = `
 <section class="wrap tool-hero" style="--c:${color}">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}models/">Models</a><span>/</span><span>${esc(lab)}</span></nav>
   <div class="tool-head">
     ${icon({ id: `lab-${labId}`, name: lab, color }, root, 'xl')}
     <div>
-      <p class="eyebrow">AI lab · ${list.length} model${list.length === 1 ? '' : 's'} tracked</p>
+      <p class="eyebrow">AI lab${co.parent ? ` · ${esc(co.parent)}` : ''}${co.founded ? ` · founded ${co.founded}` : ''} · ${list.length} model${list.length === 1 ? '' : 's'} tracked</p>
       <h1>${esc(lab)} <em>models</em></h1>
       <p class="lede">Every ${esc(lab)} model released in the last 18 months, with release dates, context windows, API prices and benchmark scores. Newest: <a href="${root}${modelPath(newest)}">${esc(newest.name)}</a>, ${ago(newest.date)}.</p>
       <div class="tool-links">
         ${labScored.length ? `<a class="btn" href="${showdownHref(root, labScored.slice(0, 6).map((m) => m.id))}">Compare ${esc(lab)} models →</a>` : ''}
+        <a class="btn ghost" href="${root}${coPath(coByLab.get(labId))}">${esc(lab)} profile</a>
         <a class="btn ghost" href="${root}models/">All labs</a>
       </div>
     </div>
   </div>
-  <dl class="stats tool-stats">
+  <dl class="stats tool-stats${co.firstModel ? ' stats-5' : ''}">
+    ${co.firstModel ? `<div><dt>First model</dt><dd>${fmtLaunch(co.firstModel.date)}<small> ${esc(co.firstModel.name)}</small></dd></div>` : ''}
     <div><dt>Models · 30 days</dt><dd>${month.length}<small> of ${list.length}</small></dd></div>
     <div><dt>Latest release</dt><dd>${ago(newest.date)}</dd></div>
     <div><dt>Cheapest input / 1M</dt><dd>${cheapest ? mprice(cheapest.input) : 'Free'}${cheapest ? `<small> ${esc(cheapest.name)}</small>` : ''}</dd></div>
@@ -859,13 +921,119 @@ ${bests.length ? `<section class="wrap section">
   });
 }
 
+function companyPage(c) {
+  const root = '../../';
+  const { info } = c;
+  const parent = info.parent && coByName(info.parent);
+  const family = companies.filter((x) => x !== c && (coKey(x.info.parent) === coKey(c.name) || (info.parent && coKey(x.info.parent) === coKey(info.parent))));
+  const items = c.tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
+  const stars = c.tools.reduce((n, t) => n + (t.meta.stars || 0), 0);
+  const coNews = news.filter((n) => n.toolIds.some((id) => c.tools.some((t) => t.id === id)));
+  const rel90 = c.tools.flatMap((t) => t.updates).filter((i) => NOW - Date.parse(i.date) < 90 * DAY).length + c.models.filter((m) => NOW - Date.parse(m.date) < 90 * DAY).length;
+  const what = [c.tools.length && `${c.tools.length} AI coding tool${c.tools.length === 1 ? '' : 's'}`, c.models.length && `${c.models.length} AI model${c.models.length === 1 ? '' : 's'}`].filter(Boolean).join(' and ');
+  const others = companies.filter((x) => x !== c && !family.includes(x));
+  const body = `
+<section class="wrap tool-hero" style="--c:${c.color}">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}companies/">Companies</a><span>/</span><span>${esc(c.name)}</span></nav>
+  <div class="tool-head">
+    ${coTile(c, root, 'xl')}
+    <div>
+      <p class="eyebrow">${c.models.length ? 'AI lab' : 'Company'}${info.parent ? ` · part of ${parent ? `<a class="lab-link" href="${root}${coPath(parent)}">${esc(info.parent)}</a>` : esc(info.parent)}` : ''}${info.founded ? ` · founded ${info.founded}` : ''}</p>
+      <h1>${esc(c.name)} <em>profile</em></h1>
+      <p class="lede">Everything ${esc(c.name)} ships that we track: ${what}. Last shipped ${ago(c.last)}.</p>
+      <div class="tool-links">
+        ${c.models.length ? `<a class="btn" href="${root}${labPath(c.labId)}">All ${esc(c.name)} models →</a>` : ''}
+        ${c.tools.length === 1 ? `<a class="btn${c.models.length ? ' ghost' : ''}" href="${root}tools/${c.tools[0].id}/">${esc(c.tools[0].name)} changelog →</a>` : ''}
+        <a class="btn ghost" href="${root}companies/">All companies</a>
+      </div>
+    </div>
+  </div>
+  <dl class="stats tool-stats${info.founded ? ' stats-5' : ''}">
+    ${info.founded ? `<div><dt>Founded</dt><dd>${esc(info.founded)}${info.parent ? `<small> ${esc(info.parent)}</small>` : ''}</dd></div>` : ''}
+    <div><dt>Tools tracked</dt><dd>${c.tools.length}</dd></div>
+    ${c.models.length ? `<div><dt>Models tracked</dt><dd>${c.models.length}</dd></div>` : `<div><dt>Ships · 90 days</dt><dd>${rel90}</dd></div>`}
+    <div><dt>Last shipped</dt><dd>${ago(c.last)}</dd></div>
+    ${stars ? `<div><dt>GitHub stars</dt><dd>${compact(stars)}</dd></div>` : c.models.length ? `<div><dt>Ships · 90 days</dt><dd>${rel90}</dd></div>` : `<div><dt>Updates tracked</dt><dd>${c.tools.reduce((n, t) => n + t.items.length, 0)}</dd></div>`}
+  </dl>
+</section>
+
+${c.tools.length ? `<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Products</p><h2>${esc(c.name)} tools</h2></div></div>
+  <div class="vgrid">${c.tools.map((t) => versionCard(t, root)).join('')}</div>
+</section>` : ''}
+
+${c.models.length ? `<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Models</p><h2>Latest ${esc(c.name)} models</h2></div><p class="muted small section-note"><a href="${root}${labPath(c.labId)}">Full lineup, benchmarks and timeline →</a></p></div>
+  ${modelList(c.models.slice(0, 8), root)}
+</section>` : ''}
+
+${banner()}
+
+${items.length ? `<section class="wrap section">
+  <div class="feed-layout">
+    <div class="feed tool-feed">
+      <div class="section-head"><div><p class="eyebrow">Release history</p><h2>Recent updates</h2></div></div>
+      ${timeline(items, root, { full: c.tools.length === 1 })}
+    </div>
+    <aside class="side">
+      ${ad('side')}
+      ${family.length ? `<div class="side-card"><p class="eyebrow">Same group</p><h2>Related companies</h2>${coGrid(family, root)}</div>` : ''}
+      <div class="side-card"><p class="eyebrow">Community</p><h2>On Hacker News</h2>${discussionList(c.tools.flatMap((t) => t.discussions).filter((d, i, a) => a.indexOf(d) === i).sort((a, b) => b.date.localeCompare(a.date)), root, 8)}</div>
+    </aside>
+  </div>
+</section>` : family.length ? `<section class="wrap section"><div class="section-head"><div><p class="eyebrow">Same group</p><h2>Related companies</h2></div></div>${coGrid(family, root)}</section>` : ''}
+
+${coNews.length ? `<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">In the news</p><h2>${esc(c.name)} stories</h2></div></div>
+  ${newsGrid(coNews, root, 6)}
+</section>` : ''}
+
+<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Directory</p><h2>Other companies</h2></div></div>
+  ${coGrid(others, root)}
+  ${ad('inline')}
+</section>`;
+  return layout({
+    root, path: coPath(c), active: 'companies',
+    title: `${c.name} — AI Tools, Models & Latest Releases | ${SITE_NAME}`,
+    description: `${c.name}${info.founded ? ` (founded ${info.founded})` : ''}: ${what} tracked — ${[...c.tools, ...c.models].slice(0, 5).map((x) => x.name).join(', ')}. Latest releases, versions and news, updated automatically.`,
+    jsonld: {
+      '@context': 'https://schema.org', '@type': 'Organization', name: c.name, url: `${SITE_URL}/${coPath(c)}`,
+      ...(info.founded ? { foundingDate: info.founded } : {}), ...(info.parent ? { parentOrganization: { '@type': 'Organization', name: info.parent } } : {}),
+      makesOffer: c.tools.map((t) => ({ '@type': 'Offer', itemOffered: { '@type': 'SoftwareApplication', name: t.name, url: `${SITE_URL}/tools/${t.id}/` } })),
+    },
+    body,
+  });
+}
+
+function companiesIndexPage() {
+  const root = '../';
+  const labsN = companies.filter((c) => c.models.length).length;
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">Directory</p>
+  <h1>All <em>${companies.length}</em> companies</h1>
+  <p class="lede">Every company behind a tool or model we track — ${labsN} AI labs and ${companies.length - labsN} tool makers, most active first. New ones appear automatically.</p>
+</section>
+
+${banner()}
+<section class="wrap section">
+  ${coGrid(companies, root)}
+  ${ad('inline')}
+</section>`;
+  return layout({
+    root, path: 'companies/', active: 'companies', title: `AI Companies — Labs & Coding Tool Makers | ${SITE_NAME}`,
+    description: `${companies.length} companies behind AI coding tools and models: ${companies.slice(0, 12).map((c) => c.name).join(', ')}.`, body,
+  });
+}
+
 function versionCard(t, root) {
   const l = t.latest;
   const ver = t.latestRelease ? t.latestRelease.version : null;
   const fresh = l && NOW - Date.parse(l.date) < 2 * DAY;
   return `<a class="vcard" href="${root}tools/${t.id}/" data-cat="${t.category}" data-trend="${t.discovered ? 1 : 0}" data-tool="${t.id}" data-text="${esc(`${t.name} ${t.vendor}`.toLowerCase())}" style="--c:${t.color}">
   ${icon(t, root, 'sm')}
-  <span class="vcard-name"><strong>${esc(t.name)}</strong>${fresh ? '<span class="fresh" title="Shipped in the last 48 hours">new</span>' : ''}${t.discovered ? `<span class="trend" title="Trending on GitHub${t.starsPerWeek > 0 ? ` · +${t.starsPerWeek} stars this week` : ''}">${trendBadge(t)}</span>` : ''}<small>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</small></span>
+  <span class="vcard-name"><strong>${esc(t.name)}</strong>${fresh ? '<span class="fresh" title="Shipped in the last 48 hours">new</span>' : ''}${t.discovered ? `<span class="trend" title="Trending on GitHub${t.starsPerWeek > 0 ? ` · +${t.starsPerWeek} stars this week` : ''}">${trendBadge(t)}</span>` : ''}<small>${esc(t.vendor)} · ${CATEGORIES[t.category].short}${firstRelease(t) ? ` · since ${firstRelease(t).date.slice(0, 4)}` : ''}</small></span>
   <span class="vcard-ver">${ver ? `<code>${esc(ver)}</code>` : `<span class="vcard-upd">${esc(l?.title || '—')}</span>`}</span>
   <span class="vcard-meta">${l ? time(l.date) : 'no data'}${t.meta.stars ? `<small>★ ${compact(t.meta.stars)}</small>` : ''}</span>
   ${sparkline(t.activity, { since: t.meta.cadenceFrom })}
@@ -1004,6 +1172,7 @@ function toolPage(t) {
   const sparkSpan = { weeks: Math.max(4, historyWeeks) };
   const ver = t.latestRelease?.version;
   const similar = tools.filter((x) => x.category === t.category && x.id !== t.id).slice(0, 6);
+  const first = firstRelease(t);
 
   const body = `
 <section class="wrap tool-hero" style="--c:${t.color}">
@@ -1011,7 +1180,7 @@ function toolPage(t) {
   <div class="tool-head">
     ${icon(t, root, 'xl')}
     <div>
-      <p class="eyebrow">${CATEGORIES[t.category].label} · ${esc(t.vendor)}${t.discovered ? ` · <span class="trend">↗ Trending on GitHub</span>` : ''}</p>
+      <p class="eyebrow">${CATEGORIES[t.category].label} · ${vendorLink(t.vendor, root)}${est(t.vendor)}${t.discovered ? ` · <span class="trend">↗ Trending on GitHub</span>` : ''}</p>
       <h1>${esc(t.name)} <em>changelog</em></h1>
       <p class="lede">${esc(t.blurb)}</p>
       <div class="tool-links">
@@ -1022,7 +1191,8 @@ function toolPage(t) {
       </div>
     </div>
   </div>
-  <dl class="stats tool-stats">
+  <dl class="stats tool-stats${first ? ' stats-5' : ''}">
+    ${first ? `<div title="${esc(first.note)}"><dt>First released</dt><dd>${first.url ? `<a href="${esc(first.url)}" target="_blank" rel="noopener">${fmtLaunch(first.date)}</a>` : fmtLaunch(first.date)}<small> ${launchAgo(first.date)}</small></dd></div>` : ''}
     <div><dt>${ver ? 'Latest version' : 'Latest update'}</dt><dd>${ver ? `<code>${esc(ver)}</code>` : (t.latest ? fmtDate(t.latest.date) : '—')}</dd></div>
     <div><dt>Last shipped</dt><dd>${t.latest ? ago(t.latest.date) : '—'}</dd></div>
     ${t.discovered ? `<div><dt>GitHub stars</dt><dd>${compact(t.meta.stars || 0)}${t.starsPerWeek > 0 ? `<small> +${compact(t.starsPerWeek)}/wk</small>` : ''}</dd></div>` : `<div><dt>Updates · 90 days</dt><dd>${rel90.length}</dd></div>`}
@@ -1064,6 +1234,7 @@ ${banner()}`;
       '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: t.name, applicationCategory: 'DeveloperApplication',
       operatingSystem: 'Windows, macOS, Linux', url: t.site, publisher: { '@type': 'Organization', name: t.vendor },
       ...(ver ? { softwareVersion: ver } : {}), ...(t.latest ? { dateModified: t.latest.date } : {}),
+      ...(first?.date.length === 10 ? { datePublished: first.date } : {}),
     },
     body,
   });
@@ -1413,7 +1584,7 @@ function plansCard(t, root) {
   return `<div class="side-card">
     <p class="eyebrow">Pricing</p><h2>Free &amp; paid plans</h2>
     ${pr.note ? `<p class="muted small">${esc(pr.note)}</p>` : ''}
-    <ul class="plans">${pr.plans.map((p) => `<li><div><strong>${esc(p.name)}</strong>${p.note ? `<span>${esc(p.note)}</span>` : ''}</div><b class="${p.price === 0 ? 'free' : ''}">${planPrice(p)}</b></li>`).join('')}</ul>
+    <ul class="plans">${pr.plans.map((p) => `<li><div><strong>${esc(p.name)}</strong>${p.note ? `<span>${esc(p.note)}</span>` : ''}${p.since ? `<span class="since">Since ${fmtLaunch(p.since)}</span>` : ''}</div><b class="${p.price === 0 ? 'free' : ''}">${planPrice(p)}</b></li>`).join('')}</ul>
     <p class="muted small">${pr.url ? `<a href="${esc(pr.url)}" target="_blank" rel="noopener">Official pricing ↗</a> · ` : ''}<a href="${root}compare/">Compare all tools →</a></p>
   </div>`;
 }
@@ -1428,15 +1599,15 @@ function comparePage() {
     const paid = pr.plans.filter((p) => p.price !== 0);
     return `<tr class="prow" data-id="${t.id}" data-cat="${t.category}" data-trend="0" data-free="${free.length ? 1 : 0}" data-text="${esc(`${t.name} ${t.vendor} ${pr.plans.map((p) => p.name).join(' ')}`.toLowerCase())}" style="--c:${t.color}">
   <th scope="row"><div class="ptool-cell"><button type="button" class="pick" data-pick="${t.id}" aria-pressed="false" aria-label="Add ${esc(t.name)} to comparison" title="Add to comparison"></button><a class="ptool" href="${root}tools/${t.id}/">${icon(t, root, 'sm')}<span><strong>${esc(t.name)}</strong><small>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</small></span></a></div></th>
-  <td>${free.length ? free.map((p) => `<div class="pfree"><span class="pbadge free">Free</span><div><strong>${esc(p.name)}</strong>${p.note ? `<small>${esc(p.note)}</small>` : ''}</div></div>`).join('') : '<span class="pbadge none">No free plan</span>'}</td>
-  <td><div class="pchips">${paid.length ? paid.map((p) => `<span class="pchip" data-price="${p.price ?? ''}"${p.note ? ` title="${esc(p.note)}"` : ''}><span>${esc(p.name)}</span><b>${planPrice(p)}</b><em class="ptotal" hidden></em>${p.note ? `<small>${esc(p.note)}</small>` : ''}</span>`).join('') : '<span class="muted small">Free only</span>'}</div>${pr.note ? `<p class="pnote">${esc(pr.note)}</p>` : ''}</td>
+  <td>${free.length ? free.map((p) => `<div class="pfree"><span class="pbadge free">Free</span><div><strong>${esc(p.name)}</strong>${p.note ? `<small>${esc(p.note)}</small>` : ''}${p.since ? `<small class="since">Since ${fmtLaunch(p.since)}</small>` : ''}</div></div>`).join('') : '<span class="pbadge none">No free plan</span>'}</td>
+  <td><div class="pchips">${paid.length ? paid.map((p) => `<span class="pchip" data-price="${p.price ?? ''}"${p.note ? ` title="${esc(p.note)}"` : ''}><span>${esc(p.name)}</span><b>${planPrice(p)}</b><em class="ptotal" hidden></em>${p.note ? `<small>${esc(p.note)}</small>` : ''}${p.since ? `<small class="since">Since ${fmtLaunch(p.since)}</small>` : ''}</span>`).join('') : '<span class="muted small">Free only</span>'}</div>${pr.note ? `<p class="pnote">${esc(pr.note)}</p>` : ''}</td>
   <td class="pfrom">${from == null ? '<span class="pbadge free">$0</span>' : `<b class="pfrom-v">${usd(from)}</b><small>/mo</small>`}${pr.url ? `<a href="${esc(pr.url)}" target="_blank" rel="noopener" aria-label="${esc(t.name)} official pricing">Pricing ↗</a>` : ''}</td>
 </tr>`;
   };
   // Client-side data for the budget, team-size, sort and side-by-side controls.
   const cmpData = Object.fromEntries(rows.map(({ t, pr }) => [t.id, {
     name: t.name, vendor: t.vendor, color: t.color, href: `${root}tools/${t.id}/`, url: pr.url || '', note: pr.note || '',
-    icon: icon(t, root, 'md'), plans: pr.plans.map((p) => ({ name: p.name, price: p.price, seat: !!p.seat, from: !!p.from, note: p.note || '' })),
+    icon: icon(t, root, 'md'), plans: pr.plans.map((p) => ({ name: p.name, price: p.price, seat: !!p.seat, from: !!p.from, note: p.note || '', since: p.since ? fmtLaunch(p.since) : '' })),
   }]));
   const oss = tools.filter((t) => t.discovered);
   const body = `
@@ -1538,6 +1709,8 @@ if (models.length) await out('learn/index.html', learnPage());
 for (const l of labs) await out(`${labPath(l[0].labId)}index.html`, labPage(l));
 for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
+await out('companies/index.html', companiesIndexPage());
+for (const c of companies) await out(`${coPath(c)}index.html`, companyPage(c));
 
 const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date));
 await out('feed.xml', rss(allItems.slice(0, 120)));
@@ -1577,6 +1750,8 @@ await out('search.json', JSON.stringify({ generatedAt: snap.generatedAt, items: 
   { t: 'page', n: 'RSS feed', s: 'Subscribe to every update', u: 'feed.xml', k: 'rss atom subscribe' },
   ...tools.map((t) => ({ t: 'tool', n: t.name, s: `${t.vendor} · ${CATEGORIES[t.category]?.short || t.category}${t.latestRelease?.version ? ` · ${t.latestRelease.version}` : ''}`, u: `tools/${t.id}/`, k: `${t.blurb || t.description || ''} ${t.discovered ? 'trending' : ''}`.toLowerCase(), d: t.latest?.date, ...srTool(t) })),
   ...(models.length ? LEARN_SECTIONS.map(([id, title], i) => ({ t: 'learn', n: title, s: `Chapter ${String(i + 1).padStart(2, '0')}`, u: `learn/#${id}`, k: id })) : []),
+  { t: 'page', n: 'Companies', s: `${companies.length} AI labs and tool makers`, u: 'companies/', k: 'companies vendors labs makers directory' },
+  ...companies.map((c) => ({ t: 'company', n: c.name, s: coCounts(c), u: coPath(c), k: `${c.tools.map((t) => t.name).join(' ')} ${c.info.parent || ''}`.toLowerCase(), d: c.last, c: c.color, i: srIcon(c.iconId) })),
   ...labs.map((l) => ({ t: 'lab', n: l[0].lab, s: `${l.length} model${l.length === 1 ? '' : 's'}`, u: labPath(l[0].labId), c: l[0].color, i: srIcon(`lab-${l[0].labId}`) })),
   ...models.map((m) => ({ t: 'model', n: m.name, s: `${m.lab} · ${tokens(m.context)} ctx · ${priceLine(m)}`, u: modelPath(m), k: `${m.id} ${m.reasoning ? 'reasoning' : ''} ${m.openWeights ? 'open weights' : ''} ${m.free ? 'free' : ''} ${m.modalities.join(' ')}`.toLowerCase(), d: m.date, c: m.color, i: srIcon(`lab-${m.labId}`) })),
   ...news.map((n) => { const t = byId[n.toolIds[0]]; return { t: 'news', n: n.title, s: `${n.tag}${t ? ` · ${t.name}` : ''}`, u: n.url, x: 1, k: (n.summary || '').slice(0, 160).toLowerCase(), d: n.date, ...(t ? srTool(t) : {}) }; }),
@@ -1591,10 +1766,12 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 ${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${models.length ? `<url><loc>${SITE_URL}/learn/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 ` : ''}${Object.values(ECO).filter((c) => c.list.length).map((c) => `<url><loc>${SITE_URL}/${c.path}</loc><lastmod>${eco.fetchedAt || snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+<url><loc>${SITE_URL}/companies/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+${companies.map((c) => `<url><loc>${SITE_URL}/${coPath(c)}</loc><lastmod>${c.last}</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>`).join('\n')}
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 </urlset>`);
 await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
 `);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 4 + Object.values(ECO).filter((c) => c.list.length).length + (models.length ? 2 + labs.length + models.length : 0)} pages → dist/`);
+console.log(`Built ${tools.length + 5 + companies.length + Object.values(ECO).filter((c) => c.list.length).length + (models.length ? 2 + labs.length + models.length : 0)} pages → dist/`);

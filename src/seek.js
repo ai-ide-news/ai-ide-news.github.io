@@ -21,6 +21,7 @@
     command: { label: 'Commands', one: 'Command', w: 9 },
     page: { label: 'Pages', one: 'Page', w: 12 },
     tool: { label: 'Tools', one: 'Tool', w: 11 },
+    company: { label: 'Companies', one: 'Company', w: 9 },
     lab: { label: 'Labs', one: 'Lab', w: 8 },
     model: { label: 'Models', one: 'Model', w: 7 },
     learn: { label: 'Learn', one: 'Chapter', w: 7 },
@@ -119,7 +120,7 @@
       const mono = it.i.startsWith('~'), src = ROOT + it.i.replace(/^~/, '');
       return `<span class="sk-ic has" style="--c:${esc(it.c || '#888')}">${mono ? `<i style="-webkit-mask-image:url('${esc(src)}');mask-image:url('${esc(src)}')"></i>` : `<img src="${esc(src)}" alt="" loading="lazy">`}</span>`;
     }
-    const sym = { here: '¶', command: '›', page: '◰', learn: '✦', news: '◆', update: '↑', skills: '◇', mcp: '⌁', discussion: 'Y', tool: (it.n || '?')[0], lab: (it.n || '?')[0], model: (it.n || '?')[0] }[it.t] || '•';
+    const sym = { here: '¶', command: '›', page: '◰', learn: '✦', news: '◆', update: '↑', skills: '◇', mcp: '⌁', discussion: 'Y', tool: (it.n || '?')[0], company: (it.n || '?')[0], lab: (it.n || '?')[0], model: (it.n || '?')[0] }[it.t] || '•';
     return `<span class="sk-ic sk-ic-${it.t}"${it.c ? ` style="--c:${esc(it.c)}"` : ''}>${esc(sym)}</span>`;
   };
 
@@ -328,7 +329,7 @@
   root.className = 'seek';
   root.hidden = true;
   root.innerHTML = `<div class="sk-veil"></div>
-<div class="sk-panel" role="dialog" aria-modal="true" aria-label="Search Patchwire">
+<div class="sk-panel" role="dialog" aria-modal="true" aria-label="Search aiticker">
   <div class="sk-head">
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4.2-4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <input class="sk-q" type="search" role="combobox" aria-expanded="true" aria-controls="sk-list" aria-autocomplete="list" autocomplete="off" spellcheck="false" enterkeyhint="go" placeholder="Search tools, updates, models, news… or type > for commands">

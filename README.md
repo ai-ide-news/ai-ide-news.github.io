@@ -1,4 +1,4 @@
-# Patchwire — AI IDE & CLI News
+# aiticker — AI IDE & CLI News
 
 **Live site:** https://ai-ide-news.github.io/
 

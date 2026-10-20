@@ -348,7 +348,7 @@
     const ST = [
       ['Model after pre-training', 'Write a function that checks whether a word is a palindrome.\nWrite a function that counts the vowels in a string.\nWrite a function that reverses each word in a sentence.\n\n— posted by user_4821 · 14 replies', 'It just continues the text. It has seen lists of exercises like this, so it writes more of them. All knowledge, no manners.'],
       ['Model after fine-tuning', 'def is_palindrome(word):\n    return word == word[::-1]', 'Now it answers the question. But “Racecar” or “A man, a plan, a canal: Panama” would come back False.'],
-      ['Model after reinforcement learning', 'def is_palindrome(text: str) -> bool:\n    letters = [c.lower() for c in text if c.isalnum()]\n    return letters == letters[::-1]\n\nassert is_palindrome("Racecar")\nassert is_palindrome("A man, a plan, a canal: Panama")\nassert not is_palindrome("patchwire")', 'Rewarded for passing hidden tests, it learned to handle case and punctuation — and to check its own work.'],
+      ['Model after reinforcement learning', 'def is_palindrome(text: str) -> bool:\n    letters = [c.lower() for c in text if c.isalnum()]\n    return letters == letters[::-1]\n\nassert is_palindrome("Racecar")\nassert is_palindrome("A man, a plan, a canal: Panama")\nassert not is_palindrome("aiticker")', 'Rewarded for passing hidden tests, it learned to handle case and punctuation — and to check its own work.'],
     ];
     const out = $('#tr-out'), who = $('#tr-who'), note = $('#tr-note');
     let tok = { cancelled: true };
@@ -555,7 +555,7 @@ console.log(\`Loaded \${people.length} rows\`);
       ['A rare word', () => typeIn('#tokin', 'tokenization internationalization')],
       ['Code usually takes', () => typeIn('#tokin', 'if (user?.id) { return fetch(`/api/${id}`); }')],
       ['how they\'re billed', () => pulse($('#tokstats'))],
-      ['Try the token counter', () => typeIn('#tokin', 'Patchwire tracks AI coding tools. function add(a, b) { return a + b; }')],
+      ['Try the token counter', () => typeIn('#tokin', 'aiticker tracks AI coding tools. function add(a, b) { return a + b; }')],
     ],
     context: [
       ['in one go', () => { click('#cx-reset'); nth('#cx-size', 1); }], ['the files a', () => click('[data-add="file"]')], ['conversation so far', () => click('[data-add="chat"]')],
