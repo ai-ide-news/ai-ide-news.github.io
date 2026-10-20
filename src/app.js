@@ -541,6 +541,8 @@
         if (vals.length > 1) { best[b.id] = top[b.id]; cols.forEach((c) => { if (c.bench[b.id] === top[b.id]) wins[c.id]++; }); }
       }
       const contested = Object.keys(best).length;
+      // Rows none of the picked models has a score on fold into one compact "Not scored yet" row.
+      const unscored = benches.filter((b) => top[b.id] == null && rankBy !== b.id);
       const cheapest = Math.min(...cols.map((c) => c.input + c.output));
       const hl = (c) => (c.id === focus ? ' hl' : '');
       const gap = (b, v) => {
@@ -560,12 +562,13 @@
       const spec = (label, fn) => `<tr class="sd-spec"><th scope="row"><span class="sd-label">${label}</span></th>${cols.map((c) => `<td class="${hl(c).trim()}">${fn(c)}</td>`).join('')}</tr>`;
       table.style.setProperty('--n', cols.length);
       table.innerHTML = !cols.length ? '<tbody><tr><td class="sd-empty">Add a model above, or tick models in the table below.</td></tr></tbody>' : `
-        <thead><tr><th scope="col" class="sd-corner">Benchmarks</th>${cols.map((c) => `<th scope="col" class="sd-m${hl(c)}" style="--c:${c.color}">
+        <thead><tr><th scope="col" class="sd-corner">Benchmarks</th>${cols.map((c) => `<th scope="col" class="sd-m${hl(c)}" style="--c:${c.color || 'var(--ink-3)'}">
           <button type="button" class="sd-focus" data-id="${esc(c.id)}" aria-pressed="${c.id === focus}" title="Highlight ${esc(c.name)}">${c.icon}<strong>${esc(c.name)}</strong><small>${esc(c.lab)}</small></button>
           <button type="button" class="sd-x" data-id="${esc(c.id)}" aria-label="Remove ${esc(c.name)}" title="Remove">×</button></th>`).join('')}</tr></thead>
         <tbody>
-          ${benches.map((b) => `<tr class="${rankBy === b.id ? 'ranked' : ''}"><th scope="row"><button type="button" class="sd-rank" data-b="${b.id}" aria-pressed="${rankBy === b.id}" title="${rankBy === b.id ? 'Stop ranking' : 'Rank models by this benchmark'}"><span class="sd-label">${esc(b.name)}</span><small>${esc(b.desc)}</small></button></th>${cols.map((c) => cell(b, c)).join('')}</tr>`).join('')}
+          ${benches.filter((b) => top[b.id] != null || rankBy === b.id).map((b) => `<tr class="${rankBy === b.id ? 'ranked' : ''}"><th scope="row"><button type="button" class="sd-rank" data-b="${b.id}" aria-pressed="${rankBy === b.id}" title="${rankBy === b.id ? 'Stop ranking' : 'Rank models by this benchmark'}"><span class="sd-label">${esc(b.name)}</span><small>${esc(b.desc)}</small></button></th>${cols.map((c) => cell(b, c)).join('')}</tr>`).join('')}
           ${benches.length ? '' : `<tr><th scope="row"><span class="sd-label">Benchmarks</span></th>${cols.map((c) => `<td class="sd-na${hl(c)}">Choose benchmarks above</td>`).join('')}</tr>`}
+          ${unscored.length ? `<tr class="sd-unscored"><th scope="row"><span class="sd-label">Not scored yet</span><small>${unscored.map((b) => `<span class="sd-nochip" title="${esc(b.desc)}">${esc(b.name)}</span>`).join('')}</small></th>${cols.map((c) => `<td class="sd-na${hl(c)}">–</td>`).join('')}</tr>` : ''}
           ${contested ? spec('Top scores', (c) => `<b class="sd-wins">${wins[c.id]}</b><small> of ${contested}</small>`) : ''}
           ${spec('Price / 1M tokens', (c) => `<span class="sd-v">${price(c.input)}</span><small> in · ${price(c.output)} out</small>${c.input + c.output === cheapest && cols.length > 1 ? '<span class="pbadge free">Cheapest</span>' : ''}`)}
           ${spec('Context', (c) => `<span class="sd-v">${esc(c.context)}</span>${c.maxOutput ? `<small> · ${esc(c.maxOutput)} out</small>` : ''}`)}
