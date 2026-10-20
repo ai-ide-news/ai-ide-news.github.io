@@ -7,7 +7,7 @@ import { LAB_ICONS } from './models.mjs';
 import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
 import { AA_SOURCE } from './aa.mjs';
 import { OPENCODE_SOURCE } from './opencode.mjs';
-import { learnBody } from './learn.mjs';
+import { learnBody, LEARN_SECTIONS } from './learn.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -101,6 +101,36 @@ const ad = (kind) => ADS.preview ? `<div class="ad ad-${kind}"><p class="ad-labe
 const banner = () => (ad('inline') && `<div class="wrap">${ad('inline')}</div>`);
 
 // ── layout ────────────────────────────────────────────────
+// The masthead groups its sections by what you came for; each group opens a small menu.
+function navGroups(root, active) {
+  const groups = [
+    ['Updates', 'What shipped', [
+      ['Changelog', `${root}#feed`, 'Every release, live', ''],
+      ['Latest versions', `${root}#versions`, 'Current version of each tool', 'versions'],
+      trending.length && ['Trending', `${root}#trending`, 'Rising on GitHub', ''],
+      news.length && ['News', `${root}news/`, 'Only the important stories', 'news'],
+      ['Community', `${root}#discussions`, 'Hacker News threads', ''],
+    ]],
+    ['Tools', 'Pick your setup', [
+      ['All tools', `${root}tools/`, `${tools.length} IDEs, CLIs and agents`, 'tools'],
+      ['Compare', `${root}compare/`, 'Plans and pricing side by side', 'compare'],
+    ]],
+    models.length && ['Models', 'Under the hood', [
+      ['Models', `${root}models/`, 'Benchmarks, prices, leaderboard', 'models'],
+      ['Learn', `${root}learn/`, 'How models work, narrated', 'learn'],
+    ]],
+    (ECO.skills.list.length || ECO.mcp.list.length) && ['Extend', 'Plug things in', [
+      ECO.skills.list.length && ['Skills', `${root}skills/`, 'Agent skills worth installing', 'skills'],
+      ECO.mcp.list.length && ['MCP', `${root}mcp/`, 'MCP servers for your agent', 'mcp'],
+    ]],
+  ].filter(Boolean);
+  return groups.map(([label, hint, raw], g) => {
+    const items = raw.filter(Boolean);
+    const cur = items.some((it) => it[3] && it[3] === active);
+    return `<div class="nav-grp"><button class="nav-cat${cur ? ' cur' : ''}" type="button" aria-expanded="false" aria-controls="nav-m${g}">${label}<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="m3 4.5 3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="nav-menu" id="nav-m${g}"><p class="nav-hint">${hint}</p>${items.map(([n, u, s, key]) => `<a href="${u}"${key && key === active ? ' aria-current="page"' : ''}><b>${n}</b><small>${esc(s)}</small></a>`).join('')}</div></div>`;
+  });
+}
+
 function layout({ root, path, title, description, body, jsonld, active = '' }) {
   const canonical = `${SITE_URL}/${path}`;
   return `<!doctype html>
@@ -135,26 +165,20 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
 <a class="skip" href="#main">Skip to content</a>
 <header class="nav">
   <div class="wrap nav-in">
-    <a class="brand" href="${root}" aria-label="${SITE_NAME} home">
-      <span>${SITE_NAME}</span>
+    <a class="brand nav-brand" href="${root}" aria-label="${SITE_NAME} home">
+      <i class="brand-sig" aria-hidden="true"></i><span>${SITE_NAME}</span><em class="brand-live" aria-hidden="true">on the wire</em>
     </a>
-    <nav class="nav-links" aria-label="Primary">
-      ${news.length ? `<a href="${root}news/" ${active === 'news' ? 'aria-current="page"' : ''}>News</a>` : ''}
-      ${models.length ? `<a href="${root}models/" ${active === 'models' ? 'aria-current="page"' : ''}>Models</a>` : ''}
-      ${ECO.skills.list.length ? `<a href="${root}skills/" ${active === 'skills' ? 'aria-current="page"' : ''}>Skills</a>` : ''}
-      ${ECO.mcp.list.length ? `<a href="${root}mcp/" ${active === 'mcp' ? 'aria-current="page"' : ''}>MCP</a>` : ''}
-      <a href="${root}#versions" ${active === 'versions' ? 'aria-current="page"' : ''}>Latest versions</a>
-      <a href="${root}#feed">Changelog</a>
-      ${trending.length ? `<a href="${root}#trending">Trending</a>` : ''}
-      <a href="${root}#discussions">Community</a>
-      <a href="${root}compare/" ${active === 'compare' ? 'aria-current="page"' : ''}>Compare</a>
-      <a href="${root}tools/">All tools</a>
-      ${models.length ? `<a href="${root}learn/" ${active === 'learn' ? 'aria-current="page"' : ''}>Learn</a>` : ''}
+    <nav class="nav-links" id="nav-links" aria-label="Primary">
+      <span class="nav-glide" aria-hidden="true"></span>
+      ${navGroups(root, active).join('')}
     </nav>
     <div class="nav-actions">
+      <button class="nav-seek" id="seek-open" type="button" aria-label="Search the whole site" aria-haspopup="dialog" data-root="${root}"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Search tools, models, news…</span><kbd data-mod>Ctrl K</kbd></button>
+      <button class="icon-btn nav-toggle" id="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="nt-a" d="M4 7h16"/><path class="nt-b" d="M4 12h16"/><path class="nt-c" d="M4 17h16"/></g></svg></button>
       <button class="icon-btn" id="theme" type="button" aria-label="Toggle color theme"><svg class="sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v2.5M12 20v2.5M1.5 12H4M20 12h2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></g></svg><svg class="moon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1"/></svg></button>
     </div>
   </div>
+  <span class="nav-wire" aria-hidden="true"></span>
 </header>
 <main id="main">
 ${body}
@@ -173,6 +197,7 @@ ${body}
   </div>
 </footer>
 <script src="${root}assets/app.js?v=${NOW}" defer></script>
+<script src="${root}assets/seek.js?v=${NOW}" defer></script>
 ${CF_BEACON ? `<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${esc(JSON.stringify({ token: CF_BEACON }))}'></script>` : ''}
 </body>
 </html>`;
@@ -854,7 +879,6 @@ function indexPage() {
   const week = recent.filter((i) => NOW - Date.parse(i.date) < 7 * DAY);
   const weekUpdates = week.filter((i) => i.kind !== 'blog').length;
   const shippedToday = new Set(recent.filter((i) => NOW - Date.parse(i.date) < DAY && i.kind !== 'blog').map((i) => i.toolId)).size;
-  const ticker = tools.filter((t) => t.latest).slice(0, 18).map((t) => `<span class="tick" style="--c:${t.color}">${icon(t, root, "sm")}${esc(t.name)} <code>${esc(t.latestRelease?.version || KIND[t.latest.kind])}</code> ${time(t.latest.date)}</span>`).join('');
   const hottest = [...snap.discussions].sort((a, b) => b.points - a.points);
 
   const body = `
@@ -864,11 +888,12 @@ function indexPage() {
     <div>
       <h1>What changed in your AI coding tools, <em>and why it matters.</em></h1>
       <p class="lede">New versions, model launches, pricing changes and security alerts for Cursor, Claude Code, Codex, Gemini CLI, Copilot, Kiro, Zed and ${tools.length - 7} more — straight from official sources, with the noise filtered out.</p>
-      <div class="hero-search">
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <input id="q" type="search" placeholder="Search tools, versions, features…" aria-label="Search updates" autocomplete="off">
-        <kbd>/</kbd>
-      </div>
+      <nav class="jump" aria-label="Go straight to">
+        <a href="#versions" data-focus="q"><b>Latest version</b><small>of a specific tool</small></a>
+        ${news.length ? '<a href="#news"><b>Important news</b><small>launches, pricing, security</small></a>' : ''}
+        <a href="#models"><b>New models</b><small>prices &amp; context windows</small></a>
+        <a href="#feed"><b>Every update</b><small>the full release feed</small></a>
+      </nav>
     </div>
     <dl class="stats hero-stats">
       <div><dt>Tools tracked</dt><dd>${tools.length}${trending.length ? `<small> ${trending.length} trending</small>` : ''}</dd></div>
@@ -879,15 +904,14 @@ function indexPage() {
   </div>
 </section>
 
-<div class="ticker" aria-label="Latest versions"><div class="ticker-track">${ticker}${ticker.replace(/<span class="tick"/g, '<span aria-hidden="true" class="tick"')}</div></div>
 
 ${news.length ? `<section id="news" class="wrap section">
   <div class="section-head">
     <div><p class="eyebrow">What matters</p><h2>Important news</h2></div>
     <p class="muted small section-note">Only the stories that change things: launches, new models, pricing &amp; limits, security incidents, deprecations and deals — from official blogs, official X accounts and the biggest Hacker News threads. Routine posts are filtered out.</p>
   </div>
-  ${newsGrid(news, root, 9)}
-  ${news.length > 7 ? `<p class="more-link"><a class="btn ghost" href="${root}news/">All ${news.length} important stories →</a></p>` : ''}
+  ${newsGrid(news, root, 6)}
+  ${news.length > 6 ? `<p class="more-link"><a class="btn ghost" href="${root}news/">All ${news.length} important stories →</a></p>` : ''}
 </section>` : ''}
 
 ${modelsSection(root)}
@@ -899,8 +923,14 @@ ${banner()}
     <div><p class="eyebrow">Version board</p><h2>Latest versions</h2></div>
     ${catTabs()}
   </div>
-  <div class="vgrid" id="vgrid">${tools.map((t) => versionCard(t, root)).join('')}</div>
+  <div class="hero-search vsearch">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <input id="q" type="search" placeholder="Which tool? Cursor, Claude Code, Zed…" aria-label="Find a tool" autocomplete="off">
+    <kbd>/</kbd>
+  </div>
+  <div class="vgrid" id="vgrid" data-fold="12">${tools.map((t) => versionCard(t, root)).join('')}</div>
   <p class="empty" hidden>No tools match your search.</p>
+  <p class="more-link"><button id="vmore" class="btn ghost" type="button" hidden>Show all ${tools.length} tools</button></p>
 </section>
 
 ${banner()}
@@ -927,7 +957,7 @@ ${banner()}
     </div>
   </div>
   <div class="feed-layout">
-    <div class="feed" id="feedlist" data-page="40">${timeline(recent, root)}</div>
+    <div class="feed" id="feedlist" data-page="15">${timeline(recent, root)}</div>
     <aside id="discussions" class="side">
       ${ad('side')}
       <div class="side-card">
@@ -1016,7 +1046,7 @@ ${t.id === 'opencode' && oc ? ocSections(root) : ''}
 ${banner()}`;
 
   return layout({
-    root, path: `tools/${t.id}/`,
+    root, path: `tools/${t.id}/`, active: 'tools',
     title: `${t.name} Changelog & Latest Version${ver ? ` (${ver})` : ''} — Release Notes | ${SITE_NAME}`,
     description: `${t.name} release notes, latest version${ver ? ` ${ver}` : ''}, patches and news from ${t.vendor}. ${t.blurb} Updated automatically from official sources.`,
     jsonld: {
@@ -1044,7 +1074,7 @@ ${banner()}
   ${ad('inline')}
 </section>`;
   return layout({
-    root, path: 'tools/', title: `All AI IDEs & Coding CLIs — Latest Versions | ${SITE_NAME}`,
+    root, path: 'tools/', active: 'tools', title: `All AI IDEs & Coding CLIs — Latest Versions | ${SITE_NAME}`,
     description: `Latest versions of ${tools.length} AI coding tools: ${tools.map((t) => t.name).join(', ')}.`, body,
   });
 }
@@ -1519,6 +1549,30 @@ await out('version.json', JSON.stringify({
   // Pre-rendered home-feed cards, so the open page can insert new updates in place.
   cards: allItems.filter((i) => NOW - Date.parse(i.date) < 2 * DAY).slice(0, 20).map((i) => ({ id: i.id, date: i.date, html: feedCard(i, '') })),
 }));
+// Site-wide search index for the floating search dock (src/app.js). Short keys keep it small:
+// t type · n name · s subtitle · u url (site-relative, or absolute when x) · k extra keywords · d date · c colour · i icon.
+const srIcon = (id) => { const m = ICONS[id]; return m?.file ? `${m.mono ? '~' : ''}icons/${m.file}` : undefined; };
+const srTool = (t) => ({ c: t.color, i: srIcon(t.id) });
+await out('search.json', JSON.stringify({ generatedAt: snap.generatedAt, items: [
+  { t: 'page', n: 'Home — latest updates', s: 'Every release, changelog and blog post, live', u: '', k: 'feed home latest releases' },
+  { t: 'page', n: 'All tools', s: `${tools.length} AI IDEs, CLIs and editor agents`, u: 'tools/', k: 'directory ides clis agents' },
+  { t: 'page', n: 'Compare plans & pricing', s: 'Free tiers, seats and budgets side by side', u: 'compare/', k: 'pricing plans cost free budget seats' },
+  ...(news.length ? [{ t: 'page', n: 'News', s: 'Only the important stories', u: 'news/', k: 'headlines stories' }] : []),
+  ...(models.length ? [
+    { t: 'page', n: 'Models', s: `${models.length} models, benchmarks, leaderboard, showdown`, u: 'models/', k: 'llm benchmarks leaderboard showdown pricing context' },
+    { t: 'page', n: 'Learn', s: 'How AI models actually work, narrated', u: 'learn/', k: 'guide course explain tutorial' },
+  ] : []),
+  ...Object.values(ECO).filter((c) => c.list.length).map((c) => ({ t: 'page', n: c.eyebrow, s: c.lede.slice(0, 90) + '…', u: c.path, k: c.path === 'mcp/' ? 'mcp servers' : 'skills claude' })),
+  { t: 'page', n: 'RSS feed', s: 'Subscribe to every update', u: 'feed.xml', k: 'rss atom subscribe' },
+  ...tools.map((t) => ({ t: 'tool', n: t.name, s: `${t.vendor} · ${CATEGORIES[t.category]?.short || t.category}${t.latestRelease?.version ? ` · ${t.latestRelease.version}` : ''}`, u: `tools/${t.id}/`, k: `${t.blurb || t.description || ''} ${t.discovered ? 'trending' : ''}`.toLowerCase(), d: t.latest?.date, ...srTool(t) })),
+  ...(models.length ? LEARN_SECTIONS.map(([id, title], i) => ({ t: 'learn', n: title, s: `Chapter ${String(i + 1).padStart(2, '0')}`, u: `learn/#${id}`, k: id })) : []),
+  ...labs.map((l) => ({ t: 'lab', n: l[0].lab, s: `${l.length} model${l.length === 1 ? '' : 's'}`, u: labPath(l[0].labId), c: l[0].color, i: srIcon(`lab-${l[0].labId}`) })),
+  ...models.map((m) => ({ t: 'model', n: m.name, s: `${m.lab} · ${tokens(m.context)} ctx · ${priceLine(m)}`, u: modelPath(m), k: `${m.id} ${m.reasoning ? 'reasoning' : ''} ${m.openWeights ? 'open weights' : ''} ${m.free ? 'free' : ''} ${m.modalities.join(' ')}`.toLowerCase(), d: m.date, c: m.color, i: srIcon(`lab-${m.labId}`) })),
+  ...news.map((n) => { const t = byId[n.toolIds[0]]; return { t: 'news', n: n.title, s: `${n.tag}${t ? ` · ${t.name}` : ''}`, u: n.url, x: 1, k: (n.summary || '').slice(0, 160).toLowerCase(), d: n.date, ...(t ? srTool(t) : {}) }; }),
+  ...Object.entries(ECO).flatMap(([type, c]) => c.list.map((r) => ({ t: type, n: r.name, s: `${r.repo} · ${c.tag[r.kind] || r.kind}`, u: r.url, x: 1, k: `${r.description || ''} ${r.topics.join(' ')}`.slice(0, 200).toLowerCase() }))),
+  ...allItems.map((i) => { const t = byId[i.toolId]; return { t: 'update', n: i.title, s: `${t.name} · ${KIND[i.kind]}${i.version ? ` · ${i.version}` : ''}`, u: i.url, x: 1, k: `${t.name} ${i.version || ''}`.toLowerCase(), d: i.date, ...srTool(t) }; }),
+  ...snap.discussions.map((d) => { const t = byId[d.toolId]; return { t: 'discussion', n: d.title, s: `Hacker News${t ? ` · ${t.name}` : ''}`, u: d.hnUrl || d.url, x: 1, k: t ? t.name.toLowerCase() : '', d: d.date, ...(t ? srTool(t) : {}) }; }),
+] }));
 await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>

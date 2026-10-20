@@ -45,6 +45,100 @@
     try { localStorage.setItem('theme', next); } catch {}
   });
 
+  // Masthead: a floating panel with grouped menus. Frosted once the page moves, a reading wire
+  // along its bottom edge, an ink slug that glides between groups, and it tucks away while you
+  // read down the page (the search leaves with it and rides along as the orb, see seek.js).
+  const navBar = $('.nav'), navToggle = $('#nav-toggle'), links = $('#nav-links');
+  if (navBar && links) {
+    const wide = matchMedia('(min-width: 981px)');
+    const grps = $$('.nav-grp', links);
+    const cats = grps.map((g) => $('.nav-cat', g));
+    const setNav = (open) => {
+      navBar.classList.toggle('open', open);
+      navToggle?.setAttribute('aria-expanded', String(open));
+      navToggle?.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    };
+    let openGrp = null, hoverT = null;
+    const setGrp = (g) => {
+      if (openGrp === g) return;
+      if (openGrp) {
+        // Switching straight to another menu: the old one goes at once instead of fading under the new one.
+        const old = openGrp;
+        if (g) { old.classList.add('snap'); requestAnimationFrame(() => requestAnimationFrame(() => old.classList.remove('snap'))); }
+        old.classList.remove('open'); $('.nav-cat', old).setAttribute('aria-expanded', 'false');
+      }
+      openGrp = g;
+      if (g) { g.classList.add('open'); $('.nav-cat', g).setAttribute('aria-expanded', 'true'); }
+      navBar.classList.toggle('menu-open', !!g);
+    };
+    grps.forEach((g, i) => {
+      const cat = cats[i];
+      g.style.setProperty('--i', i);
+      cat.addEventListener('click', () => { if (wide.matches) setGrp(openGrp === g ? null : g); });
+      // Hover opens on desktop, with a little grace so crossing the gap doesn't snap it shut.
+      g.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'mouse' || !wide.matches) return; clearTimeout(hoverT); hoverT = setTimeout(() => setGrp(g), openGrp ? 0 : 90); });
+      g.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'mouse' || !wide.matches) return; clearTimeout(hoverT); hoverT = setTimeout(() => { if (openGrp === g) setGrp(null); }, 220); });
+      g.addEventListener('keydown', (e) => {
+        if (!wide.matches) return;
+        const items = $$('.nav-menu a', g), at = items.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown') { e.preventDefault(); setGrp(g); items[(at + 1) % items.length]?.focus(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); setGrp(g); items[(at - 1 + items.length) % items.length]?.focus(); }
+        else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && at < 0) { e.preventDefault(); cats[(i + (e.key === 'ArrowRight' ? 1 : -1) + cats.length) % cats.length].focus(); }
+        else if (e.key === 'Escape' && openGrp) { e.stopPropagation(); setGrp(null); cat.focus(); }
+      });
+      g.addEventListener('focusout', (e) => { if (!g.contains(e.relatedTarget) && openGrp === g) setGrp(null); });
+    });
+    navToggle?.addEventListener('click', () => setNav(!navBar.classList.contains('open')));
+    $$('a', links).forEach((a) => a.addEventListener('click', () => { setNav(false); setGrp(null); }));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && navBar.classList.contains('open')) { setNav(false); navToggle?.focus(); } });
+    document.addEventListener('click', (e) => { if (!navBar.contains(e.target)) { setNav(false); setGrp(null); } });
+    wide.addEventListener('change', () => { setNav(false); setGrp(null); });
+
+    // Ink slug follows the pointer across the group buttons.
+    const glide = $('.nav-glide', links);
+    let lit = null;
+    const moveTo = (c) => {
+      lit?.classList.remove('glide-on');
+      lit = c;
+      if (!c || !glide) { links.classList.remove('gliding'); return; }
+      c.classList.add('glide-on');
+      glide.style.setProperty('--gx', c.parentElement.offsetLeft + 'px');
+      glide.style.setProperty('--gw', c.offsetWidth + 'px');
+      links.classList.add('gliding');
+    };
+    cats.forEach((c) => {
+      c.addEventListener('pointerenter', () => { if (wide.matches) moveTo(c); });
+      c.addEventListener('focus', () => { if (wide.matches) moveTo(c); });
+    });
+    links.addEventListener('pointerleave', () => moveTo(null));
+    links.addEventListener('focusout', (e) => { if (!links.contains(e.relatedTarget)) moveTo(null); });
+    addEventListener('resize', () => moveTo(lit));
+
+    // Scroll: frost, reading wire, and tuck away going down / come back going up.
+    let ticking = false, lastY = scrollY, travel = 0;
+    const onScroll = () => {
+      ticking = false;
+      const y = scrollY, max = document.documentElement.scrollHeight - innerHeight, dy = y - lastY;
+      lastY = y;
+      navBar.classList.toggle('stuck', y > 8);
+      navBar.style.setProperty('--read', max > 0 ? Math.min(1, y / max).toFixed(4) : 0);
+      travel = Math.sign(dy) === Math.sign(travel) ? travel + dy : dy;
+      if (openGrp && Math.abs(travel) > 80 && !openGrp.contains(document.activeElement)) setGrp(null);
+      const busy = navBar.classList.contains('open') || openGrp || links.querySelector(':focus-visible');
+      let tuck = navBar.classList.contains('tucked');
+      if (y < 160 || busy) tuck = false;
+      else if (travel > 24) tuck = true;
+      else if (travel < -48) tuck = false;
+      if (tuck !== navBar.classList.contains('tucked')) {
+        navBar.classList.toggle('tucked', tuck);
+        document.documentElement.classList.toggle('nav-tucked', tuck);
+        if (tuck) setGrp(null);
+      }
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+    onScroll();
+  }
+
   // Remote images shimmer until they arrive (or fail).
   $$('img.skel').forEach((img) => {
     const done = () => img.classList.remove('skel');
@@ -82,12 +176,15 @@
   tick(); setInterval(tick, 60000);
 
   // Filters
-  const state = { cat: 'all', kind: 'all', free: 'all', q: '', page: 40, budget: Infinity, seats: 1 };
   const feed = $('#feedlist');
+  const PAGE = +(feed?.dataset.page || 40);
+  const state = { cat: 'all', kind: 'all', free: 'all', q: '', page: PAGE, budget: Infinity, seats: 1, vall: false };
   let cards = feed ? $$('.fcard', feed) : [];
   const vcards = $$('.vcard');
   const prows = $$('.prow');
   const more = $('#more');
+  // The home version board shows its first few cards until you ask for all, filter or search.
+  const vfold = $('#vgrid[data-fold]'), vmore = $('#vmore');
 
   function apply() {
     const q = state.q.trim().toLowerCase();
@@ -96,6 +193,13 @@
     const inCat = (el) => state.cat === 'all' || (state.cat === 'trending' ? el.dataset.trend === '1' : el.dataset.cat === state.cat);
 
     vcards.forEach((v) => { v.hidden = !(inCat(v) && match(v)); });
+    if (vfold) {
+      const fold = !state.vall && !terms.length && state.cat === 'all';
+      const vis = $$('.vcard', vfold).filter((v) => !v.hidden);
+      if (fold) vis.slice(+vfold.dataset.fold).forEach((v) => { v.hidden = true; });
+      if (vmore) vmore.hidden = !fold || vis.length <= +vfold.dataset.fold;
+    }
+    const trend = $('#trending .vgrid'); if (trend) trend.closest('section').hidden = !$$('.vcard', trend).some((v) => !v.hidden);
     prows.forEach((r) => { r.hidden = !(inCat(r) && match(r) && (state.free === 'all' || r.dataset.free === state.free) && r.dataset.fits !== '0'); });
     const pempty = $('.ptable-wrap + .empty'); if (pempty) pempty.hidden = prows.some((r) => !r.hidden);
     $$('.vgrid').forEach((g) => { const e = g.nextElementSibling; if (e?.classList.contains('empty')) e.hidden = $$('.vcard', g).some((v) => !v.hidden); });
@@ -120,7 +224,7 @@
   }
 
   const setCat = (cat) => {
-    state.cat = cat; state.page = 40;
+    state.cat = cat; state.page = PAGE;
     $$('.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.cat === state.cat)));
     apply();
   };
@@ -132,20 +236,23 @@
   $$('.chips').forEach((chips) => chips.addEventListener('click', (e) => {
     const b = e.target.closest('.chip'); if (!b) return;
     if (b.dataset.free) state.free = b.dataset.free; else state.kind = b.dataset.kind;
-    state.page = 40;
+    state.page = PAGE;
     $$('.chip', chips).forEach((x) => x.classList.toggle('on', x === b));
     apply();
   }));
   const q = $('#q');
   if (q) {
     let t;
-    q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { state.q = q.value; state.page = 40; apply(); }, 120); });
+    q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { state.q = q.value; state.page = PAGE; apply(); }, 120); });
     document.addEventListener('keydown', (e) => {
       if (e.key === '/' && document.activeElement !== q && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); q.focus(); }
       if (e.key === 'Escape' && document.activeElement === q) { q.value = ''; state.q = ''; apply(); q.blur(); }
     });
   }
   more?.addEventListener('click', () => { state.page += 40; apply(); });
+  vmore?.addEventListener('click', () => { state.vall = true; apply(); });
+  // "Go straight to" links that land on a search box put the cursor in it.
+  $$('a[data-focus]').forEach((a) => a.addEventListener('click', () => setTimeout(() => $('#' + a.dataset.focus)?.focus({ preventScroll: true }), 350)));
   // News page: filter cards by topic and tool; the choice lives in ?tag=&tool= so it can be shared.
   const nf = $('.nfilters');
   if (nf) {
