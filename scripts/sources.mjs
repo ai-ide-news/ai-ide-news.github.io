@@ -1,10 +1,11 @@
 // Every tool tracked by the site, and where its real release data comes from.
-// github: GitHub Releases API · feeds: official RSS/Atom feeds (kind: changelog | blog)
+// github: GitHub Releases API · cask: Homebrew cask version history · feeds: official RSS/Atom feeds (kind: changelog | blog)
 
 export const CATEGORIES = {
   ide: { label: 'AI IDEs', short: 'IDE' },
   cli: { label: 'AI CLIs & agents', short: 'CLI' },
   extension: { label: 'Editor extensions', short: 'Extension' },
+  desktop: { label: 'Desktop apps', short: 'Desktop' },
 };
 
 export const TOOLS = [
@@ -207,6 +208,38 @@ export const TOOLS = [
     blurb: 'AI coding agent with deep codebase context.',
     feeds: [{ url: 'https://www.augmentcode.com/blog/rss.xml', kind: 'blog' }],
   },
+
+  // ── Desktop apps ────────────────────────────────────────
+  // No public release repos: versions come from the Homebrew cask's update history.
+  {
+    id: 'claude-desktop', name: 'Claude Desktop', vendor: 'Anthropic', category: 'desktop',
+    logo: 'lobe:claude',
+    site: 'https://claude.com/download', domain: 'claude.com', color: '#D97757',
+    blurb: "Anthropic's desktop app for Claude, with Claude Code built in.",
+    cask: 'claude',
+  },
+  {
+    id: 'codex-app', name: 'Codex app', vendor: 'OpenAI', category: 'desktop',
+    logo: 'lobe:codex',
+    site: 'https://openai.com/codex', domain: 'openai.com', color: '#10A37F',
+    blurb: "OpenAI's desktop app for running Codex agents, now shipped inside the ChatGPT desktop app.",
+    cask: 'chatgpt',
+    feeds: [{ url: 'https://developers.openai.com/codex/changelog/rss.xml', kind: 'changelog', filter: /^codex app\b/i }],
+  },
+  {
+    id: 'conductor', name: 'Conductor', vendor: 'Melty Labs', category: 'desktop',
+    logo: 'site',
+    site: 'https://conductor.build', domain: 'conductor.build', color: '#7C6CF2',
+    blurb: 'Mac app for running a team of Claude Code and Codex agents in parallel.',
+    cask: 'conductor',
+  },
+  {
+    id: 'warp', name: 'Warp', vendor: 'Warp', category: 'desktop', x: 'warpdotdev',
+    logo: 'site',
+    site: 'https://www.warp.dev', domain: 'warp.dev', color: '#01A4FF',
+    blurb: 'Agentic development environment built around a modern terminal.',
+    cask: 'warp',
+  },
 ];
 
 // Auto-discovery of trending open-source tools in the same niche (see discover.mjs).
@@ -225,6 +258,22 @@ export const DISCOVERY = {
     'langchain-ai/open-swe': 'Open SWE', 'editor-code-assistant/eca': 'ECA', 'momozi1996/momo-code': 'MOMO Code',
     'fuxicodex/fuxi': 'FuXi', 'minimax-ai/minimax-code': 'MiniMax Code', 'vastsa/pi-desktop': 'PI Desktop',
   },
+};
+
+// Agent Skills and MCP servers pages (scripts/ecosystem.mjs): GitHub repos, ranked by star velocity.
+export const ECOSYSTEM = {
+  skills: {
+    minStars: 200, maxIdleDays: 90, max: 120,
+    topics: ['agent-skills', 'claude-skills', 'claude-code-skills', 'agent-skill', 'skills-md', 'codex-skills', 'claude-skill'],
+    deny: [],
+  },
+  mcp: {
+    minStars: 300, maxIdleDays: 90, max: 150, registryDays: 1,
+    topics: ['mcp-server', 'mcp-servers', 'model-context-protocol', 'mcp'],
+    deny: [],
+  },
+  // Display names where the repo name doesn't read well.
+  names: { 'anthropics/skills': 'Anthropic Skills', 'modelcontextprotocol/servers': 'MCP Reference Servers', 'prefecthq/fastmcp': 'FastMCP', 'upstash/context7': 'Context7' },
 };
 
 // Title patterns that tie a Hacker News story to a tool (kept strict to avoid false matches).
@@ -255,11 +304,15 @@ export const HN_MATCH = {
   'kilo-code': /kilo ?code/i,
   continue: /continue\.dev/i,
   augment: /augment ?code/i,
+  'claude-desktop': /claude (desktop|for (mac|windows))|claude('s)? desktop app/i,
+  'codex-app': /codex (app|desktop)/i,
+  conductor: /conductor\.build|\bconductor\b.*\b(claude|codex|agents?)\b/i,
+  warp: /\bwarp\b.*\b(terminal|agent|ade)\b|warp\.dev/i,
 };
 
 // Community discussion: Hacker News stories mentioning any tool (via the Algolia HN API).
 export const HN_QUERIES = [
   'Claude Code', 'Codex CLI', 'OpenAI Codex', 'Gemini CLI', 'Cursor', 'Windsurf', 'Kiro', 'Zed',
   'Copilot', 'OpenCode', 'Cline', 'Aider', 'Amp', 'Goose', 'Qwen Code', 'Kimi', 'Junie', 'Antigravity',
-  'Roo Code', 'Kilo Code', 'Trae', 'Crush', 'AI coding agent', 'AI IDE',
+  'Roo Code', 'Kilo Code', 'Trae', 'Crush', 'Claude Desktop', 'Codex app', 'Conductor', 'Warp', 'AI coding agent', 'AI IDE',
 ];

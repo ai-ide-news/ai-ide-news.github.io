@@ -14,6 +14,8 @@ A live tracker of the latest releases, patches, changelogs and community discuss
 | Hacker News (Algolia API) | Community discussion |
 | GitHub Search API | Auto-discovering trending open-source coding agents, IDEs & extensions |
 | OpenRouter models API | New models from the major labs (release date, context window, API price) |
+| GitHub Search API (Skills & MCP) | `/skills/` and `/mcp/` pages: trending Agent Skills and MCP server repos, ranked by star velocity (`scripts/ecosystem.mjs`, tuned via `ECOSYSTEM` in `scripts/sources.mjs`) |
+| Official MCP Registry (`registry.modelcontextprotocol.io`) | Servers just published to the registry, on the MCP page |
 | OpenCode Data (`opencode.ai/data/index.json`) | Real-world model usage on the OpenCode tool page: tokens, daily users, retention, session cost, cache ratio, market share by lab, countries |
 
 ### Trending auto-discovery

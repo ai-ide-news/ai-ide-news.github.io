@@ -12,6 +12,7 @@ import { fetchModels, fetchProviders } from './models.mjs';
 import { fetchBenchmarks } from './benchmarks.mjs';
 import { fetchAA } from './aa.mjs';
 import { fetchOpenCode } from './opencode.mjs';
+import { fetchEcosystem } from './ecosystem.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
 const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
@@ -119,6 +120,36 @@ async function fetchNpm(tool, meta) {
     date, summary: `Published to npm as ${tool.npm}@${v}.`, html: '', source: 'npm',
   }));
   return { items, meta: { ...meta, cadence: stable.map(([, d]) => d), npm: tool.npm } };
+}
+
+// ── Homebrew casks (desktop apps without public release repos) ──
+// Each "<cask> <version>" commit in homebrew-cask marks a shipped version; quick runs only check
+// the cask's current version and add it (dated now) if it's new.
+const caskVersion = (v) => v.split(',')[0].replace(/\.stable_\d+$/, '');
+async function fetchCask(tool, old) {
+  const cask = await get(`https://formulae.brew.sh/api/cask/${tool.cask}.json`, { json: true });
+  const item = (v, date) => ({
+    id: `cask:${tool.cask}@${v}`, toolId: tool.id, kind: 'release', version: `v${v}`,
+    title: `${tool.name} v${v}`, url: tool.site, date,
+    summary: `${tool.name} ${v} for macOS, published to Homebrew as the ${tool.cask} cask.`, html: '', source: 'Homebrew',
+  });
+  let items = (old?.items || []).filter((i) => i.kind === 'release' && i.id.startsWith('cask:'));
+  if (!QUICK || !items.length) {
+    const path = `Casks/${tool.cask[0]}/${tool.cask}.rb`;
+    const commits = await get(`https://api.github.com/repos/Homebrew/homebrew-cask/commits?path=${path}&per_page=100`, { json: true, headers: ghHeaders() });
+    const prefix = `${tool.cask} `;
+    const known = new Map(items.map((i) => [i.id, i]));
+    items = commits
+      .map((c) => [c.commit.message.split('\n')[0], c.commit.committer.date])
+      .filter(([msg]) => msg.startsWith(prefix) && /^\S+$/.test(msg.slice(prefix.length)))
+      .map(([msg, date]) => item(caskVersion(msg.slice(prefix.length)), date))
+      .map((i) => known.get(i.id) || i);
+  }
+  const current = caskVersion(cask.version);
+  if (!items.some((i) => i.version === `v${current}`)) items.unshift(item(current, new Date(NOW).toISOString()));
+  const seen = new Set();
+  items = items.filter((i) => !seen.has(i.id) && seen.add(i.id)).sort((a, b) => b.date.localeCompare(a.date));
+  return { items: items.slice(0, MAX_PER_TOOL), meta: { ...(old?.meta || {}), cask: tool.cask, cadence: items.map((i) => i.date) } };
 }
 
 // ── RSS / Atom feeds ───────────────────────────────────────
@@ -300,6 +331,16 @@ async function main() {
         if (old) { entry.items.push(...old.items.filter((i) => i.kind === 'release')); entry.meta = old.meta || {}; }
       }
     }
+    if (tool.cask) {
+      try {
+        const { items, meta } = await fetchCask(tool, prev.tools?.[tool.id]);
+        entry.items.push(...items); entry.meta = meta;
+      } catch (e) {
+        entry.errors.push(`cask: ${e.message}`);
+        const old = prev.tools?.[tool.id];
+        if (old) { entry.items.push(...old.items.filter((i) => i.kind === 'release')); entry.meta = old.meta || {}; }
+      }
+    }
     if (tool.feeds) {
       try { entry.items.push(...await fetchFeeds(tool)); } catch (e) {
         entry.errors.push(`feed: ${e.message}`);
@@ -366,6 +407,12 @@ async function main() {
     report.push(`✓ OpenCode Data          ${opencode.leaderboard.pastWeek.length} models, updated ${opencode.updatedAt}`);
   } catch (e) { report.push(`⚠ OpenCode Data: ${e.message} (kept previous)`); }
 
+  // Agent Skills and MCP servers (GitHub search + the official MCP Registry): full runs only, or when over 6 hours old.
+  let ecosystem = prev.ecosystem || null;
+  if (!QUICK || !ecosystem || NOW - Date.parse(ecosystem.fetchedAt) > DAY / 4) {
+    ecosystem = { ...await fetchEcosystem({ get, ghHeaders, prev: ecosystem || {}, now: NOW, report }), fetchedAt: new Date(NOW).toISOString() };
+  }
+
   // X: every tool's own account (found automatically, like the tools themselves) plus the AI labs.
   // Read on full runs only (keeps requests to X low); quick runs reuse the last batch.
   let x = { posts: [], userIds: {}, ...prev.x };
@@ -401,7 +448,7 @@ async function main() {
   // Did anything actually ship? (Ignores HN vote counts, which move constantly.)
   const fingerprint = (t) => Object.values(t || {}).flatMap((e) => e.items.map((i) => `${i.id}|${i.version || ''}|${i.title}`)).sort().join('\n');
   const ids = (list) => (list || []).map((d) => d.id).sort().join();
-  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered) || ids(news) !== ids(prev.news) || ids(models) !== ids(prev.models) || providersFresh !== providersAt;
+  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered) || ids(news) !== ids(prev.news) || ids(models) !== ids(prev.models) || ids(ecosystem?.skills) !== ids(prev.ecosystem?.skills) || ids(ecosystem?.mcp) !== ids(prev.ecosystem?.mcp) || providersFresh !== providersAt;
   const newIds = new Set(Object.values(prev.tools || {}).flatMap((e) => e.items.map((i) => i.id)));
   const oldModels = new Set((prev.models || []).map((m) => m.id));
   const fresh = [...Object.values(tools).flatMap((e) => e.items).filter((i) => !newIds.has(i.id)), ...(prev.models ? models.filter((m) => !oldModels.has(m.id)).map((m) => ({ title: `New model: ${m.name}` })) : [])];
@@ -410,7 +457,7 @@ async function main() {
   if (QUICK && !changed) { console.log(report.sort().join('\n')); return; } // nothing new: leave the snapshot untouched
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), providersAt: providersFresh, tools, discovered, discussions, news, models, benchmarks, aa, opencode, x }, null, 1));
+  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), providersAt: providersFresh, tools, discovered, discussions, news, models, benchmarks, aa, opencode, ecosystem, x }, null, 1));
   console.log(report.sort().join('\n'));
 }
 

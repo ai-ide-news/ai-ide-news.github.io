@@ -533,6 +533,38 @@
    "mono": true,
    "src": "lobehub:xiaomimimo",
    "tone": null
+  },
+  "codex-app": {
+   "logo": "lobe:codex",
+   "checked": 1792488417906,
+   "file": "codex-app.svg",
+   "mono": false,
+   "src": "lobehub:codex-color",
+   "tone": null
+  },
+  "claude-desktop": {
+   "logo": "lobe:claude",
+   "checked": 1792488417429,
+   "file": "claude-desktop.svg",
+   "mono": false,
+   "src": "lobehub:claude-color",
+   "tone": null
+  },
+  "conductor": {
+   "logo": "site",
+   "checked": 1792488418583,
+   "file": "conductor.png",
+   "mono": false,
+   "src": "https://conductor.build/apple-icon.png?apple-icon.1jxify8gcumnm.png",
+   "tone": null
+  },
+  "warp": {
+   "logo": "site",
+   "checked": 1792488418599,
+   "file": "warp.png",
+   "mono": false,
+   "src": "https://www.warp.dev/apple-touch-icon-180x180.png",
+   "tone": "dark"
   }
  }
 }
