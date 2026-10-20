@@ -125,7 +125,119 @@
   more?.addEventListener('click', () => { state.page += 40; apply(); });
   if ($('#cmp-data')) comparePlans();
   if ($('.mtable')) compareModels();
+  $$('.vzoom').forEach(zoomChart);
   apply();
+
+  // Model pages: zoom and pan the price vs. performance chart. Logos keep their size; only positions,
+  // the frontier line and the axis ticks follow the zoom.
+  function zoomChart(box) {
+    const svg = $('svg', box), d = svg.dataset;
+    const L = +d.pl, R = +d.pr, T = +d.pt, B = +d.pb, x0 = +d.x0, x1 = +d.x1, y0 = +d.y0, y1 = +d.y1;
+    const NS = 'http://www.w3.org/2000/svg', MAX = 16;
+    const pts = $$('.vpt', svg), plot = $('.vplot', svg), axes = $('.axes', svg), label = $('.me-label', svg);
+    let k = 1, tx = 0, ty = 0;
+    const fmtY = (v) => ({
+      min: () => (v >= 60 ? `${+(v / 60).toFixed(1)} h` : `${Math.round(v)} min`),
+      elo: () => `${Math.round(v)}`,
+      usd: () => `$${Math.round(v).toLocaleString('en-US')}`,
+      of10: () => `${v.toFixed(2)}/10`,
+    }[d.unit] || (() => `${+(v * 100).toFixed(1)}%`))();
+    const fmtX = (n) => `$${n < 0.1 ? +n.toPrecision(2) : n < 10 ? n.toFixed(2) : +n.toFixed(0)}`;
+    // Base (unzoomed) chart coordinates ↔ data values.
+    const xVal = (bx) => 10 ** (x0 + ((bx - L) / (R - L)) * (x1 - x0));
+    const xPos = (v) => L + ((Math.log10(v) - x0) / (x1 - x0)) * (R - L);
+    const yVal = (by) => y0 + ((B - by) / (B - T)) * (y1 - y0);
+    const yPos = (v) => B - ((v - y0) / (y1 - y0)) * (B - T);
+    const clamp = () => {
+      k = Math.min(MAX, Math.max(1, k));
+      tx = Math.min(L - L * k, Math.max(R - R * k, tx));
+      ty = Math.min(T - T * k, Math.max(B - B * k, ty));
+    };
+    const niceStep = (span) => { const p = 10 ** Math.floor(Math.log10(span / 4)), m = span / 4 / p; return (m >= 5 ? 5 : m >= 2 ? 2 : 1) * p; };
+    function ticks() {
+      const bx = (sx) => (sx - tx) / k, by = (sy) => (sy - ty) / k;
+      const lo = xVal(bx(L)), hi = xVal(bx(R)), decades = Math.log10(hi / lo);
+      const mult = decades > 2.5 ? [1] : decades > 1 ? [1, 3] : decades > 0.4 ? [1, 2, 5] : [1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9];
+      const xs = [];
+      for (let e = Math.floor(Math.log10(lo)); e <= Math.ceil(Math.log10(hi)); e++) mult.forEach((f) => { const v = f * 10 ** e; if (v >= lo && v <= hi) xs.push(v); });
+      const ylo = yVal(by(B)), yhi = yVal(by(T)), st = niceStep(yhi - ylo), ysv = [];
+      for (let v = Math.ceil(ylo / st) * st; v <= yhi + 1e-9; v += st) ysv.push(v);
+      const g = (x1_, x2_, y1_, y2_, tx_, ty_, anchor, text) => `<g class="grid"><line x1="${x1_}" x2="${x2_}" y1="${y1_}" y2="${y2_}"/><text x="${tx_}" y="${ty_}" text-anchor="${anchor}">${text}</text></g>`;
+      axes.innerHTML = ysv.map((v) => { const y = yPos(v) * k + ty; return g(L, R, y, y, L - 8, y + 4, 'end', fmtY(v)); }).join('')
+        + xs.map((v) => { const x = xPos(v) * k + tx; return g(x, x, T, B, x, B + 18, 'middle', fmtX(v)); }).join('');
+    }
+    function draw() {
+      clamp();
+      plot.setAttribute('transform', `matrix(${k} 0 0 ${k} ${tx} ${ty})`);
+      pts.forEach((p) => {
+        const x = +p.dataset.x * k + tx, y = +p.dataset.y * k + ty;
+        p.setAttribute('transform', `translate(${x} ${y})${p.classList.contains('me') ? ' scale(1.5)' : ''}`);
+      });
+      const lx = +label.dataset.x * k + tx, ly = +label.dataset.y * k + ty;
+      const flip = lx > R - 140, dx = Math.abs(+label.dataset.dx);
+      label.setAttribute('text-anchor', flip ? 'end' : 'start');
+      label.setAttribute('x', lx + (flip ? -dx : dx)); label.setAttribute('y', ly + 4);
+      label.style.display = lx < L || lx > R || ly < T || ly > B ? 'none' : '';
+      ticks();
+      box.classList.toggle('zoomed', k > 1.001);
+    }
+    // Screen point → SVG coordinate.
+    const toSvg = (cx, cy) => { const p = new DOMPoint(cx, cy).matrixTransform(svg.getScreenCTM().inverse()); return [p.x, p.y]; };
+    const zoomAt = (sx, sy, f) => {
+      const nk = Math.min(MAX, Math.max(1, k * f)), r = nk / k;
+      tx = sx - (sx - tx) * r; ty = sy - (sy - ty) * r; k = nk; draw();
+    };
+    const center = () => [(L + R) / 2, (T + B) / 2];
+    $('.vzoom-ctl', box).hidden = false;
+    $$('[data-zoom]', box).forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.zoom === 'reset') { k = 1; tx = ty = 0; draw(); } else zoomAt(...center(), b.dataset.zoom === 'in' ? 1.6 : 1 / 1.6);
+    }));
+    // Ctrl/⌘ + wheel (and trackpad pinch, which arrives as ctrl+wheel) zooms; a plain wheel keeps scrolling the page.
+    svg.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      zoomAt(...toSvg(e.clientX, e.clientY), Math.exp(-e.deltaY * 0.01));
+    }, { passive: false });
+    svg.addEventListener('dblclick', (e) => { e.preventDefault(); zoomAt(...toSvg(e.clientX, e.clientY), e.shiftKey ? 1 / 2 : 2); });
+    // Drag to pan (mouse) and two-finger pinch (touch). A drag never follows the logo link it started on.
+    const down = new Map();
+    let last = null, pinch = null, moved = false;
+    svg.addEventListener('pointerdown', (e) => {
+      down.set(e.pointerId, [e.clientX, e.clientY]);
+      moved = false;
+      if (down.size === 1) last = toSvg(e.clientX, e.clientY);
+      if (down.size === 2) { const [a, b] = [...down.values()]; pinch = { dist: Math.hypot(a[0] - b[0], a[1] - b[1]), k }; }
+    });
+    svg.addEventListener('pointermove', (e) => {
+      if (!down.has(e.pointerId)) return;
+      down.set(e.pointerId, [e.clientX, e.clientY]);
+      if (down.size === 2 && pinch) {
+        const [a, b] = [...down.values()], dist = Math.hypot(a[0] - b[0], a[1] - b[1]);
+        zoomAt(...toSvg((a[0] + b[0]) / 2, (a[1] + b[1]) / 2), (pinch.k * (dist / pinch.dist)) / k);
+        moved = true;
+      } else if (down.size === 1 && last && k > 1) {
+        const p = toSvg(e.clientX, e.clientY);
+        if (!moved && Math.hypot(p[0] - last[0], p[1] - last[1]) < 3) return;
+        if (!moved) svg.setPointerCapture(e.pointerId);
+        tx += p[0] - last[0]; ty += p[1] - last[1]; last = p; moved = true; draw();
+      }
+    });
+    const up = (e) => { down.delete(e.pointerId); if (down.size < 2) pinch = null; if (!down.size) last = null; };
+    svg.addEventListener('pointerup', up);
+    svg.addEventListener('pointercancel', up);
+    // A logo click opens its model a beat later, so a double-click there zooms instead of navigating.
+    let pending = null;
+    svg.addEventListener('click', (e) => {
+      const a = e.target.closest('.vpt');
+      if (moved) { e.preventDefault(); moved = false; return; }
+      if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button) return;
+      e.preventDefault();
+      clearTimeout(pending);
+      if (e.detail === 1) pending = setTimeout(() => { location.href = new URL(a.getAttribute('href'), location.href).href; }, 280);
+    }, true);
+    svg.addEventListener('dblclick', () => clearTimeout(pending));
+    draw();
+  }
 
   // Models page: sortable columns, a switchable benchmark column, and the head-to-head benchmark showdown.
   function compareModels() {
@@ -140,7 +252,14 @@
     let bench = B[params.get('bench')] ? params.get('bench') : defaultBench;
 
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-    const fmt = (b, v) => (b.unit === 'min' ? (v >= 60 ? `${+(v / 60).toFixed(1)} h` : `${Math.round(v)} min`) : `${(v * 100).toFixed(1)}%`);
+    // Keep in step with benchVal()/benchBar() in scripts/build.mjs.
+    const fmt = (b, v) => ({
+      min: () => (v >= 60 ? `${+(v / 60).toFixed(1)} h` : `${Math.round(v)} min`),
+      elo: () => `${Math.round(v)}`,
+      usd: () => `$${Math.round(v).toLocaleString('en-US')}`,
+      of10: () => `${v.toFixed(2)}/10`,
+    }[b.unit] || (() => `${(v * 100).toFixed(1)}%`))();
+    const bar = (b, v, max) => Math.max(2, Math.round((b.unit === 'elo' ? (v - 1000) / (max - 1000) : v / max) * 100));
     const price = (n) => (n === 0 ? 'Free' : `$${n < 0.1 ? +n.toFixed(3) : n.toFixed(2)}`);
     const score = (r) => r.dataset[`b${bench[0].toUpperCase()}${bench.slice(1)}`];
 
@@ -165,7 +284,7 @@
       head.textContent = b.name; head.title = b.desc;
       $$('.mrow', tbody).forEach((r) => {
         const v = score(r);
-        $('.mbench-cell', r).innerHTML = v == null ? '<span class="muted">—</span>' : `<span class="mbench">${fmt(b, +v)}<i style="--w:${Math.round((v / top) * 100)}%"></i></span>`;
+        $('.mbench-cell', r).innerHTML = v == null ? '<span class="muted">—</span>' : `<span class="mbench">${fmt(b, +v)}<i style="--w:${bar(b, +v, top)}%"></i></span>`;
         r.dataset.scored = String(Number(data.benchmarks.some((x) => data.models[r.dataset.id].bench[x.id] != null)));
       });
       if (sort.key === 'bench') resort();
@@ -179,7 +298,7 @@
 
     // ── Showdown: benchmarks as rows, picked models as columns ──
     const sd = $('#showdown');
-    const table = $('.sd', sd), foot = $('.sd-foot', sd), addInput = $('#sd-q'), diffBox = $('#sd-diff'), barsBox = $('#sd-bars');
+    const table = sd && $('.sd', sd), foot = sd && $('.sd-foot', sd), addInput = $('#sd-q'), diffBox = $('#sd-diff'), barsBox = $('#sd-bars');
     const tray = $('.ctray');
     const start = (sd?.dataset.start || '').split(',').filter((id) => data.models[id]);
     const fromUrl = (params.get('vs') || '').split(',').filter((id) => data.models[id]);
@@ -188,12 +307,20 @@
     let rankBy = B[params.get('rank')] ? params.get('rank') : null;
     let notice = '';
     const byName = Object.fromEntries(Object.entries(data.models).map(([id, m]) => [m.name.toLowerCase(), id]));
+    // Which benchmark rows to show: a ready-made set, or the reader's own choice (setId 'custom').
+    const SETS = Object.fromEntries(data.sets.map((s) => [s.id, s]));
+    const customIds = (params.get('b') || '').split(',').filter((id) => B[id]);
+    let setId = customIds.length ? 'custom' : SETS[params.get('set')] ? params.get('set') : data.sets[0].id;
+    let shown = setId === 'custom' ? customIds : SETS[setId].ids;
+    const picker = sd && $('.sd-pick', sd);
 
     function sync() {
       const p = new URLSearchParams(location.search);
       picks.join() !== start.join() ? p.set('vs', picks.join(',')) : p.delete('vs');
       focus && focus !== picks[0] ? p.set('hl', focus) : p.delete('hl');
       rankBy ? p.set('rank', rankBy) : p.delete('rank');
+      setId !== data.sets[0].id && setId !== 'custom' ? p.set('set', setId) : p.delete('set');
+      setId === 'custom' ? p.set('b', shown.join(',')) : p.delete('b');
       bench !== defaultBench ? p.set('bench', bench) : p.delete('bench');
       const qs = p.toString();
       history.replaceState(null, '', location.pathname + (qs ? `?${qs}` : '') + location.hash);
@@ -210,11 +337,14 @@
       if (!sd) return;
       rank();
       const cols = picks.map((id) => ({ id, ...data.models[id] }));
-      const benches = data.benchmarks.filter((b) => cols.some((c) => c.bench[b.id] != null));
+      // Rows keep the set's order; ones no picked model has a score on still show, as dashes.
+      const benches = shown.map((id) => B[id]);
+      if (rankBy && !shown.includes(rankBy)) rankBy = null;
       const f = data.models[focus];
       const best = {}, top = {}, wins = Object.fromEntries(picks.map((id) => [id, 0]));
       for (const b of benches) {
         const vals = cols.map((c) => c.bench[b.id]).filter((v) => v != null);
+        if (!vals.length) continue;
         top[b.id] = Math.max(...vals);
         if (vals.length > 1) { best[b.id] = top[b.id]; cols.forEach((c) => { if (c.bench[b.id] === top[b.id]) wins[c.id]++; }); }
       }
@@ -226,14 +356,14 @@
         if (!diffBox.checked || fv == null) return '';
         const d = v - fv;
         if (Math.abs(d) < 1e-9) return '<small class="sd-d">=</small>';
-        const txt = b.unit === 'min' ? fmt(b, Math.abs(d)) : `${(Math.abs(d) * 100).toFixed(1)}`;
+        const txt = b.unit === 'pct' ? `${(Math.abs(d) * 100).toFixed(1)}` : fmt(b, Math.abs(d)).replace('/10', '');
         return `<small class="sd-d ${d > 0 ? 'up' : 'down'}">${d > 0 ? '+' : '−'}${txt}</small>`;
       };
       const cell = (b, c) => {
         const v = c.bench[b.id];
         if (v == null) return `<td class="sd-na${hl(c)}" title="${esc(c.name)} hasn't been scored on ${esc(b.name)} yet">–</td>`;
         const isBest = v === best[b.id];
-        return `<td class="${isBest ? 'best' : ''}${hl(c)}"><span class="sd-v">${fmt(b, v)}</span>${c.id === focus ? '' : gap(b, v)}${barsBox.checked ? `<i style="--w:${Math.round((v / top[b.id]) * 100)}%"></i>` : ''}</td>`;
+        return `<td class="${isBest ? 'best' : ''}${hl(c)}"><span class="sd-v">${fmt(b, v)}</span>${c.id === focus ? '' : gap(b, v)}${barsBox.checked ? `<i style="--w:${bar(b, v, top[b.id])}%"></i>` : ''}</td>`;
       };
       const spec = (label, fn) => `<tr class="sd-spec"><th scope="row"><span class="sd-label">${label}</span></th>${cols.map((c) => `<td class="${hl(c).trim()}">${fn(c)}</td>`).join('')}</tr>`;
       table.style.setProperty('--n', cols.length);
@@ -243,15 +373,34 @@
           <button type="button" class="sd-x" data-id="${esc(c.id)}" aria-label="Remove ${esc(c.name)}" title="Remove">×</button></th>`).join('')}</tr></thead>
         <tbody>
           ${benches.map((b) => `<tr class="${rankBy === b.id ? 'ranked' : ''}"><th scope="row"><button type="button" class="sd-rank" data-b="${b.id}" aria-pressed="${rankBy === b.id}" title="${rankBy === b.id ? 'Stop ranking' : 'Rank models by this benchmark'}"><span class="sd-label">${esc(b.name)}</span><small>${esc(b.desc)}</small></button></th>${cols.map((c) => cell(b, c)).join('')}</tr>`).join('')}
-          ${benches.length ? '' : `<tr><th scope="row"><span class="sd-label">Benchmarks</span></th>${cols.map((c) => `<td class="sd-na${hl(c)}">No scores yet</td>`).join('')}</tr>`}
+          ${benches.length ? '' : `<tr><th scope="row"><span class="sd-label">Benchmarks</span></th>${cols.map((c) => `<td class="sd-na${hl(c)}">Choose benchmarks above</td>`).join('')}</tr>`}
           ${contested ? spec('Top scores', (c) => `<b class="sd-wins">${wins[c.id]}</b><small> of ${contested}</small>`) : ''}
           ${spec('Price / 1M tokens', (c) => `<span class="sd-v">${price(c.input)}</span><small> in · ${price(c.output)} out</small>${c.input + c.output === cheapest && cols.length > 1 ? '<span class="pbadge free">Cheapest</span>' : ''}`)}
           ${spec('Context', (c) => `<span class="sd-v">${esc(c.context)}</span>${c.maxOutput ? `<small> · ${esc(c.maxOutput)} out</small>` : ''}`)}
           ${spec('Released', (c) => `<span class="sd-v">${esc(c.released)}</span>`)}
         </tbody>`;
-      foot.textContent = notice || `${cols.length} of ${MAX} models · ${benches.length} benchmarks · best result per model from Epoch AI · “–” = not scored yet${diffBox.checked && f ? ` · gaps in percentage points vs ${f.name}` : ''}`;
+      const empty = benches.filter((b) => top[b.id] == null).length;
+      foot.textContent = notice || `${cols.length} of ${MAX} models · ${benches.length} benchmarks${empty ? ` (${empty} with no scores for these models)` : ''} · best result per model from Epoch AI · “–” = not scored yet${diffBox.checked && f ? ` · gaps vs ${f.name}, in percentage points for % scores` : ''}`;
       notice = '';
-      renderPicks(); sync();
+      renderSuggest(empty);
+      renderSetUi(); renderPicks(); sync();
+    }
+
+    // When the picked models are thin on this set, offer the models with the most scores in it.
+    function renderSuggest(empty) {
+      const box = $('.sd-suggest', sd);
+      const count = (id) => shown.filter((b) => data.models[id].bench[b] != null).length;
+      const scoredHere = picks.reduce((n, id) => n + count(id), 0);
+      const thin = shown.length && (empty > 0 || scoredHere < shown.length);
+      const ideas = thin ? Object.keys(data.models).filter((id) => !picks.includes(id) && count(id) > 0)
+        .sort((a, b) => count(b) - count(a)).slice(0, 5) : [];
+      box.hidden = !ideas.length;
+      box.innerHTML = ideas.length ? `<span class="muted small">Most scored for ${esc(setId === 'custom' ? 'your benchmarks' : SETS[setId].name)}:</span>${ideas.map((id) => `<button type="button" class="sd-idea" data-add="${esc(id)}"${picks.length >= MAX ? ' disabled title="Remove a model first"' : ''}>${data.models[id].icon}<span>${esc(data.models[id].name)}</span><i>${count(id)}/${shown.length}</i></button>`).join('')}` : '';
+    }
+    function renderSetUi() {
+      $$('.sd-sets [data-set]', sd).forEach((c) => { const on = c.dataset.set === setId; c.classList.toggle('on', on); c.setAttribute('aria-pressed', String(on)); });
+      $$('input', picker).forEach((i) => { i.checked = shown.includes(i.value); });
+      $('.sd-pick-n', picker).textContent = `${shown.length} shown${setId === 'custom' ? ' · custom' : ''}`;
     }
 
     function add(id) {
@@ -305,8 +454,20 @@
       diffBox.addEventListener('change', renderShowdown);
       barsBox.addEventListener('change', () => { sd.classList.toggle('no-bars', !barsBox.checked); renderShowdown(); });
       $('.sd-reset', sd).addEventListener('click', () => {
-        picks.splice(0, picks.length, ...start); focus = picks[0]; rankBy = null; renderShowdown();
+        picks.splice(0, picks.length, ...start); focus = picks[0]; rankBy = null;
+        setId = data.sets[0].id; shown = SETS[setId].ids; renderShowdown();
       });
+      $('.sd-sets .chips', sd).addEventListener('click', (e) => {
+        const c = e.target.closest('[data-set]'); if (!c) return;
+        setId = c.dataset.set; shown = SETS[setId].ids; renderShowdown();
+      });
+      // Ticking a box turns the current set into a custom one, keeping the catalog's order.
+      picker.addEventListener('change', () => {
+        setId = 'custom';
+        shown = data.benchmarks.map((b) => b.id).filter((id) => $(`input[value="${id}"]`, picker).checked);
+        renderShowdown();
+      });
+      $('.sd-suggest', sd).addEventListener('click', (e) => { const b = e.target.closest('[data-add]'); if (b) add(b.dataset.add); });
       tbody.addEventListener('click', (e) => {
         const b = e.target.closest('.pick'); if (!b) return;
         picks.includes(b.dataset.pick) ? remove(b.dataset.pick) : add(b.dataset.pick);
@@ -531,4 +692,25 @@
   }
   setInterval(checkForUpdates, 90000);
   document.addEventListener('visibilitychange', checkForUpdates);
+
+  // Leaderboard (Models page): metric tabs, arrow keys move between them; the bars replay their grow-in.
+  const lbTabs = $$('.lb-nav [role="tab"]');
+  const lbShow = (tab, focus) => {
+    lbTabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    if (focus) tab.focus();
+  };
+  lbTabs.forEach((t, i) => {
+    t.addEventListener('click', () => lbShow(t));
+    t.addEventListener('keydown', (e) => {
+      const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+      if (!step) return;
+      e.preventDefault();
+      lbShow(lbTabs[(i + step + lbTabs.length) % lbTabs.length], true);
+    });
+  });
 })();

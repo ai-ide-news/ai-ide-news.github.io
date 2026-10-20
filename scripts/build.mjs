@@ -4,7 +4,8 @@ import { TOOLS, CATEGORIES } from './sources.mjs';
 import { resolveIcons } from './icons.mjs';
 import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
 import { LAB_ICONS } from './models.mjs';
-import { BENCHMARKS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
+import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
+import { AA_SOURCE } from './aa.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -257,9 +258,17 @@ const scored = models.filter((m) => Object.keys(m.bench).length);
 const BENCH_DEFAULT = BENCHMARKS.find((b) => b.id === 'gpqa');
 const SHOWDOWN_START = 5;
 const benchMax = Object.fromEntries(BENCHMARKS.map((b) => [b.id, Math.max(0, ...models.map((m) => m.bench[b.id] ?? 0))]));
-const benchVal = (b, v) => (b.unit === 'min' ? (v >= 60 ? `${+(v / 60).toFixed(1)} h` : `${Math.round(v)} min`) : `${(v * 100).toFixed(1)}%`);
+// Keep in step with fmt()/bar() in src/app.js.
+const benchVal = (b, v) => ({
+  min: () => (v >= 60 ? `${+(v / 60).toFixed(1)} h` : `${Math.round(v)} min`),
+  elo: () => `${Math.round(v)}`,
+  usd: () => `$${Math.round(v).toLocaleString('en-US')}`,
+  of10: () => `${v.toFixed(2)}/10`,
+}[b.unit] || (() => `${(v * 100).toFixed(1)}%`))();
+// Arena ratings start around 1000, so their bars measure from there.
+const benchBar = (b, v, max) => Math.max(2, Math.round((b.unit === 'elo' ? (v - 1000) / (max - 1000) : v / max) * 100));
 const benchCell = (m, b) => (m.bench[b.id] == null ? '<span class="muted">—</span>'
-  : `<span class="mbench">${benchVal(b, m.bench[b.id])}<i style="--w:${Math.round((m.bench[b.id] / benchMax[b.id]) * 100)}%"></i></span>`);
+  : `<span class="mbench">${benchVal(b, m.bench[b.id])}<i style="--w:${benchBar(b, m.bench[b.id], benchMax[b.id])}%"></i></span>`);
 const tokens = (n) => (n == null ? '—' : n % 1048576 === 0 ? `${n / 1048576}M` : n >= 1e6 ? `${+(n / 1e6).toFixed(2)}M` : `${Math.round(n / 1000)}K`);
 const mprice = (n) => (n === 0 ? 'Free' : `$${n < 0.1 ? +n.toFixed(3) : n.toFixed(2)}`);
 const labTile = (m, root) => icon({ id: `lab-${m.labId}`, name: m.lab, color: m.color }, root, 'sm');
@@ -269,11 +278,22 @@ const modelTags = (m) => [
   m.openWeights && '<span class="pbadge">Open weights</span>',
   m.modalities.includes('image') && '<span class="pbadge">Vision</span>',
 ].filter(Boolean).join('');
+// Detail pages: models/<lab>/<model>/ and models/<lab>/.
+const modelPath = (m) => `models/${m.labId}/${m.id.split('/').slice(1).join('/')}/`;
+const labPath = (labId) => `models/${labId}/`;
+const labs = Object.values(Object.groupBy(models, (m) => m.labId)).sort((a, b) => b.length - a.length);
+// Showdown starts with each lab's newest well-scored flagship (small "flash/mini/lite" tiers skipped), newest first.
+const flagships = scored.filter((m) => BENCH_SETS[0].ids.filter((id) => m.bench[id] != null).length >= 3 && !/\b(flash|mini|nano|lite|haiku|air)\b/i.test(m.name));
+const showdown = flagships.filter((m, i) => flagships.findIndex((x) => x.labId === m.labId) === i).slice(0, SHOWDOWN_START).map((m) => m.id);
+// Link into the Models page showdown with these models picked (max 6, as in src/app.js).
+const showdownHref = (root, ids) => `${root}models/?vs=${[...new Set(ids)].slice(0, 6).map(encodeURIComponent).join(',')}#showdown`;
+// Where a score places among every tracked model with one (higher is better for all benchmarks).
+const benchRank = (b, v) => ({ rank: 1 + models.filter((x) => (x.bench[b.id] ?? -Infinity) > v).length, of: models.filter((x) => x.bench[b.id] != null).length });
 const modelText = (m) => esc(`${m.name} ${m.lab} ${m.id} ${m.reasoning ? 'reasoning' : ''} ${m.openWeights ? 'open weights' : ''} ${m.free ? 'free' : ''} ${m.modalities.join(' ')}`.toLowerCase());
 
 function modelCard(m, root) {
   const fresh = NOW - Date.parse(m.date) < 3 * DAY;
-  return `<a class="mcard" href="${esc(m.url)}" target="_blank" rel="noopener" style="--c:${m.color}">
+  return `<a class="mcard" href="${root}${modelPath(m)}" style="--c:${m.color}">
   ${labTile(m, root)}
   <span class="vcard-name"><strong>${esc(m.name)}</strong>${fresh ? '<span class="fresh" title="Listed in the last 3 days">new</span>' : ''}<small>${esc(m.lab)} · ${tokens(m.context)} context</small></span>
   <span class="mcard-price" title="USD per million input / output tokens">${m.input === 0 && m.output === 0 ? 'Free' : `${mprice(m.input)} / ${mprice(m.output)}`}<small>per 1M in / out</small></span>
@@ -284,7 +304,7 @@ function modelCard(m, root) {
 function modelRow(m, root) {
   const bdata = BENCHMARKS.map((b) => (m.bench[b.id] == null ? '' : ` data-b-${b.id}="${m.bench[b.id]}"`)).join('');
   return `<tr class="prow mrow" data-id="${esc(m.id)}"${bdata} data-cat="${m.labId}" data-trend="0" data-free="${m.free ? 1 : 0}" data-text="${modelText(m)}" data-date="${m.date}" data-context="${m.context || 0}" data-input="${m.input}" data-output="${m.output}" data-name="${esc(m.name.toLowerCase())}" style="--c:${m.color}">
-  <th scope="row"><div class="ptool-cell"><button type="button" class="pick" data-pick="${esc(m.id)}" aria-pressed="false" aria-label="Add ${esc(m.name)} to comparison" title="Add to comparison"></button><a class="ptool" href="${esc(m.url)}" target="_blank" rel="noopener">${labTile(m, root)}<span><strong>${esc(m.name)}</strong><small>${esc(m.lab)} · <code>${esc(m.id)}</code></small></span></a></div>${m.summary ? `<p class="msum">${esc(m.summary)}</p>` : ''}<div class="mtags">${modelTags(m)}</div></th>
+  <th scope="row"><div class="ptool-cell"><button type="button" class="pick" data-pick="${esc(m.id)}" aria-pressed="false" aria-label="Add ${esc(m.name)} to comparison" title="Add to comparison"></button><div class="ptool">${labTile(m, root)}<span><a class="ptool-name" href="${root}${modelPath(m)}"><strong>${esc(m.name)}</strong></a><small><a class="lab-link" href="${root}${labPath(m.labId)}">${esc(m.lab)}</a> · <code>${esc(m.id)}</code></small></span></div></div>${m.summary ? `<p class="msum">${esc(m.summary)}</p>` : ''}<div class="mtags">${modelTags(m)}</div></th>
   <td class="mnum">${fmtDate(m.date)}<small>${time(m.date)}</small></td>
   <td class="mnum">${tokens(m.context)}${m.maxOutput ? `<small>${tokens(m.maxOutput)} out</small>` : ''}</td>
   <td class="mnum">${mprice(m.input)}</td>
@@ -305,13 +325,85 @@ function modelsSection(root) {
 </section>`;
 }
 
+// ── leaderboard ───────────────────────────────────────────
+// Composite indexes: each benchmark score as a share of the best score any model has on it,
+// averaged over the set's benchmarks the model has (at least `min`), then ×100.
+const LB_INDEXES = [
+  { id: 'intel', name: 'Intelligence', tone: 'accent', desc: 'Patchwire index across reasoning, knowledge, maths and coding', ids: ['gpqa', 'hle', 'arc2', 'fm', 'simple', 'critpt', 'swe', 'tb'], min: 4 },
+  { id: 'code', name: 'Coding', tone: 'release', desc: 'Index across SWE-bench, Terminal-Bench, DeepSWE and 7 more coding benchmarks', ids: ['swe', 'tb', 'dswe', 'fswe', 'cursor', 'fcode', 'aider', 'scicode', 'gso', 'mirror'], min: 3 },
+  { id: 'agents', name: 'Agents', tone: 'changelog', desc: 'Index across APEX-Agents, OSWorld, GDPval, Remote Labor Index and more', ids: ['apex', 'rli', 'osw2', 'osw', 'gdpval', 'ptb', 'tb'], min: 2 },
+  { id: 'reason', name: 'Reasoning', tone: 'blog', desc: "Index across GPQA, Humanity's Last Exam, ARC-AGI, SimpleBench and more", ids: ['gpqa', 'hle', 'arc2', 'arc1', 'simple', 'critpt', 'chess', 'lmca'], min: 3 },
+  { id: 'math', name: 'Maths', tone: 'hn', desc: 'Index across FrontierMath (tiers 1–4), ProofBench and OTIS Mock AIME', ids: ['fm', 'fm4', 'proof', 'aime'], min: 2 },
+];
+const lbIndex = (m, ix) => {
+  const ids = ix.ids.filter((id) => m.bench[id] != null && benchMax[id] > 0);
+  return ids.length < ix.min ? null : Math.round((ids.reduce((s, id) => s + m.bench[id] / benchMax[id], 0) / ids.length) * 100);
+};
+const blended = (m) => (3 * m.input + m.output) / 4;
+const LB_TOP = 12;
+// Artificial Analysis rows matched to our models by slug ("claude-opus-5-5", plus effort suffixes like "-max");
+// several efforts of one model keep the best value of each metric.
+const AA_EFFORT = /^(-(reasoning|non-reasoning|thinking|adaptive|minimal|low|medium|high|xhigh|max|\d{4,}))*$/;
+const aaList = snap.aa?.models || [];
+const aaFor = Object.fromEntries(models.map((m) => {
+  const keys = [benchKey(m.id), m.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')];
+  const hits = aaList.filter((a) => keys.some((k) => a.slug === k || (a.slug.startsWith(`${k}-`) && AA_EFFORT.test(a.slug.slice(k.length)))));
+  if (!hits.length) return [m.id, null];
+  const best = (f, lo) => hits.map((a) => a[f]).filter((v) => v != null).sort((a, b) => (lo ? a - b : b - a))[0] ?? null;
+  return [m.id, { intel: best('intel'), code: best('code'), math: best('math'), speed: best('speed'), price: best('price', true) }];
+}));
+const hasAA = Object.values(aaFor).filter((a) => a?.intel != null).length >= 5;
+
+function lbChart(view, rows, root) {
+  const max = Math.max(...rows.map((r) => r.v)) || 1;
+  return `<div class="lb-panel" role="tabpanel" id="lb-${view.id}" aria-labelledby="lb-tab-${view.id}"${view.first ? '' : ' hidden'}>
+    <div class="lb-head"><h3><i class="lb-sq" style="--t:var(--${['accent', 'hn'].includes(view.tone) ? view.tone : `k-${view.tone}`})"></i>${esc(view.name)}</h3><p class="muted small">${esc(view.desc)} · <b>${view.lower ? 'Lower' : 'Higher'} is better</b></p></div>
+    <div class="lb-scroll"><ol class="lb-chart" style="--n:${rows.length}">
+      ${rows.map(({ m, v }) => `<li style="--c:${m.color};--h:${Math.max(1.5, (v / max) * 100).toFixed(1)}%">
+        <a href="${root}${modelPath(m)}" title="${esc(`${m.name} (${m.lab}) — ${view.fmt(v)}`)}">
+          <span class="lb-col"><i class="lb-bar"><span class="lb-v">${view.fmt(v)}</span></i></span>
+          ${labTile(m, root)}
+          <span class="lb-name">${esc(m.name)}</span>
+        </a></li>`).join('')}
+    </ol></div>
+  </div>`;
+}
+
+function leaderboard(root) {
+  const top = (rows) => rows.filter((r) => r.v != null).sort((a, b) => b.v - a.v).slice(0, LB_TOP);
+  const epoch = (ix) => ({ ...ix, fmt: (v) => String(v), rows: top(models.map((m) => ({ m, v: lbIndex(m, ix) }))) });
+  const aaView = (id, name, tone, desc, f, fmt = (v) => String(Math.round(v))) => ({ id, name, tone, desc, fmt, rows: top(models.map((m) => ({ m, v: aaFor[m.id]?.[f] ?? null }))) });
+  const [intel, code, ...rest] = LB_INDEXES;
+  const views = (hasAA ? [
+    aaView('intel', 'Intelligence', 'accent', 'Artificial Analysis Intelligence Index', 'intel'),
+    aaView('speed', 'Speed', 'hn', 'Median output tokens per second on the first-party API', 'speed'),
+    aaView('code', 'Coding', 'release', 'Artificial Analysis Coding Index', 'code'),
+  ] : [epoch(intel), epoch(code)]).concat(rest.map(epoch)).filter((v) => v.rows.length >= 5);
+  if (!views.length) return '';
+  // Price and context for the same smartest models, so the trade-off is visible.
+  const pool = views[0].rows.map((r) => r.m);
+  const price = (m) => aaFor[m.id]?.price ?? (m.input > 0 ? blended(m) : null);
+  views.splice(Math.min(views.length, hasAA ? 2 : 1), 0,
+    { id: 'price', name: 'Price', tone: 'accent', lower: true, desc: `Blended USD per 1M tokens (3:1 input to output) for the top ${pool.length} by intelligence`, fmt: (v) => `$${v < 10 ? v.toFixed(2) : v.toFixed(1)}`, rows: pool.map((m) => ({ m, v: price(m) })).filter((r) => r.v != null).sort((a, b) => a.v - b.v) });
+  views.push({ id: 'context', name: 'Context window', tone: 'changelog', desc: `Maximum input tokens for the top ${pool.length} by intelligence`, fmt: tokens, rows: pool.filter((m) => m.context).map((m) => ({ m, v: m.context })).sort((a, b) => b.v - a.v) });
+  views[0].first = true;
+  return `<section id="leaderboard" class="wrap section lb">
+  <div class="section-head">
+    <div><p class="eyebrow">At a glance</p><h2>Leaderboard</h2></div>
+    <p class="muted small section-note">The top models on each measure${hasAA ? `, with intelligence, coding, speed and price from <a href="${AA_SOURCE.url}" target="_blank" rel="noopener">${AA_SOURCE.name}</a>` : ''}. Our own index scores (from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a> results) average each benchmark as a share of the best score any model has reached on it, so 100 would mean best on everything. Click a bar for the model's page.</p>
+  </div>
+  <div class="lb-body">
+    <div class="lb-nav" role="tablist" aria-label="Leaderboard metric" aria-orientation="vertical">
+      ${views.map((v) => `<button type="button" role="tab" id="lb-tab-${v.id}" aria-controls="lb-${v.id}" aria-selected="${!!v.first}"${v.first ? '' : ' tabindex="-1"'}>${esc(v.name)}</button>`).join('')}
+    </div>
+    <div class="lb-panels">${views.map((v) => lbChart(v, v.rows, root)).join('')}</div>
+  </div>
+</section>`;
+}
+
 function modelsPage() {
   const root = '../';
-  const labs = Object.values(Object.groupBy(models, (m) => m.labId)).sort((a, b) => b.length - a.length);
   const month = models.filter((m) => NOW - Date.parse(m.date) < 30 * DAY);
-  // Showdown starts with each lab's newest well-scored flagship (small "flash/mini/lite" tiers skipped), newest first.
-  const recent = scored.filter((m) => Object.keys(m.bench).length >= 3 && !/\b(flash|mini|nano|lite|haiku|air)\b/i.test(m.name));
-  const showdown = recent.filter((m, i) => recent.findIndex((x) => x.labId === m.labId) === i).slice(0, SHOWDOWN_START).map((m) => m.id);
   const body = `
 <section class="wrap hero hero-sm">
   <p class="eyebrow">Models</p>
@@ -324,11 +416,24 @@ function modelsPage() {
   </div>
 </section>
 
+${leaderboard(root)}
 ${banner()}
 ${showdown.length ? `<section id="showdown" class="wrap section sd-section" data-start="${showdown.join(',')}">
   <div class="section-head">
     <div><p class="eyebrow">Head to head</p><h2>Benchmark showdown</h2></div>
-    <p class="muted small section-note">Click a model to highlight it, click a benchmark to rank the models by it. Bold is the best score in each row.</p>
+    <p class="muted small section-note">Pick a ready-made set or choose your own benchmarks. Click a model to highlight it, click a benchmark to rank the models by it. Bold is the best score in each row.</p>
+  </div>
+  <div class="sd-sets">
+    <div class="chips" role="group" aria-label="Benchmark set">
+      ${BENCH_SETS.map((s, i) => `<button type="button" class="chip${i ? '' : ' on'}" data-set="${s.id}" aria-pressed="${!i}">${esc(s.name)}</button>`).join('')}
+    </div>
+    <details class="sd-pick">
+      <summary class="btn ghost">Choose benchmarks <i class="sd-pick-n"></i></summary>
+      <div class="sd-pick-body">
+        ${Object.entries(Object.groupBy(BENCHMARKS, (b) => b.group)).map(([g, list]) => `<fieldset><legend>${esc(g)}</legend>${list.map((b) => `<label title="${esc(b.desc)}"><input type="checkbox" value="${b.id}"><span>${esc(b.name)}</span><i>${models.filter((m) => m.bench[b.id] != null).length}</i></label>`).join('')}</fieldset>`).join('')}
+        <p class="muted small">The number is how many tracked models have a score.</p>
+      </div>
+    </details>
   </div>
   <div class="sd-ctl">
     <div class="sd-add">
@@ -341,6 +446,7 @@ ${showdown.length ? `<section id="showdown" class="wrap section sd-section" data
     <button type="button" class="btn ghost sd-reset">Reset</button>
   </div>
   <div class="sd-wrap"><table class="sd" aria-describedby="sd-foot"></table></div>
+  <div class="sd-suggest" hidden></div>
   <p id="sd-foot" class="muted small sd-foot"></p>
 </section>` : ''}
 <section class="wrap section">
@@ -355,7 +461,7 @@ ${showdown.length ? `<section id="showdown" class="wrap section sd-section" data
     </div>
   </div>
   ${scored.length ? `<div class="pctl">
-    <label class="pctl-bench"><span>Benchmark column</span><select id="bench">${BENCHMARKS.map((b) => `<option value="${b.id}"${b === BENCH_DEFAULT ? ' selected' : ''}>${esc(b.name)} (${models.filter((m) => m.bench[b.id] != null).length})</option>`).join('')}</select></label>
+    <label class="pctl-bench"><span>Benchmark column</span><select id="bench">${Object.entries(Object.groupBy(BENCHMARKS, (b) => b.group)).map(([g, list]) => `<optgroup label="${esc(g)}">${list.map((b) => `<option value="${b.id}"${b === BENCH_DEFAULT ? ' selected' : ''}>${esc(b.name)} (${models.filter((m) => m.bench[b.id] != null).length})</option>`).join('')}</optgroup>`).join('')}</select></label>
     <label class="pctl-check"><input type="checkbox" id="scored-only"> Only models with benchmark scores <i>${scored.length}</i></label>
     <p class="pctl-hint muted small"><span class="pick-dot" aria-hidden="true"></span>Tick a model to add it to the showdown.</p>
   </div>` : ''}
@@ -377,9 +483,10 @@ ${showdown.length ? `<section id="showdown" class="wrap section sd-section" data
     <div class="wrap ctray-in"><div class="ctray-picks"></div><span class="ctray-n muted small"></span><button type="button" class="btn ctray-go">View showdown ↑</button></div>
   </div>
   <script type="application/json" id="mcmp-data">${JSON.stringify({
-    benchmarks: BENCHMARKS.map(({ id, name, desc, unit }) => ({ id, name, desc, unit })),
+    benchmarks: BENCHMARKS.map(({ id, name, desc, unit, group }) => ({ id, name, desc, unit, group })),
+    sets: BENCH_SETS,
     models: Object.fromEntries(models.map((m) => [m.id, {
-      name: m.name, lab: m.lab, color: m.color, url: m.url, icon: labTile(m, root), released: fmtDate(m.date),
+      name: m.name, lab: m.lab, color: m.color, url: m.url, page: `${root}${modelPath(m)}`, icon: labTile(m, root), released: fmtDate(m.date),
       context: tokens(m.context), maxOutput: m.maxOutput ? tokens(m.maxOutput) : '', input: m.input, output: m.output,
       tags: modelTags(m), bench: m.bench,
     }])),
@@ -393,7 +500,281 @@ ${showdown.length ? `<section id="showdown" class="wrap section sd-section" data
     description: `The newest AI models from ${labs.slice(0, 6).map((l) => l[0].lab).join(', ')} and more: ${models.slice(0, 5).map((m) => m.name).join(', ')}. Release dates, context windows and API prices, updated automatically.`,
     jsonld: {
       '@context': 'https://schema.org', '@type': 'ItemList', name: 'New AI models',
-      itemListElement: models.slice(0, 50).map((m, i) => ({ '@type': 'ListItem', position: i + 1, name: m.name, url: m.url })),
+      itemListElement: models.slice(0, 50).map((m, i) => ({ '@type': 'ListItem', position: i + 1, name: m.name, url: `${SITE_URL}/${modelPath(m)}` })),
+    },
+    body,
+  });
+}
+
+const yesNo = (v) => (v ? 'Yes' : 'No');
+const priceLine = (m) => (m.input === 0 && m.output === 0 ? 'Free' : `${mprice(m.input)} / ${mprice(m.output)}`);
+
+// Benchmark scores grouped like the showdown picker, each with its rank among every scored model.
+function benchTable(m, root) {
+  const rows = BENCHMARKS.filter((b) => m.bench[b.id] != null);
+  if (!rows.length) return `<p class="muted">No benchmark scores yet — <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a> hasn't evaluated ${esc(m.name)}. Scores appear here automatically once it does.</p>`;
+  return `<div class="ptable-wrap"><table class="ptable dtable">
+    <thead><tr><th scope="col">Benchmark</th><th scope="col">Score</th><th scope="col">Rank</th><th scope="col">Leader</th></tr></thead>
+    <tbody>${rows.map((b) => {
+      const v = m.bench[b.id], { rank, of } = benchRank(b, v);
+      const top = models.find((x) => x.bench[b.id] === benchMax[b.id]);
+      return `<tr><th scope="row"><strong>${esc(b.name)}</strong><small>${esc(b.group)} · ${esc(b.desc)}</small></th>
+        <td class="mnum">${benchCell(m, b)}</td>
+        <td class="mnum">${rank === 1 ? '<span class="pbadge free">#1</span>' : `#${rank}`}<small>of ${of}</small></td>
+        <td>${top && top.id !== m.id ? `<a href="${root}${modelPath(top)}">${esc(top.name)}</a><small>${benchVal(b, benchMax[b.id])}</small>` : '<span class="muted">This model</span>'}</td></tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+// A model's standout benchmarks: where it lands in the top half of every scored model, best first.
+function strengths(m) {
+  const top = BENCHMARKS.filter((b) => m.bench[b.id] != null).map((b) => ({ b, ...benchRank(b, m.bench[b.id]) }))
+    .filter((s) => s.of >= 5).map((s) => ({ ...s, pct: Math.max(1, Math.ceil((s.rank / s.of) * 100)) }))
+    .filter((s) => s.pct <= 50).sort((a, b) => a.pct - b.pct).slice(0, 4);
+  return top.length ? `<ul class="strengths" aria-label="Standout benchmarks">${top.map(({ b, rank, of, pct }) => `<li title="#${rank} of ${of} scored models"><b>${rank === 1 ? '#1' : `Top ${pct}%`}</b>${esc(b.name)}</li>`).join('')}</ul>` : '';
+}
+
+// Price vs. score scatter for one benchmark, with the value frontier: the best score money can buy at each price.
+// Every model is drawn as its lab's logo. src/app.js adds zoom and pan (it reads the scale from the data-* attributes).
+function valueChart(m, root) {
+  const b = [BENCH_DEFAULT, ...BENCHMARKS].find((x) => m.bench[x.id] != null && models.filter((y) => y.bench[x.id] != null && y.input > 0).length >= 6);
+  if (!b || !(m.input > 0)) return '';
+  const pts = models.filter((x) => x.bench[b.id] != null && x.input > 0);
+  const W = 640, H = 360, P = { l: 52, r: 16, t: 14, b: 34 };
+  const lx = pts.map((x) => Math.log10(x.input)), x0 = Math.floor(Math.min(...lx)), x1 = Math.max(x0 + 1, Math.ceil(Math.max(...lx)));
+  const ys = pts.map((x) => x.bench[b.id]), pad = (Math.max(...ys) - Math.min(...ys)) * 0.08 || 1;
+  const y0 = Math.min(...ys) - pad, y1 = Math.max(...ys) + pad;
+  const X = (v) => +(P.l + ((Math.log10(v) - x0) / (x1 - x0)) * (W - P.l - P.r)).toFixed(1);
+  const Y = (v) => +(H - P.b - ((v - y0) / (y1 - y0)) * (H - P.t - P.b)).toFixed(1);
+  let best = -Infinity;
+  const frontier = [...pts].sort((a, c) => a.input - c.input || c.bench[b.id] - a.bench[b.id]).filter((x) => (x.bench[b.id] > best ? ((best = x.bench[b.id]), true) : false));
+  const step = frontier.map((x, i) => `${i ? `H${X(x.input)}` : `M${X(x.input)} ${H - P.b}`} V${Y(x.bench[b.id])}`).join(' ') + ` H${W - P.r}`;
+  const v = m.bench[b.id];
+  const beaters = pts.filter((x) => x.id !== m.id && x.input <= m.input && x.bench[b.id] > v).sort((a, c) => c.bench[b.id] - a.bench[b.id]);
+  const order = [...pts.filter((x) => x.labId !== m.labId), ...pts.filter((x) => x.labId === m.labId && x.id !== m.id), m];
+  const dot = (x) => {
+    const me = x.id === m.id, kin = !me && x.labId === m.labId, ic = ICONS[`lab-${x.labId}`] || {}, tone = ic.tone;
+    return `<a class="vpt${me ? ' me' : kin ? ' kin' : ''}${tone ? ` tone-${tone}` : ''}" href="${root}${modelPath(x)}" data-x="${X(x.input)}" data-y="${Y(x.bench[b.id])}" transform="translate(${X(x.input)} ${Y(x.bench[b.id])})${me ? ' scale(1.5)' : ''}" style="--c:${x.color}">
+      <title>${esc(x.name)} (${esc(x.lab)}) — ${benchVal(b, x.bench[b.id])} · ${mprice(x.input)}/1M in</title>
+      <circle r="10"/>${ic.file ? `<image class="logo${ic.mono ? ' logo-mono' : ''}" href="${root}icons/${ic.file}" x="-6.5" y="-6.5" width="13" height="13"/>` : `<text class="mono-letter" y="4" text-anchor="middle">${esc(x.lab[0])}</text>`}
+    </a>`;
+  };
+  const yt = [0, 1, 2, 3].map((i) => y0 + pad + ((y1 - y0 - 2 * pad) * i) / 3);
+  const xt = Array.from({ length: x1 - x0 + 1 }, (_, i) => 10 ** (x0 + i));
+  const mx = X(m.input), anchor = mx > W * 0.7 ? 'end' : 'start';
+  return `<figure class="vchart" style="--c:${m.color}">
+    <figcaption><strong>${beaters.length ? `${beaters.length} model${beaters.length === 1 ? '' : 's'} score${beaters.length === 1 ? 's' : ''} higher for the same price or less` : 'On the value frontier'}</strong><span class="muted small">${beaters.length ? `on ${esc(b.name)}, e.g. <a href="${root}${modelPath(beaters[0])}">${esc(beaters[0].name)}</a>.` : `No cheaper model beats ${esc(m.name)} on ${esc(b.name)}.`}</span></figcaption>
+    <div class="vzoom">
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(b.name)} score against input price for ${pts.length} models"
+        data-x0="${x0}" data-x1="${x1}" data-y0="${y0}" data-y1="${y1}" data-unit="${b.unit || 'pct'}" data-pl="${P.l}" data-pr="${W - P.r}" data-pt="${P.t}" data-pb="${H - P.b}">
+        <defs><clipPath id="vclip"><rect x="${P.l}" y="${P.t - 12}" width="${W - P.l - P.r + 12}" height="${H - P.t - P.b + 12}"/></clipPath></defs>
+        <g class="axes">
+          ${yt.map((t) => `<g class="grid"><line x1="${P.l}" x2="${W - P.r}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${P.l - 8}" y="${Y(t) + 4}" text-anchor="end">${benchVal(b, t)}</text></g>`).join('')}
+          ${xt.map((t) => `<g class="grid"><line x1="${X(t)}" x2="${X(t)}" y1="${P.t}" y2="${H - P.b}"/><text x="${X(t)}" y="${H - P.b + 18}" text-anchor="middle">${mprice(t)}</text></g>`).join('')}
+        </g>
+        <g clip-path="url(#vclip)">
+          <g class="vplot"><path class="frontier" d="${step}"/></g>
+          <g class="vpts">${order.map(dot).join('')}</g>
+        </g>
+        <text class="me-label" data-x="${mx}" data-y="${Y(v)}" data-dx="${anchor === 'end' ? -20 : 20}" x="${mx + (anchor === 'end' ? -20 : 20)}" y="${Y(v) + 4}" text-anchor="${anchor}">${esc(m.name)}</text>
+      </svg>
+      <div class="vzoom-ctl" hidden>
+        <button type="button" class="icon-btn" data-zoom="in" aria-label="Zoom in" title="Zoom in">+</button>
+        <button type="button" class="icon-btn" data-zoom="out" aria-label="Zoom out" title="Zoom out">−</button>
+        <button type="button" class="icon-btn" data-zoom="reset" aria-label="Reset zoom" title="Reset zoom">⟲</button>
+      </div>
+    </div>
+    <p class="vchart-key muted small"><span class="k k-me"></span>${esc(m.name)} <span class="k k-kin"></span>Other ${esc(m.lab)} <span class="k"></span>Other labs <span class="k k-front"></span>Value frontier · ${esc(b.name)} vs. input price per 1M tokens (log scale)<span class="vzoom-hint"> · Drag to pan, pinch or Ctrl + scroll to zoom, double-click to zoom in.</span></p>
+  </figure>`;
+}
+
+// Every release from one lab on an 18-month axis; dots that would overlap stack upward.
+function labTimeline(list, root, highlight, { w: W = 640 } = {}) {
+  const every = W < 500 ? 6 : 3;
+  const P = 16, start = NOW - 540 * DAY, X = (t) => +(P + ((t - start) / (NOW - start)) * (W - 2 * P)).toFixed(1);
+  const lanes = [], dots = [...list].sort((a, b) => a.date.localeCompare(b.date)).map((m) => {
+    const x = X(Date.parse(m.date));
+    let lane = lanes.findIndex((last) => x - last >= 12);
+    if (lane < 0) lane = lanes.length;
+    lanes[lane] = x;
+    return { m, x, lane };
+  });
+  const H = 44 + lanes.length * 13, base = H - 26;
+  const months = [];
+  for (let d = new Date(start); d <= NOW; d.setUTCMonth(d.getUTCMonth() + 1)) if (d.getUTCMonth() % every === 0) months.push(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+  return `<svg class="ltl" style="--c:${list[0].color}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${list.length} releases over the last 18 months">
+    <line class="axis" x1="${P}" x2="${W - P}" y1="${base}" y2="${base}"/>
+    ${months.filter((t) => t >= start).map((t) => `<g class="grid"><line x1="${X(t)}" x2="${X(t)}" y1="${base}" y2="${base + 5}"/><text x="${X(t)}" y="${base + 18}" text-anchor="middle">${new Date(t).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })}</text></g>`).join('')}
+    ${dots.map(({ m, x, lane }) => `<a href="${root}${modelPath(m)}"><circle class="pt kin${m.id === highlight ? ' me' : ''}" cx="${x}" cy="${base - 8 - lane * 13}" r="${m.id === highlight ? 6.5 : 5}"><title>${esc(m.name)} — ${fmtDate(m.date)}</title></circle></a>`).join('')}
+  </svg>`;
+}
+
+const modelList = (list, root) => `<ul class="similar">${list.map((x) => `<li><a href="${root}${modelPath(x)}" style="--c:${x.color}">${labTile(x, root)}<span>${esc(x.name)}</span><code>${fmtDate(x.date).replace(/, \d{4}$/, '')}</code></a></li>`).join('')}</ul>`;
+
+function modelPage(m) {
+  const root = '../../../';
+  const lab = models.filter((x) => x.labId === m.labId);
+  const siblings = lab.filter((x) => x.id !== m.id).slice(0, 8);
+  const rivals = models.filter((x) => showdown.includes(x.id) && x.labId !== m.labId);
+  const nScores = Object.keys(m.bench).length;
+  const body = `
+<section class="wrap tool-hero" style="--c:${m.color}">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}models/">Models</a><span>/</span><a href="${root}${labPath(m.labId)}">${esc(m.lab)}</a><span>/</span><span>${esc(m.name)}</span></nav>
+  <div class="tool-head">
+    ${icon({ id: `lab-${m.labId}`, name: m.lab, color: m.color }, root, 'xl')}
+    <div>
+      <p class="eyebrow"><a class="lab-link" href="${root}${labPath(m.labId)}">${esc(m.lab)}</a> · Released ${fmtDate(m.date)}</p>
+      <h1>${esc(m.name)}</h1>
+      ${m.summary ? `<p class="lede">${esc(m.summary)}</p>` : ''}
+      <div class="mtags mtags-hero">${modelTags(m)}</div>
+      ${strengths(m)}
+      <div class="tool-links">
+        ${nScores ? `<a class="btn" href="${showdownHref(root, [m.id, ...rivals.map((x) => x.id)])}">Compare in showdown →</a>` : ''}
+        <a class="btn ghost" href="${esc(m.url)}" target="_blank" rel="noopener">OpenRouter ↗</a>
+        <a class="btn ghost" href="${root}${labPath(m.labId)}">All ${esc(m.lab)} models</a>
+      </div>
+    </div>
+  </div>
+  <dl class="stats tool-stats">
+    <div><dt>Released</dt><dd>${fmtDate(m.date).replace(/, \d{4}$/, '')}<small> ${new Date(m.date).getUTCFullYear()}</small></dd></div>
+    <div><dt>Context window</dt><dd>${tokens(m.context)}${m.maxOutput ? `<small> ${tokens(m.maxOutput)} out</small>` : ''}</dd></div>
+    <div><dt>Input / 1M tokens</dt><dd>${mprice(m.input)}</dd></div>
+    <div><dt>Output / 1M tokens</dt><dd>${mprice(m.output)}</dd></div>
+  </dl>
+</section>
+
+${banner()}
+
+<section class="wrap section">
+  <div class="feed-layout">
+    <div class="feed">
+      ${valueChart(m, root) ? `<div class="section-head"><div><p class="eyebrow">Value</p><h2>Price vs. performance</h2></div></div>${valueChart(m, root)}` : ''}
+      <div ${valueChart(m, root) ? 'class="section-head dsub"' : 'class="section-head"'}><div><p class="eyebrow">Benchmarks</p><h2>${nScores ? `${nScores} benchmark score${nScores === 1 ? '' : 's'}` : 'Benchmark scores'}</h2></div></div>
+      ${benchTable(m, root)}
+      <div class="section-head dsub"><div><p class="eyebrow">Specs</p><h2>Details</h2></div></div>
+      <dl class="specs">
+        <div><dt>Model ID</dt><dd><code>${esc(m.id)}</code></dd></div>
+        <div><dt>Developer</dt><dd><a href="${root}${labPath(m.labId)}">${esc(m.lab)}</a></dd></div>
+        <div><dt>Release date</dt><dd>${fmtDate(m.date)} · ${time(m.date)}</dd></div>
+        <div><dt>Context window</dt><dd>${m.context ? `${m.context.toLocaleString('en-US')} tokens` : '—'}</dd></div>
+        <div><dt>Max output</dt><dd>${m.maxOutput ? `${m.maxOutput.toLocaleString('en-US')} tokens` : '—'}</dd></div>
+        <div><dt>API price</dt><dd>${priceLine(m)} <span class="muted">per 1M input / output tokens</span></dd></div>
+        <div><dt>Input types</dt><dd>${esc(m.modalities.join(', ') || '—')}</dd></div>
+        <div><dt>Reasoning</dt><dd>${yesNo(m.reasoning)}</dd></div>
+        <div><dt>Tool calling</dt><dd>${yesNo(m.tools)}</dd></div>
+        <div><dt>Open weights</dt><dd>${yesNo(m.openWeights)}</dd></div>
+        <div><dt>Free tier</dt><dd>${yesNo(m.free)}</dd></div>
+      </dl>
+      <p class="muted small section-note">Release date and prices from OpenRouter's catalog; first-party API prices can differ. Benchmark scores are the best result per benchmark from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a>, licensed CC BY 4.0. Rank counts every model tracked here with a score.</p>
+    </div>
+    <aside class="side">
+      ${ad('side')}
+      ${lab.length > 1 ? `<div class="side-card"><p class="eyebrow">Release history</p><h2>${esc(m.lab)} timeline</h2>${labTimeline(lab, root, m.id, { w: 340 })}</div>` : ''}
+      ${siblings.length ? `<div class="side-card"><p class="eyebrow">${esc(m.lab)}</p><h2>More from ${esc(m.lab)}</h2>${modelList(siblings, root)}<p class="side-more"><a href="${root}${labPath(m.labId)}">All ${lab.length} ${esc(m.lab)} models →</a></p></div>` : ''}
+      ${rivals.length ? `<div class="side-card"><p class="eyebrow">Rivals</p><h2>Other flagships</h2>${modelList(rivals, root)}</div>` : ''}
+    </aside>
+  </div>
+</section>
+
+${banner()}`;
+  return layout({
+    root, path: modelPath(m), active: 'models',
+    title: `${m.name} — Benchmarks, Context Window & API Pricing | ${SITE_NAME}`,
+    description: `${m.name} by ${m.lab}, released ${fmtDate(m.date)}: ${tokens(m.context)} context, ${priceLine(m)} per 1M input/output tokens${nScores ? `, ${nScores} benchmark scores` : ''}. ${m.summary || ''}`.slice(0, 300),
+    jsonld: {
+      '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: m.name, applicationCategory: 'AI model',
+      url: `${SITE_URL}/${modelPath(m)}`, datePublished: m.date, creator: { '@type': 'Organization', name: m.lab, url: `${SITE_URL}/${labPath(m.labId)}` },
+      ...(m.summary ? { description: m.summary } : {}),
+    },
+    body,
+  });
+}
+
+function labPage(list) {
+  const root = '../../';
+  const [newest] = list, { lab, labId, color } = newest;
+  const month = list.filter((m) => NOW - Date.parse(m.date) < 30 * DAY);
+  const paid = list.filter((m) => m.input > 0);
+  const cheapest = paid.length ? paid.reduce((a, b) => (b.input < a.input ? b : a)) : null;
+  const biggest = list.reduce((a, b) => ((b.context || 0) > (a.context || 0) ? b : a));
+  const labScored = list.filter((m) => Object.keys(m.bench).length);
+  // The lab's best model on each benchmark, with where it ranks overall.
+  const bests = BENCHMARKS.map((b) => {
+    const top = labScored.filter((m) => m.bench[b.id] != null).sort((x, y) => y.bench[b.id] - x.bench[b.id])[0];
+    return top && { b, m: top, ...benchRank(b, top.bench[b.id]) };
+  }).filter(Boolean);
+  const others = labs.filter((l) => l[0].labId !== labId);
+  const span = (Date.parse(newest.date) - Date.parse(list.at(-1).date)) / DAY;
+  const cadence = list.length > 2 ? span / (list.length - 1) : null;
+  const body = `
+<section class="wrap tool-hero" style="--c:${color}">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}models/">Models</a><span>/</span><span>${esc(lab)}</span></nav>
+  <div class="tool-head">
+    ${icon({ id: `lab-${labId}`, name: lab, color }, root, 'xl')}
+    <div>
+      <p class="eyebrow">AI lab · ${list.length} model${list.length === 1 ? '' : 's'} tracked</p>
+      <h1>${esc(lab)} <em>models</em></h1>
+      <p class="lede">Every ${esc(lab)} model released in the last 18 months, with release dates, context windows, API prices and benchmark scores. Newest: <a href="${root}${modelPath(newest)}">${esc(newest.name)}</a>, ${ago(newest.date)}.</p>
+      <div class="tool-links">
+        ${labScored.length ? `<a class="btn" href="${showdownHref(root, labScored.slice(0, 6).map((m) => m.id))}">Compare ${esc(lab)} models →</a>` : ''}
+        <a class="btn ghost" href="${root}models/">All labs</a>
+      </div>
+    </div>
+  </div>
+  <dl class="stats tool-stats">
+    <div><dt>Models · 30 days</dt><dd>${month.length}<small> of ${list.length}</small></dd></div>
+    <div><dt>Latest release</dt><dd>${ago(newest.date)}</dd></div>
+    <div><dt>Cheapest input / 1M</dt><dd>${cheapest ? mprice(cheapest.input) : 'Free'}${cheapest ? `<small> ${esc(cheapest.name)}</small>` : ''}</dd></div>
+    <div><dt>Largest context</dt><dd>${tokens(biggest.context)}<small> ${esc(biggest.name)}</small></dd></div>
+  </dl>
+</section>
+
+<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Release history</p><h2>Timeline</h2></div><p class="muted small section-note">${cadence != null ? `${esc(lab)} ships a new model about every <strong>${cadence < 1.5 ? 'day' : `${Math.round(cadence)} days`}</strong>.` : ''} Each dot is a release; click one to open it.</p></div>
+  ${labTimeline(list, root, null, { w: 1200 })}
+</section>
+
+${banner()}
+
+<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Lineup</p><h2>All ${esc(lab)} models</h2></div></div>
+  <div class="ptable-wrap">
+    <table class="ptable dtable">
+      <thead><tr><th scope="col">Model</th><th scope="col">Released</th><th scope="col">Context</th><th scope="col">Input <small>/ 1M</small></th><th scope="col">Output <small>/ 1M</small></th><th scope="col">${esc(BENCH_DEFAULT.name)}</th></tr></thead>
+      <tbody>${list.map((m) => `<tr>
+        <th scope="row"><a class="ptool" href="${root}${modelPath(m)}">${labTile(m, root)}<span><strong>${esc(m.name)}</strong><small><code>${esc(m.id)}</code></small></span></a><div class="mtags">${modelTags(m)}</div></th>
+        <td class="mnum">${fmtDate(m.date)}<small>${time(m.date)}</small></td>
+        <td class="mnum">${tokens(m.context)}${m.maxOutput ? `<small>${tokens(m.maxOutput)} out</small>` : ''}</td>
+        <td class="mnum">${mprice(m.input)}</td>
+        <td class="mnum">${mprice(m.output)}</td>
+        <td class="mnum">${benchCell(m, BENCH_DEFAULT)}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+  </div>
+</section>
+
+${bests.length ? `<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Benchmarks</p><h2>${esc(lab)}'s best scores</h2></div><p class="muted small section-note">The top ${esc(lab)} model on each benchmark, and where it ranks among all ${models.length} tracked models.</p></div>
+  <div class="ptable-wrap"><table class="ptable dtable">
+    <thead><tr><th scope="col">Benchmark</th><th scope="col">Best ${esc(lab)} model</th><th scope="col">Score</th><th scope="col">Overall rank</th></tr></thead>
+    <tbody>${bests.map(({ b, m, rank, of }) => `<tr><th scope="row"><strong>${esc(b.name)}</strong><small>${esc(b.group)}</small></th>
+      <td><a href="${root}${modelPath(m)}">${esc(m.name)}</a></td>
+      <td class="mnum">${benchCell(m, b)}</td>
+      <td class="mnum">${rank === 1 ? '<span class="pbadge free">#1</span>' : `#${rank}`}<small>of ${of}</small></td></tr>`).join('')}</tbody>
+  </table></div>
+</section>` : ''}
+
+<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Directory</p><h2>Other labs</h2></div></div>
+  <ul class="lab-grid">${others.map((l) => `<li><a href="${root}${labPath(l[0].labId)}" style="--c:${l[0].color}">${labTile(l[0], root)}<span>${esc(l[0].lab)}</span><small>${l.length}</small></a></li>`).join('')}</ul>
+  ${ad('inline')}
+</section>`;
+  return layout({
+    root, path: labPath(labId), active: 'models',
+    title: `${lab} AI Models — Every Release, Benchmarks & API Pricing | ${SITE_NAME}`,
+    description: `All ${list.length} ${lab} models tracked: ${list.slice(0, 5).map((m) => m.name).join(', ')}. Release dates, context windows, API prices and benchmark scores, updated automatically.`,
+    jsonld: {
+      '@context': 'https://schema.org', '@type': 'ItemList', name: `${lab} AI models`,
+      itemListElement: list.slice(0, 50).map((m, i) => ({ '@type': 'ListItem', position: i + 1, name: m.name, url: `${SITE_URL}/${modelPath(m)}` })),
     },
     body,
   });
@@ -771,6 +1152,8 @@ await out('tools/index.html', toolsIndexPage());
 await out('news/index.html', newsPage());
 await out('compare/index.html', comparePage());
 if (models.length) await out('models/index.html', modelsPage());
+for (const l of labs) await out(`${labPath(l[0].labId)}index.html`, labPage(l));
+for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
 
 const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date));
@@ -795,7 +1178,7 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
-${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 </urlset>`);
@@ -803,4 +1186,4 @@ await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap
 if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
 `);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 4 + (models.length ? 1 : 0)} pages → dist/`);
+console.log(`Built ${tools.length + 4 + (models.length ? 1 + labs.length + models.length : 0)} pages → dist/`);

@@ -41,6 +41,7 @@ jobs:
         run: node scripts/fetch.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AA_API_KEY: ${{ secrets.AA_API_KEY }}   # optional: Artificial Analysis speed + indexes
       - name: Build site
         if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
         run: node scripts/build.mjs
