@@ -695,8 +695,8 @@ a:hover > .pt { opacity: 1; r: 7; }
 .lb-head b { font-weight: 500; color: var(--ink-2); }
 .lb-scroll { overflow-x: auto; margin: 0 -8px; padding: 0 8px; }
 .lb-chart {
-  list-style: none; margin: 18px 0 0; padding: 0; min-width: calc(var(--n) * 46px);
-  display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 10px;
+  list-style: none; margin: 18px 0 0; padding: 0; min-width: calc(var(--n) * 40px);
+  display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 6px;
   --plot: 220px;
   background: repeating-linear-gradient(to top, transparent 0 calc(var(--plot) / 4 - 1px), var(--line) calc(var(--plot) / 4 - 1px) calc(var(--plot) / 4)) top / 100% var(--plot) no-repeat;
 }
@@ -707,7 +707,7 @@ a:hover > .pt { opacity: 1; r: 7; }
 .lb-chart a:hover .lb-bar, .lb-chart a:focus-visible .lb-bar { filter: brightness(1.15); }
 .lb-chart a:hover .lb-name { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .lb-chart .ticon-sm { width: 22px; height: 22px; font-size: 11px; }
-.lb-name { display: block; height: 110px; max-width: 100%; font-size: 12px; line-height: 1.2; color: var(--ink-2); }
+.lb-name { display: block; height: 136px; max-width: 100%; font-size: 12px; line-height: 1.2; color: var(--ink-2); }
 .lb-name { writing-mode: vertical-rl; transform: rotate(180deg); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @keyframes lb-grow { from { height: 0; } }
 @media (prefers-reduced-motion: reduce) { .lb-bar { animation: none; } }

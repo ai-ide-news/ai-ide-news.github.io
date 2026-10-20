@@ -340,7 +340,7 @@ const lbIndex = (m, ix) => {
   return ids.length < ix.min ? null : Math.round((ids.reduce((s, id) => s + m.bench[id] / benchMax[id], 0) / ids.length) * 100);
 };
 const blended = (m) => (3 * m.input + m.output) / 4;
-const LB_TOP = 12;
+const LB_TOP = 20;
 // Artificial Analysis rows matched to our models by slug ("claude-opus-5-5", plus effort suffixes like "-max");
 // several efforts of one model keep the best value of each metric.
 const AA_EFFORT = /^(-(reasoning|non-reasoning|thinking|adaptive|minimal|low|medium|high|xhigh|max|\d{4,}))*$/;
