@@ -22,8 +22,8 @@ const NOW = Date.now();
 const MAX_PER_TOOL = 40;
 const RELEASES_PAGE = 100;
 const RELEASES_PAGE_SMALL = 30;
-const MAX_RELEASE_DATES = 600; // how far back a full run pages for the activity chart
-const CADENCE_WINDOW = 26 * 7 * DAY; // the tool page's weekly activity chart
+const MAX_RELEASE_DATES = 1000; // how far back a full run pages for the activity chart
+const CADENCE_WINDOW = Infinity; // the tool page's activity chart spans each tool's whole history
 // QUICK=1: the frequent "is there anything new?" run — skips trending discovery and repo metadata,
 // and uses conditional requests so unchanged GitHub repos cost nothing against the rate limit.
 const QUICK = process.env.QUICK === '1';
@@ -88,7 +88,8 @@ async function releasesPage(tool, size, headers = {}) {
 }
 
 async function fetchGithub(tool, old) {
-  const conditional = old?.meta?.etag ? { 'If-None-Match': old.meta.etag } : {};
+  // Snapshots from before cadenceAll kept only 26 weeks of dates, so refetch them once in full.
+  const conditional = old?.meta?.etag && old.meta.cadenceAll ? { 'If-None-Match': old.meta.etag } : {};
   let size = RELEASES_PAGE, page;
   try { page = await releasesPage(tool, size, conditional); } catch (e) {
     // Repos with very long release notes (Codex) can make a full page time out; ask for smaller ones.
@@ -121,7 +122,7 @@ async function fetchGithub(tool, old) {
       url: r.html_url, date: r.published_at, summary: excerpt(text), html, source: 'GitHub Releases',
     };
   });
-  return { items, meta: { ...meta, cadence, cadenceFrom } };
+  return { items, meta: { ...meta, cadence, cadenceFrom, cadenceAll: true } };
 }
 
 // Release dates behind the activity chart. Busy repos ship more than a page of releases in the
@@ -182,7 +183,7 @@ async function fetchCask(tool, old) {
   let items = (old?.items || []).filter((i) => i.kind === 'release' && i.id.startsWith('cask:'));
   // Quick runs reuse the stored history; full runs page back far enough to cover the activity chart.
   let cadence = old?.meta?.cadence || [], cadenceFrom = old?.meta?.cadenceFrom;
-  if (!QUICK || !items.length) {
+  if (!QUICK || !items.length || !old?.meta?.cadenceAll) {
     const path = `Casks/${tool.cask[0]}/${tool.cask}.rb`;
     const commits = [];
     let covered = false;
@@ -208,7 +209,7 @@ async function fetchCask(tool, old) {
   const seen = new Set();
   items = items.filter((i) => !seen.has(i.id) && seen.add(i.id)).sort((a, b) => b.date.localeCompare(a.date));
   cadence = [...new Set([...cadence, ...items.map((i) => i.date)])].filter((d) => Date.parse(d) >= NOW - CADENCE_WINDOW).sort().reverse();
-  return { items: items.slice(0, MAX_PER_TOOL), meta: { ...(old?.meta || {}), cask: tool.cask, cadence, cadenceFrom } };
+  return { items: items.slice(0, MAX_PER_TOOL), meta: { ...(old?.meta || {}), cask: tool.cask, cadence, cadenceFrom, cadenceAll: true } };
 }
 
 // ── RSS / Atom feeds ───────────────────────────────────────

@@ -997,6 +997,11 @@ function toolPage(t) {
   const rels = t.items.filter((i) => i.kind === 'release');
   const gaps = rels.slice(0, 15).map((r, i, a) => (i ? (Date.parse(a[i - 1].date) - Date.parse(r.date)) / DAY : null)).filter((x) => x != null);
   const avgGap = gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : null;
+  // The activity chart spans the tool's whole known history, so every tool fills the width.
+  const firstSeen = Math.min(...t.activity.map(Date.parse), t.meta.cadenceFrom ? Date.parse(t.meta.cadenceFrom) : Infinity);
+  const historyWeeks = Number.isFinite(firstSeen) ? Math.floor((NOW - firstSeen) / (7 * DAY)) + 1 : 26;
+  const since = Number.isFinite(firstSeen) ? new Date(firstSeen).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : null;
+  const sparkSpan = { weeks: Math.max(4, historyWeeks) };
   const ver = t.latestRelease?.version;
   const similar = tools.filter((x) => x.category === t.category && x.id !== t.id).slice(0, 6);
 
@@ -1023,7 +1028,7 @@ function toolPage(t) {
     ${t.discovered ? `<div><dt>GitHub stars</dt><dd>${compact(t.meta.stars || 0)}${t.starsPerWeek > 0 ? `<small> +${compact(t.starsPerWeek)}/wk</small>` : ''}</dd></div>` : `<div><dt>Updates · 90 days</dt><dd>${rel90.length}</dd></div>`}
     <div><dt>${avgGap != null ? 'Avg. release gap' : 'GitHub stars'}</dt><dd>${avgGap != null ? `${avgGap < 1 ? '<1' : avgGap.toFixed(1)}<small> days</small>` : (t.meta.stars ? compact(t.meta.stars) : '—')}</dd></div>
   </dl>
-  <div class="tool-spark"><span class="muted small">Weekly activity · last 26 weeks</span>${sparkline(t.activity, { weeks: 26, w: 520, h: 56, since: t.meta.cadenceFrom })}</div>
+  <div class="tool-spark"><span class="muted small">Weekly activity · ${since ? `since ${since} · ` : ''}${sparkSpan.weeks} weeks</span>${sparkline(t.activity, { weeks: sparkSpan.weeks, w: sparkSpan.weeks * 12, h: 56, since: t.meta.cadenceFrom })}</div>
 </section>
 
 ${banner()}
