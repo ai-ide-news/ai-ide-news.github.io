@@ -38,7 +38,7 @@ const SIGNALS = [
   ['Security', 5, /vulnerab|\bcve-\d|breach|hacked|leak(ed|s)?\b|malware|compromis|exfiltrat|security (incident|advisory)|supply.chain|backdoor|silently upload|credentials/i],
   ['Business', 5, /acqui(re|res|red|sition)|\braises? (\$|€|£|\d|series|seed)|funding round|valuation|merg(e|er)s? with|joins (forces|openai|anthropic|google)|shut(s|ting)? down|wind(s|ing) down/i],
   ['Deprecation', 4, /end of life|deprecat|retir(e|es|ing|ement)\b|sunset/i],
-  ['Model', 2.5, /\b(claude|opus|sonnet|haiku) ?\d|\bgpt-?\d|\bgemini \d|\bo\d\b|\bqwen ?\d|kimi k\d|\bglm-?\d|deepseek[- ]?(v|r)\d|\bllama ?\d|mistral|devstral|codestral|new (coding )?model|open(-| )weights?/i],
+  ['Model', 2.5, /\b(claude|opus|sonnet|haiku) ?\d|\bgpt-?\d|\bgemini \d|\bo\d\b|\bqwen ?\d|kimi k\d|\bglm-?\d|deepseek[- ]?(v|r)\d|minimax[- ]?m\d|\bllama ?\d|mistral|devstral|codestral|new (coding )?model|open(-| )weights?/i],
   ['Pricing', 4, /pricing|price (cut|drop|increase)|\bfree (tier|for)|rate limits?|usage limits?|\bplans?\b.*(change|new)|\bcredits?\b|billing|charges/i],
   ['Policy', 3, /terms of (service|use)|\btos\b|\bban(s|ned)?\b|suspend|telemetry|privacy|licen[cs]e change/i],
   ['Outage', 3, /outage|\bdown\b.*(hours|users)|degraded|incident report/i],
@@ -182,6 +182,15 @@ export async function fetchX(accounts, prevX = {}, NOW = Date.now()) {
   return { posts, userIds, lastRead, via: `${via}, ${r.read.length}/${order.length} accounts`, added: r.posts.length };
 }
 
+// X posts the keyless reader misses (for some accounts X serves logged-out readers older popular
+// posts, not the latest ones). Each one is always kept as news while it's inside the news window.
+export const PINNED_POSTS = [
+  { id: '2112220734768779441', handle: 'opencode', date: '2026-10-19T19:34:00.000Z', tag: 'Model',
+    text: 'DeepSeek V4.1 Flash updated to 1017 in OpenCode Go and Free\n\nNo changes needed on your end' },
+  { id: '2112156205938626954', handle: 'opencode', date: '2026-10-19T15:17:36.000Z', tag: 'Model',
+    text: 'Space Bunny was MiniMax M3.1 Flash\n\n#1 on OpenCode for 12 consecutive days, 106T tokens served\n\nNow available on OpenCode, free for the next 3 days' },
+];
+
 // ── Selection ─────────────────────────────────────────────
 const words = (s) => new Set(s.toLowerCase().replace(/https?:\S+/g, '').match(/[a-z0-9.]{3,}/g) || []);
 const similar = (a, b) => {
@@ -217,12 +226,16 @@ export function pickNews({ items, extra, discussions, posts, matchTools, handleT
   for (const d of discussions) {
     add({ id: d.id, title: d.title, url: d.url, date: d.date, summary: '', toolIds: d.toolIds || [d.toolId], points: d.points, comments: d.comments, sources: [{ name: `Hacker News · ▲${d.points}`, url: d.hnUrl }], ...scoreNews({ title: d.title, points: d.points }) });
   }
-  for (const p of posts) {
+  const fetched = new Map(posts.map((p) => [p.id, p]));
+  const pinned = PINNED_POSTS.map((p) => ({ ...p, ...fetched.get(p.id), pinned: p.tag }));
+  for (const p of [...posts.filter((q) => !pinned.some((r) => r.id === q.id)), ...pinned]) {
     const title = tweetTitle(p.text);
     if (title.length < 25) continue;
     const own = handleTools(p.handle);
-    if ((LABS.has(p.handle.toLowerCase()) || own.broad) && !labRelevant(p.text)) continue;
-    add({ id: `x:${p.id}`, title, url: tweetUrl(p.handle, p.id), date: p.date, summary: p.text.length > title.length + 10 ? p.text.replace(/https?:\/\/\S+/g, '').trim().slice(0, 280) : '', toolIds: [...new Set([...(own.toolIds.length === 1 ? own.toolIds : []), ...matchTools(p.text)])], likes: p.likes, sources: [{ name: `X · @${p.handle}`, url: tweetUrl(p.handle, p.id) }], ...scoreNews({ title, text: p.text, likes: p.likes, official: true }) });
+    if (!p.pinned && (LABS.has(p.handle.toLowerCase()) || own.broad) && !labRelevant(p.text)) continue;
+    const scored = scoreNews({ title, text: p.text, likes: p.likes, official: true });
+    if (p.pinned) Object.assign(scored, { score: Math.max(scored.score, NEWS_MIN), tag: scored.tag || p.pinned });
+    add({ id: `x:${p.id}`, title, url: tweetUrl(p.handle, p.id), date: p.date, summary: p.text.length > title.length + 10 ? p.text.replace(/https?:\/\/\S+/g, '').trim().slice(0, 280) : '', toolIds: [...new Set([...(own.toolIds.length === 1 ? own.toolIds : []), ...matchTools(p.text)])], likes: p.likes, sources: [{ name: `X · @${p.handle}`, url: tweetUrl(p.handle, p.id) }], ...scored });
   }
 
   // Merge the same story told by several sources: coverage in more places makes it more important.
