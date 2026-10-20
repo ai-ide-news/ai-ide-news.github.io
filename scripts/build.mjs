@@ -282,7 +282,8 @@ const sourceLink = (s) => `<a class="src${/^X ·/.test(s.name) ? ' src-x' : /^Ha
 function newsCard(n, root, { lead = false } = {}) {
   const ts = n.toolIds.map((id) => byId[id]).filter(Boolean);
   const c = ts[0]?.color || '#d4ff3f';
-  return `<article class="ncard${lead ? ` ncard-lead${n.summary ? ' tall' : ''}` : ''}${n.major ? ' major' : ''}" data-tag="${esc(n.tag.toLowerCase())}" data-tools="${esc(n.toolIds.join(' '))}" style="--c:${c}">
+  return `<article class="ncard${lead ? ` ncard-lead${n.summary ? ' tall' : ''}` : ''}${n.major ? ' major' : ''}" data-tag="${esc(n.tag.toLowerCase())}" data-tools="${esc(n.toolIds.join(' '))}" data-srcs="${[...new Set(n.sources.map((s) => /^X ·/.test(s.name) ? 'x' : /^Hacker News/.test(s.name) ? 'hn' : 'official'))].join(' ')}" data-date="${esc(n.date)}" data-text="${esc([n.title, n.summary, n.tag, ...ts.map((t) => t.name)].join(' ').toLowerCase())}" style="--c:${c}">
+  <header class="ncard-by">${ts[0] ? `<a class="ncard-av" href="${root}tools/${ts[0].id}/" tabindex="-1" aria-hidden="true">${icon(ts[0], root)}</a>` : '<span class="ncard-av"><span class="ticon ticon-md" aria-hidden="true"><b>★</b></span></span>'}<div class="ncard-who">${ts[0] ? `<a href="${root}tools/${ts[0].id}/"><b>${esc(ts[0].name)}</b></a>` : `<b>${esc(n.sources[0]?.name.replace(/^X · /, '') || 'News')}</b>`}<small>${ts[0]?.vendor ? `${esc(ts[0].vendor)} · ` : ''}${time(n.date)}</small></div></header>
   <div class="ncard-meta"><span class="ntag ntag-${esc(n.tag.toLowerCase())}">${esc(n.tag)}</span>${n.major ? '<span class="nmajor">Major</span>' : ''}${time(n.date, 'fcard-time')}</div>
   <h3 class="ncard-title"><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a></h3>
   ${n.summary ? `<p class="ncard-sum">${esc(n.summary)}</p>` : ''}
@@ -303,10 +304,10 @@ function newsFit(list, limit = Infinity) {
   const fit = n > 3 ? n - ((n + cells) % 3) : n;
   return [lead, ...rest.slice(0, fit)];
 }
-function newsGrid(list, root, limit = Infinity) {
+function newsGrid(list, root, limit = Infinity, { feed = false } = {}) {
   if (!list.length) return '<p class="muted">No major news in the last 30 days.</p>';
   const [lead, ...rest] = newsFit(list, limit);
-  return `<div class="ngrid">${newsCard(lead, root, { lead: true })}${rest.map((x) => newsCard(x, root)).join('')}</div>`;
+  return `<div class="ngrid${feed ? ' feed' : ''}">${newsCard(lead, root, { lead: true })}${rest.map((x) => newsCard(x, root)).join('')}</div>`;
 }
 
 // ── models ────────────────────────────────────────────────
@@ -1262,6 +1263,10 @@ ${banner()}
 }
 
 // Topic chips and a tool picker; src/app.js hides the cards that don't match.
+const viewToggle = `<div class="nview" role="group" aria-label="Layout">
+    <button type="button" data-view="feed" aria-pressed="true" title="Feed"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 4h14v7H5zM5 14h14v6H5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Feed</button>
+    <button type="button" data-view="grid" aria-pressed="false" title="Grid"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Grid</button>
+  </div>`;
 function newsFilters() {
   const shown = newsFit(news);
   if (shown.length < 2) return '';
@@ -1273,10 +1278,27 @@ function newsFilters() {
     <button type="button" class="chip on" data-tag="all" aria-pressed="true">All <small>${shown.length}</small></button>
     ${tags.map(([t, c]) => `<button type="button" class="chip" data-tag="${esc(t.toLowerCase())}" aria-pressed="false">${esc(t)} <small>${c}</small></button>`).join('')}
   </div>
+  <div class="nrow">
+  <input id="nq" type="search" placeholder="Search stories…" aria-label="Search stories" autocomplete="off">
   <label class="ntool-pick"><select id="ntool" aria-label="Filter by tool">
     <option value="">All tools</option>
     ${tools.map(([id, c]) => `<option value="${esc(id)}">${esc(byId[id].name)} (${c})</option>`).join('')}
   </select></label>
+  <label class="ntool-pick"><select id="nsrc" aria-label="Filter by source">
+    <option value="">All sources</option>
+    <option value="official">Official blogs</option>
+    <option value="x">X posts</option>
+    <option value="hn">Hacker News</option>
+  </select></label>
+  <label class="ntool-pick"><select id="nwhen" aria-label="Filter by date">
+    <option value="">Last 30 days</option>
+    <option value="1">Last 24 hours</option>
+    <option value="3">Last 3 days</option>
+    <option value="7">Last 7 days</option>
+  </select></label>
+  <label class="nmajor-pick"><input type="checkbox" id="nmaj"> Major only</label>
+  ${viewToggle}
+  </div>
 </div>`;
 }
 
@@ -1290,7 +1312,7 @@ function newsPage() {
 </section>
 
 ${banner()}
-<section class="wrap section">${newsFilters()}${newsGrid(news, root)}<p class="muted nempty" hidden>No stories match these filters.</p>${ad('inline')}</section>`;
+<section class="wrap section">${newsFilters()}${newsGrid(news, root, Infinity, { feed: true })}<p class="muted nempty" hidden>No stories match these filters.</p>${ad('inline')}</section>`;
   return layout({
     root, path: 'news/', active: 'news', title: `AI Coding News — Launches, Models, Security & Pricing | ${SITE_NAME}`,
     description: `The important AI IDE and coding-agent news: ${news.slice(0, 4).map((n) => n.title).join(' · ')}`, body,
@@ -1330,16 +1352,46 @@ const ECO = {
   },
 };
 const avatar = (url, size = 64) => (url ? `${url}${url.includes('?') ? '&' : '?'}s=${size}` : '');
-const ecoText = (r) => esc(`${r.name} ${r.repo} ${r.description} ${r.language || ''} ${r.topics.join(' ')}`.toLowerCase());
+// Field of work, guessed from the name, description and topics; a repo can sit in several. Order is the menu order.
+const FIELDS = [
+  ['frontend', 'Frontend & UI', /\b(front ?end|full ?stack|react|vue|svelte|angular|next\.?js|nuxt|tailwind|css|html|ui|ux|interfaces?|components?|shadcn|web ?apps?)\b/],
+  ['backend', 'Backend & APIs', /\b(back ?end|full ?stack|apis?|rest|graphql|server side|node\.?js|django|fastapi|flask|rails|laravel|php|spring|express|microservices?|grpc|openapi)\b/],
+  ['data', 'Data & databases', /\b(databases?|sql|postgres(ql)?|mysql|sqlite|mongo(db)?|redis|supabase|neon|snowflake|bigquery|clickhouse|duckdb|data|analytics|etl|spreadsheets?|excel|csv|vector|elasticsearch)\b/],
+  ['devops', 'DevOps & cloud', /\b(devops|cloud|aws|azure|gcp|kubernetes|k8s|docker|terraform|ci ?\/?cd|deploy(ment)?s?|infra(structure)?|serverless|vercel|cloudflare|netlify|observability|monitoring|logs?|grafana|datadog|sentry|linux|shell|ssh|terminal|file ?system)\b/],
+  ['testing', 'Testing & QA', /\b(tests?|testing|qa|e2e|tdd|debug(ging|ger)?|playwright|cypress|selenium|lint(er|ing)?|code ?review|reviews?)\b/],
+  ['security', 'Security', /\b(security|secure|pentest(ing)?|vulnerabilit(y|ies)|cve|exploits?|auth(entication|orization)?|oauth|secrets?|malware|threat|red ?team|ctf|osint|privacy|sandbox(ed|ing)?|reverse engineering|ida|ghidra)\b/],
+  ['browser', 'Browser & web', /\b(browser|chrome|scrap(e|er|ing)|crawl(er|ing)?|web ?search|search engines?|fetch|puppeteer|headless|web automation)\b/],
+  ['git', 'Git & GitHub', /\b(git|github|gitlab|pull requests?|commits?|bitbucket)\b/],
+  ['agents', 'Agents & orchestration', /\b(multi ?agents?|orchestrat(e|ion|or)|subagents?|workflows?|harness|swarm|autonomous|a2a|gateway|proxy|router|routing|agent os)\b/],
+  ['memory', 'Memory & RAG', /\b(memory|memories|context (engineering|window|management)|knowledge ?graphs?|rag|embeddings?|retrieval|semantic search|codebase (index|search)|indexing)\b/],
+  ['docs', 'Docs & writing', /\b(docs|documentation|writing|writer|humanizer|markdown|notion|obsidian|notes?|knowledge ?base|wiki|pdf|docx|word|blog|content)\b/],
+  ['design', 'Design', /\b(design(er|s)?|figma|canva|stitch|typography|icons?|diagrams?|excalidraw|slides?|presentations?|pptx?)\b/],
+  ['mobile', 'Mobile & desktop', /\b(mobile|ios|android|swift(ui)?|kotlin|flutter|react native|expo|xcode|desktop|electron|tauri|macos|windows|esp32)\b/],
+  ['media', 'Media & games', /\b(images?|video|audio|music|speech|voice|tts|youtube|photos?|3d|blender|unity|unreal|games?|godot|animation|drama)\b/],
+  ['productivity', 'Productivity & PM', /\b(slack|discord|telegram|whatsapp|email|gmail|calendar|jira|linear|asana|trello|todoist|productivity|office|google workspace|teams|crm|hubspot|salesforce|product manag(er|ement)|chatbot)\b/],
+  ['marketing', 'Marketing & SEO', /\b(marketing|seo|ads|advertising|social media|twitter|linkedin|xiaohongshu|growth|copywriting|brand(ing)?)\b/],
+  ['finance', 'Finance & business', /\b(finance|financial|trading|stocks?|crypto|blockchain|web3|ethereum|solana|payments?|stripe|accounting|invoic(e|ing)|business|legal|sales|enterprise)\b/],
+  ['science', 'Research & science', /\b(research|papers?|arxiv|academic|scientific|science|bio(logy|informatics)?|chemistry|math(ematics)?|healthcare|medical)\b/],
+];
+const fieldsOf = (...parts) => {
+  const t = parts.join(' ').toLowerCase().replace(/[-_]/g, ' ');
+  const f = FIELDS.filter(([, , re]) => re.test(t)).map(([k]) => k);
+  return f.length ? f : ['general'];
+};
+const FIELD_NAME = { ...Object.fromEntries(FIELDS.map(([k, l]) => [k, l])), general: 'General' };
+const ecoFields = (r) => fieldsOf(r.name, r.description || '', r.topics.join(' '));
+const ecoText = (r) => esc(`${r.name} ${r.repo} ${r.description} ${r.language || ''} ${r.topics.join(' ')} ${ecoFields(r).map((f) => FIELD_NAME[f]).join(' ')}`.toLowerCase());
 
 function ecoCard(r, type, i) {
-  return `<article class="ecard" data-kind="${r.kind}" data-text="${ecoText(r)}" data-trend="${i}" data-stars="${r.count}" data-new="${Date.parse(r.createdAt)}" data-upd="${Date.parse(r.pushedAt)}">
+  const fields = ecoFields(r);
+  return `<article class="ecard" data-kind="${r.kind}" data-fields="${fields.join(' ')}" data-lang="${esc(r.language || '')}" data-text="${ecoText(r)}" data-trend="${i}" data-stars="${r.count}" data-new="${Date.parse(r.createdAt)}" data-upd="${Date.parse(r.pushedAt)}">
   <div class="ecard-head">
     <img class="ecard-av skel" src="${esc(avatar(r.avatar))}" alt="" width="32" height="32" loading="lazy" decoding="async">
     <div class="ecard-who"><h3><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a></h3><small>${esc(r.owner)}</small></div>
     <span class="ecard-kind ek-${r.kind}">${ECO[type].tag[r.kind]}</span>
   </div>
   ${r.description ? `<p class="ecard-sum">${esc(r.description)}</p>` : ''}
+  <div class="ecard-fields">${fields.slice(0, 3).map((f) => `<button type="button" data-efield="${f}">${esc(FIELD_NAME[f])}</button>`).join('')}</div>
   <div class="ecard-foot">
     <span title="${r.count.toLocaleString('en-US')} stars">★ ${compact(r.count)}</span>
     ${r.starsPerWeek > 0 ? `<span class="trend" title="Stars gained in the last week">↗ +${compact(r.starsPerWeek)}/wk</span>` : ''}
@@ -1355,11 +1407,12 @@ function registryList(reg) {
     <p class="eyebrow">Official MCP Registry</p>
     <h2>Just published</h2>
     <p class="muted small">${reg.total.toLocaleString('en-US')}${reg.capped ? '+' : ''} servers published or updated on <a href="https://registry.modelcontextprotocol.io" target="_blank" rel="noopener">the official registry</a> in the last ${reg.days === 1 ? '24 hours' : `${reg.days} days`}. Newest first.</p>
-    <ol class="reg">${reg.servers.slice(0, 30).map((s) => `<li>
+    <ol class="reg">${reg.servers.slice(0, 30).map((s) => `<li data-fields="${fieldsOf(s.title, s.description || '').join(' ')}" data-text="${esc(`${s.title} ${s.name} ${s.description || ''}`.toLowerCase())}">
       <div class="reg-top">${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener nofollow">${esc(s.title)}</a>` : `<strong>${esc(s.title)}</strong>`}<code>${esc(s.version)}</code></div>
       ${s.description ? `<p>${esc(s.description.length > 120 ? `${s.description.slice(0, 117)}…` : s.description)}</p>` : ''}
       <div class="reg-meta"><span>${esc(s.name)}</span>${s.remote ? '<span>remote</span>' : ''}${s.packages.map((p) => `<span>${esc(p)}</span>`).join('')}${time(s.publishedAt)}</div>
     </li>`).join('')}</ol>
+    <p class="muted small reg-empty" hidden>No registry servers in this field.</p>
   </div></aside>`;
 }
 
@@ -1369,6 +1422,9 @@ function ecoPage(type) {
   const counts = Object.fromEntries(Object.keys(cfg.kinds).map((k) => [k, list.filter((r) => r.kind === k).length]));
   const weekStars = list.reduce((s, r) => s + Math.max(0, r.starsPerWeek || 0), 0);
   const reg = type === 'mcp' && eco.registry?.servers?.length ? eco.registry : null;
+  const fieldCount = {}, langCount = {};
+  list.forEach((r) => { ecoFields(r).forEach((f) => { fieldCount[f] = (fieldCount[f] || 0) + 1; }); if (r.language) langCount[r.language] = (langCount[r.language] || 0) + 1; });
+  const langs = Object.entries(langCount).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   const grid = `<div class="egrid">${list.map((r, i) => ecoCard(r, type, i)).join('')}</div><p class="empty eempty" hidden>Nothing matches these filters.</p>`;
   const body = `
 <section class="wrap hero hero-sm">
@@ -1392,6 +1448,14 @@ ${banner()}
     </div>
     <div class="eco-tools">
       <label class="eco-search"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="eq" type="search" placeholder="Search ${type === 'mcp' ? 'servers' : 'skills'}…" aria-label="Search" autocomplete="off"></label>
+      <label class="ntool-pick"><select id="efield" aria-label="Filter by field">
+        <option value="">All fields</option>
+        ${[...FIELDS.map(([k]) => k), 'general'].filter((k) => fieldCount[k]).map((k) => `<option value="${k}">${esc(FIELD_NAME[k])} (${fieldCount[k]})</option>`).join('')}
+      </select></label>
+      ${langs.length > 1 ? `<label class="ntool-pick"><select id="elang" aria-label="Filter by language">
+        <option value="">All languages</option>
+        ${langs.map(([l, c]) => `<option value="${esc(l)}">${esc(l)} (${c})</option>`).join('')}
+      </select></label>` : ''}
       <label class="ntool-pick"><select id="esort" aria-label="Sort by">
         <option value="trend">Trending</option><option value="stars">Most stars</option><option value="new">Newest</option><option value="upd">Recently updated</option>
       </select></label>

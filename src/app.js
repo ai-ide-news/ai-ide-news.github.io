@@ -251,35 +251,65 @@
   const nf = $('.nfilters');
   if (nf) {
     const grid = $('.ngrid'), cards = $$('.ncard', grid), pick = $('#ntool', nf), empty = $('.nempty');
+    const nq = $('#nq', nf), src = $('#nsrc', nf), when = $('#nwhen', nf), maj = $('#nmaj', nf);
     const url = new URL(location.href);
+    nq.value = url.searchParams.get('q') || '';
+    src.value = url.searchParams.get('src') || ''; if (src.selectedIndex < 0) src.value = '';
+    when.value = url.searchParams.get('days') || ''; if (when.selectedIndex < 0) when.value = '';
+    maj.checked = url.searchParams.has('major');
     let tag = url.searchParams.get('tag') || 'all';
     if (!$(`.chip[data-tag="${CSS.escape(tag)}"]`, nf)) tag = 'all';
     pick.value = url.searchParams.get('tool') || '';
     if (pick.selectedIndex < 0) pick.value = '';
     const run = () => {
-      const tool = pick.value;
+      const tool = pick.value, words = nq.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      const since = when.value ? Date.now() - when.value * 864e5 : 0;
       let shown = 0;
       cards.forEach((c) => {
-        const ok = (tag === 'all' || c.dataset.tag === tag) && (!tool || c.dataset.tools.split(' ').includes(tool));
+        const ok = (tag === 'all' || c.dataset.tag === tag) && (!tool || c.dataset.tools.split(' ').includes(tool))
+          && (!src.value || c.dataset.srcs.split(' ').includes(src.value)) && (!since || Date.parse(c.dataset.date) >= since)
+          && (!maj.checked || c.classList.contains('major')) && words.every((w) => c.dataset.text.includes(w));
         c.hidden = !ok; shown += ok;
       });
       $$('.chip', nf).forEach((x) => { const on = x.dataset.tag === tag; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
-      grid.classList.toggle('filtered', tag !== 'all' || !!tool);
+      grid.classList.toggle('filtered', tag !== 'all' || !!tool || !!src.value || !!since || maj.checked || !!words.length);
       grid.hidden = !shown; empty.hidden = !!shown;
       const u = new URL(location.href);
       tag === 'all' ? u.searchParams.delete('tag') : u.searchParams.set('tag', tag);
       tool ? u.searchParams.set('tool', tool) : u.searchParams.delete('tool');
+      nq.value.trim() ? u.searchParams.set('q', nq.value.trim()) : u.searchParams.delete('q');
+      src.value ? u.searchParams.set('src', src.value) : u.searchParams.delete('src');
+      when.value ? u.searchParams.set('days', when.value) : u.searchParams.delete('days');
+      maj.checked ? u.searchParams.set('major', '') : u.searchParams.delete('major');
       history.replaceState(null, '', u);
     };
-    nf.addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) { tag = b.dataset.tag; run(); } });
-    pick.addEventListener('change', run);
+    // Feed (one column of posts) or grid; remembered per browser, ?view=grid overrides.
+    let view = url.searchParams.get('view');
+    if (!view) try { view = localStorage.getItem('newsView'); } catch {}
+    const setView = (v) => {
+      view = v === 'grid' ? 'grid' : 'feed';
+      grid.classList.toggle('feed', view === 'feed');
+      $$('.nview button', nf).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+    };
+    setView(view);
+    nf.addEventListener('click', (e) => {
+      const v = e.target.closest('.nview button');
+      if (v) { setView(v.dataset.view); try { localStorage.setItem('newsView', view); } catch {} const u = new URL(location.href); u.searchParams.delete('view'); history.replaceState(null, '', u); return; }
+      const b = e.target.closest('.chip'); if (b) { tag = b.dataset.tag; run(); }
+    });
+    [pick, src, when, maj].forEach((x) => x.addEventListener('change', run));
+    let nt;
+    nq.addEventListener('input', () => { clearTimeout(nt); nt = setTimeout(run, 120); });
     run();
   }
   // Skills & MCP pages: filter by type, search and re-sort the cards; the choice lives in ?type=&q=&sort=.
   const eco = $('.eco');
   if (eco && $('.egrid', eco)) {
     const grid = $('.egrid', eco), cards = $$('.ecard', grid), eq = $('#eq'), sort = $('#esort'), empty = $('.eempty', eco);
+    const field = $('#efield'), lang = $('#elang'), regs = $$('.reg li', eco), regEmpty = $('.reg-empty', eco);
     const url = new URL(location.href);
+    field.value = url.searchParams.get('field') || ''; if (field.selectedIndex < 0) field.value = '';
+    if (lang) { lang.value = url.searchParams.get('lang') || ''; if (lang.selectedIndex < 0) lang.value = ''; }
     let kind = url.searchParams.get('type') || 'all';
     if (!$(`.chip[data-ekind="${CSS.escape(kind)}"]`, eco)) kind = 'all';
     eq.value = url.searchParams.get('q') || '';
@@ -292,21 +322,36 @@
       [...cards].sort((a, b) => by(b) - by(a)).forEach((c) => grid.append(c));
       let shown = 0;
       cards.forEach((c) => {
-        const ok = (kind === 'all' || c.dataset.kind === kind) && words.every((w) => c.dataset.text.includes(w));
+        const ok = (kind === 'all' || c.dataset.kind === kind) && (!field.value || c.dataset.fields.split(' ').includes(field.value))
+          && (!lang?.value || c.dataset.lang === lang.value) && words.every((w) => c.dataset.text.includes(w));
         c.hidden = !ok; shown += ok;
       });
+      // The registry list follows the field and search filters too.
+      let regShown = 0;
+      regs.forEach((li) => {
+        const ok = (!field.value || li.dataset.fields.split(' ').includes(field.value)) && words.every((w) => li.dataset.text.includes(w));
+        li.hidden = !ok; regShown += ok;
+      });
+      if (regEmpty) regEmpty.hidden = !!regShown;
+      $$('.ecard-fields button', grid).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.efield === field.value)));
       $$('.chip', eco).forEach((x) => { const on = x.dataset.ekind === kind; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
       grid.hidden = !shown; empty.hidden = !!shown;
       const u = new URL(location.href);
       kind === 'all' ? u.searchParams.delete('type') : u.searchParams.set('type', kind);
       eq.value.trim() ? u.searchParams.set('q', eq.value.trim()) : u.searchParams.delete('q');
+      field.value ? u.searchParams.set('field', field.value) : u.searchParams.delete('field');
+      lang?.value ? u.searchParams.set('lang', lang.value) : u.searchParams.delete('lang');
       sort.value === 'trend' ? u.searchParams.delete('sort') : u.searchParams.set('sort', sort.value);
       history.replaceState(null, '', u);
     };
-    eco.addEventListener('click', (e) => { const b = e.target.closest('.chip[data-ekind]'); if (b) { kind = b.dataset.ekind; run(); } });
+    eco.addEventListener('click', (e) => {
+      const b = e.target.closest('.chip[data-ekind]'); if (b) { kind = b.dataset.ekind; run(); return; }
+      // A field tag on a card toggles that field.
+      const f = e.target.closest('.ecard-fields button'); if (f) { field.value = field.value === f.dataset.efield ? '' : f.dataset.efield; run(); }
+    });
     let t;
     eq.addEventListener('input', () => { clearTimeout(t); t = setTimeout(run, 120); });
-    sort.addEventListener('change', run);
+    [sort, field, lang].forEach((x) => x?.addEventListener('change', run));
     run();
   }
   if ($('#cmp-data')) comparePlans();

@@ -486,10 +486,39 @@ h2 { font: 600 clamp(26px, 3vw, 34px)/1.1 var(--font); letter-spacing: -.035em; 
 .ngrid.filtered .ncard-lead .ncard-title { font: 600 17px/1.35 var(--font); letter-spacing: -.015em; }
 .ngrid.filtered .ncard-lead .ncard-sum { font-size: 14px; -webkit-line-clamp: 3; }
 .ncard[hidden] { display: none; }
+/* feed view: one column of social-style posts */
+.ncard-by { display: none; }
+.nrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+#nq { padding: 6px 10px; width: 180px; border: 1px solid var(--line-2); border-radius: var(--r); background: var(--bg); color: var(--ink); font: 13px var(--font); }
+.nmajor-pick { display: inline-flex; align-items: center; gap: 6px; font: 500 13px var(--mono); color: var(--ink-2); cursor: pointer; }
+.nview { display: inline-flex; border: 1px solid var(--line-2); border-radius: var(--r); overflow: hidden; }
+.nview button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 0; background: none; color: var(--ink-3); font: 500 13px var(--mono); cursor: pointer; }
+.nview button + button { border-left: 1px solid var(--line-2); }
+.nview button:hover { color: var(--ink); }
+.nview button[aria-pressed='true'] { background: var(--card-2); color: var(--ink); }
+.nfilters:has(+ .ngrid.feed) { max-width: 680px; margin-inline: auto; }
+.nfilters:has(+ .ngrid.feed) .nrow { width: 100%; }
+.nfilters:has(+ .ngrid.feed) #nq { flex: 1 1 160px; }
+.ngrid.feed { display: flex; flex-direction: column; gap: 16px; max-width: 680px; margin-inline: auto; background: none; border: 0; }
+.ngrid.feed .ncard, .ngrid.feed .ncard-lead { padding: 16px 18px 14px; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+.ngrid.feed .ncard.major { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.ngrid.feed .ncard-by { display: flex; align-items: center; gap: 10px; }
+.ngrid.feed .ncard-who { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.ngrid.feed .ncard-who b { font-size: 15px; color: var(--ink); }
+.ngrid.feed .ncard-who a:hover b { text-decoration: underline; }
+.ngrid.feed .ncard-who small { font-size: 12.5px; color: var(--ink-3); }
+.ngrid.feed .ncard-meta .fcard-time { display: none; }
+.ngrid.feed .ncard-title, .ngrid.feed .ncard-lead .ncard-title { font: 600 19px/1.35 var(--font); letter-spacing: -.015em; }
+.ngrid.feed .ncard-sum, .ngrid.feed .ncard-lead .ncard-sum { font-size: 15px; -webkit-line-clamp: 5; }
+.ngrid.feed .ncard-img, .ngrid.feed .ncard-lead .ncard-img { margin: 2px -18px 0; flex: none; min-height: 0; aspect-ratio: 16 / 9; border-radius: 0; }
+.ngrid.feed .ncard-img img { object-fit: cover; }
+.ngrid.feed .ncard-foot { padding-top: 10px; border-top: 1px solid var(--line); }
 @media (max-width: 980px) { .ngrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) {
   .ngrid { grid-template-columns: minmax(0, 1fr); }
   .ncard, .ncard-lead, .ncard-lead.tall { grid-column: auto; grid-row: auto; padding: 18px 0; }
+  .ngrid.feed .ncard-img, .ngrid.feed .ncard-lead .ncard-img { margin-inline: -14px; }
+  .ngrid.feed .ncard, .ngrid.feed .ncard-lead { padding: 14px 14px 12px; }
 }
 
 /* ── pricing compare ─────────────────────────────────────── */
@@ -1079,6 +1108,11 @@ a:hover > .pt { opacity: 1; r: 7; }
 .ek-pack, .ek-infra { --ek: var(--k-changelog); }
 .ek-directory { --ek: var(--k-blog); }
 .ecard-sum { margin: 0; color: var(--ink-2); font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.ecard-fields { display: flex; flex-wrap: wrap; gap: 6px; }
+.ecard-fields button { padding: 2px 8px; border: 1px solid var(--line-2); border-radius: 999px; background: none; color: var(--ink-3); font: 500 11px var(--mono); cursor: pointer; }
+.ecard-fields button:hover { color: var(--ink); border-color: var(--ink-3); }
+.ecard-fields button[aria-pressed='true'] { color: var(--ink); background: var(--card-2); border-color: var(--ink-3); }
+.reg li[hidden] { display: none; }
 .ecard-foot { margin-top: auto; display: flex; flex-wrap: wrap; gap: 4px 12px; font: 12px var(--mono); color: var(--ink-3); }
 .ecard-foot span:first-child { color: var(--ink-2); }
 .ecard-foot .trend { color: var(--accent-ink); }
