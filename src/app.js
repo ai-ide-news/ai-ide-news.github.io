@@ -151,6 +151,40 @@
     pick.addEventListener('change', run);
     run();
   }
+  // Skills & MCP pages: filter by type, search and re-sort the cards; the choice lives in ?type=&q=&sort=.
+  const eco = $('.eco');
+  if (eco && $('.egrid', eco)) {
+    const grid = $('.egrid', eco), cards = $$('.ecard', grid), eq = $('#eq'), sort = $('#esort'), empty = $('.eempty', eco);
+    const url = new URL(location.href);
+    let kind = url.searchParams.get('type') || 'all';
+    if (!$(`.chip[data-ekind="${CSS.escape(kind)}"]`, eco)) kind = 'all';
+    eq.value = url.searchParams.get('q') || '';
+    sort.value = url.searchParams.get('sort') || 'trend';
+    if (sort.selectedIndex < 0) sort.value = 'trend';
+    const key = { trend: (c) => -c.dataset.trend, stars: (c) => +c.dataset.stars, new: (c) => +c.dataset.new, upd: (c) => +c.dataset.upd };
+    const run = () => {
+      const words = eq.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      const by = key[sort.value];
+      [...cards].sort((a, b) => by(b) - by(a)).forEach((c) => grid.append(c));
+      let shown = 0;
+      cards.forEach((c) => {
+        const ok = (kind === 'all' || c.dataset.kind === kind) && words.every((w) => c.dataset.text.includes(w));
+        c.hidden = !ok; shown += ok;
+      });
+      $$('.chip', eco).forEach((x) => { const on = x.dataset.ekind === kind; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
+      grid.hidden = !shown; empty.hidden = !!shown;
+      const u = new URL(location.href);
+      kind === 'all' ? u.searchParams.delete('type') : u.searchParams.set('type', kind);
+      eq.value.trim() ? u.searchParams.set('q', eq.value.trim()) : u.searchParams.delete('q');
+      sort.value === 'trend' ? u.searchParams.delete('sort') : u.searchParams.set('sort', sort.value);
+      history.replaceState(null, '', u);
+    };
+    eco.addEventListener('click', (e) => { const b = e.target.closest('.chip[data-ekind]'); if (b) { kind = b.dataset.ekind; run(); } });
+    let t;
+    eq.addEventListener('input', () => { clearTimeout(t); t = setTimeout(run, 120); });
+    sort.addEventListener('change', run);
+    run();
+  }
   if ($('#cmp-data')) comparePlans();
   if ($('.mtable')) compareModels();
   $$('.vzoom').forEach(zoomChart);
@@ -743,4 +777,123 @@
       });
     });
   });
+
+  // Learn page: rough tokenizer demo. Splits the way BPE tokenizers tend to: words with their leading
+  // space, long words in pieces, digits in groups of up to three, runs of symbols.
+  const tokin = $('#tokin');
+  if (tokin) {
+    const out = $('#tokout'), stats = $('#tokstats');
+    const split = (text) => (text.match(/ ?[A-Za-z]+| ?\d{1,3}| ?[^\sA-Za-z\d]{1,2}|\s+/g) || []).flatMap((t) => {
+      const w = t.trimStart(), lead = t.slice(0, t.length - w.length);
+      if (!/^[A-Za-z]{9,}$/.test(w)) return [t];
+      const parts = w.match(/.{1,5}/g);
+      return [lead + parts[0], ...parts.slice(1)];
+    });
+    // Per 1,000 sends: a single short prompt costs a tiny fraction of a cent.
+    const cost = (n) => { const v = n * Number(stats.dataset.in) / 1e3; return `$${v < 0.01 ? v.toFixed(4) : v.toFixed(2)}`; };
+    const render = () => {
+      const toks = split(tokin.value);
+      out.replaceChildren(...toks.map((t, i) => {
+        const el = document.createElement('span');
+        el.className = `tk tk${i % 5}`;
+        el.textContent = t.replace(/\n/g, '↵').replace(/ /g, '·');
+        return el;
+      }));
+      const words = (tokin.value.match(/\S+/g) || []).length;
+      stats.replaceChildren();
+      stats.append(Object.assign(document.createElement('b'), { textContent: toks.length }), ` tokens · ${tokin.value.length} characters · ${words} words · sending this 1,000 times to ${stats.dataset.name} ≈ `, Object.assign(document.createElement('b'), { textContent: cost(toks.length) }));
+    };
+    tokin.addEventListener('input', render);
+    render();
+  }
+
+  // Learn page: read aloud with the browser's own speech engine. Text is spoken a sentence at a time
+  // (long utterances get cut off in some browsers), highlighting the paragraph being read.
+  const player = $('#lplayer');
+  if (player) {
+    const synth = window.speechSynthesis;
+    const playBtns = $$('.lplay');
+    if (!synth || typeof SpeechSynthesisUtterance === 'undefined') {
+      playBtns.forEach((b) => { b.disabled = true; b.title = 'Read-aloud is not supported in this browser'; });
+    } else {
+      const rateSel = $('#lp-rate'), voiceSel = $('#lp-voice'), title = $('#lp-title'), toggle = $('#lp-toggle');
+      const load = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+      const save = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* storage blocked */ } };
+      // Natural / neural voices first when the system has them.
+      const natural = /natural|neural|online|premium|enhanced|google/i;
+      let voices = [];
+      const loadVoices = () => {
+        voices = synth.getVoices().filter((v) => /^en(-|_|$)/i.test(v.lang))
+          .sort((a, b) => (natural.test(b.name) - natural.test(a.name)) || a.lang.localeCompare(b.lang));
+        if (!voices.length) return;
+        const saved = load('lp-voice');
+        voiceSel.replaceChildren(...voices.map((v) => new Option(`${v.name.replace(/^Microsoft /, '')} (${v.lang})`, v.name, false, v.name === saved)));
+      };
+      loadVoices();
+      synth.addEventListener?.('voiceschanged', loadVoices);
+      rateSel.value = load('lp-rate') || '1';
+
+      let queue = [], idx = 0, current = null, lit = null, running = false;
+      const say = (el) => el.dataset.say || el.textContent.replace(/\s+/g, ' ').trim();
+      const sentences = (text) => text.split(/(?<=[.!?])\s+/).map((t) => t.trim()).filter(Boolean);
+      // Headings and prose; a .no-say block is skipped unless it carries its own data-say narration.
+      const readable = (el) => {
+        const ns = el.closest('.no-say');
+        if (ns && !(ns === el && el.dataset.say)) return false;
+        if (el.closest('.lhead') && el.tagName !== 'H2') return false;
+        return true;
+      };
+      const build = (secs) => secs.flatMap((sec) => $$('h2, p, li, [data-say]', sec).filter(readable)
+        .flatMap((el) => sentences(say(el)).map((text) => ({ el, sec, text }))));
+      const light = (el) => { lit?.classList.remove('saying'); lit = el; el?.classList.add('saying'); };
+      const setState = (s) => {
+        player.dataset.state = s;
+        toggle.setAttribute('aria-label', s === 'playing' ? 'Pause' : 'Resume');
+      };
+      const stop = () => {
+        running = false; queue = []; current = null;
+        synth.cancel(); light(null); player.hidden = true;
+        playBtns.forEach((b) => b.removeAttribute('aria-pressed'));
+      };
+      const next = () => {
+        if (!running) return;
+        if (idx >= queue.length) return stop();
+        const item = queue[idx], u = new SpeechSynthesisUtterance(item.text);
+        u.rate = Number(rateSel.value);
+        const v = voices.find((x) => x.name === voiceSel.value);
+        if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-US';
+        u.onend = () => { if (current === u) { idx++; next(); } };
+        u.onerror = (e) => { if (current === u && e.error !== 'interrupted' && e.error !== 'canceled') { idx++; next(); } };
+        current = u;
+        if (item.el !== lit) {
+          light(item.el);
+          title.textContent = item.sec.dataset.title;
+          const r = item.el.getBoundingClientRect();
+          if (r.top < 80 || r.bottom > innerHeight - 90) item.el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        }
+        synth.speak(u);
+      };
+      const start = (which) => {
+        current = null; synth.cancel();
+        queue = build(which === 'all' ? $$('.lsec') : [document.getElementById(which)]);
+        idx = 0; running = true;
+        player.hidden = false; setState('playing');
+        playBtns.forEach((b) => (b.dataset.play === which ? b.setAttribute('aria-pressed', 'true') : b.removeAttribute('aria-pressed')));
+        next();
+      };
+      // Restart the current sentence so speed and voice changes apply right away.
+      const restart = () => { if (running && player.dataset.state === 'playing') { current = null; synth.cancel(); next(); } };
+      playBtns.forEach((b) => b.addEventListener('click', () => (b.getAttribute('aria-pressed') === 'true' ? stop() : start(b.dataset.play))));
+      // Pause cancels and resumes from the start of the sentence: speechSynthesis.pause() is unreliable across browsers.
+      toggle.addEventListener('click', () => {
+        if (player.dataset.state === 'playing') { current = null; synth.cancel(); setState('paused'); }
+        else { setState('playing'); next(); }
+      });
+      $('#lp-stop').addEventListener('click', stop);
+      rateSel.addEventListener('change', () => { save('lp-rate', rateSel.value); restart(); });
+      voiceSel.addEventListener('change', () => { save('lp-voice', voiceSel.value); restart(); });
+      addEventListener('pagehide', () => synth.cancel());
+      addEventListener('keydown', (e) => { if (e.key === 'Escape' && running) stop(); });
+    }
+  }
 })();

@@ -7,6 +7,7 @@ import { LAB_ICONS } from './models.mjs';
 import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
 import { AA_SOURCE } from './aa.mjs';
 import { OPENCODE_SOURCE } from './opencode.mjs';
+import { learnBody } from './learn.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -140,12 +141,15 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
     <nav class="nav-links" aria-label="Primary">
       ${news.length ? `<a href="${root}news/" ${active === 'news' ? 'aria-current="page"' : ''}>News</a>` : ''}
       ${models.length ? `<a href="${root}models/" ${active === 'models' ? 'aria-current="page"' : ''}>Models</a>` : ''}
+      ${ECO.skills.list.length ? `<a href="${root}skills/" ${active === 'skills' ? 'aria-current="page"' : ''}>Skills</a>` : ''}
+      ${ECO.mcp.list.length ? `<a href="${root}mcp/" ${active === 'mcp' ? 'aria-current="page"' : ''}>MCP</a>` : ''}
       <a href="${root}#versions" ${active === 'versions' ? 'aria-current="page"' : ''}>Latest versions</a>
       <a href="${root}#feed">Changelog</a>
       ${trending.length ? `<a href="${root}#trending">Trending</a>` : ''}
       <a href="${root}#discussions">Community</a>
       <a href="${root}compare/" ${active === 'compare' ? 'aria-current="page"' : ''}>Compare</a>
       <a href="${root}tools/">All tools</a>
+      ${models.length ? `<a href="${root}learn/" ${active === 'learn' ? 'aria-current="page"' : ''}>Learn</a>` : ''}
     </nav>
     <div class="nav-actions">
       <button class="icon-btn" id="theme" type="button" aria-label="Toggle color theme"><svg class="sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v2.5M12 20v2.5M1.5 12H4M20 12h2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></g></svg><svg class="moon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1"/></svg></button>
@@ -1081,6 +1085,118 @@ ${banner()}
   });
 }
 
+// Plain-language guide to how AI works, with examples from the live model catalog (scripts/learn.mjs).
+function learnPage() {
+  const root = '../';
+  return layout({
+    root, path: 'learn/', active: 'learn', title: `How AI Works — Tokens, Context, Cache Hits & Mixture of Experts | ${SITE_NAME}`,
+    description: 'A plain-language guide to how AI models work: tokens, context windows, prompt cache hits, mixture of experts, reasoning tokens and quantization — with real prices and examples, and a read-aloud mode.',
+    body: learnBody({ models, root, esc, modelPath, generatedAt: snap.generatedAt }),
+    jsonld: { '@context': 'https://schema.org', '@type': 'Article', headline: 'How AI actually works', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url }, dateModified: snap.generatedAt, url: `${SITE_URL}/learn/` },
+  });
+}
+
+// ── skills & MCP (scripts/ecosystem.mjs) ──────────────────
+// Agent Skills and MCP server repos from GitHub, ranked by star velocity; the MCP page adds the official registry.
+const eco = snap.ecosystem || {};
+const ECO = {
+  skills: {
+    path: 'skills/', list: eco.skills || [],
+    kinds: { skill: 'Single skills', pack: 'Skill packs', directory: 'Directories' },
+    tag: { skill: 'Skill', pack: 'Pack', directory: 'Directory' },
+    eyebrow: 'Agent Skills', h1: 'Trending <em>Agent Skills</em>',
+    lede: 'SKILL.md folders that teach Claude Code, Codex, Cursor, Copilot, OpenCode and other agents a new trick: single skills, big packs and the directories that index them. Real GitHub repos, ranked by how fast they are gaining stars.',
+    title: `Trending Agent Skills for Claude Code, Codex & Cursor | ${SITE_NAME}`,
+  },
+  mcp: {
+    path: 'mcp/', list: eco.mcp || [],
+    kinds: { server: 'Servers', infra: 'SDKs & infra', directory: 'Directories & learning' },
+    tag: { server: 'Server', infra: 'SDK / infra', directory: 'Directory' },
+    eyebrow: 'Model Context Protocol', h1: 'Trending <em>MCP servers</em>',
+    lede: 'The MCP servers that plug tools, data and apps into your AI coding agent, plus the SDKs, gateways and directories around them. Real GitHub repos ranked by star velocity, and every server just published to the official MCP Registry.',
+    title: `Trending MCP Servers — Model Context Protocol Tools | ${SITE_NAME}`,
+  },
+};
+const avatar = (url, size = 64) => (url ? `${url}${url.includes('?') ? '&' : '?'}s=${size}` : '');
+const ecoText = (r) => esc(`${r.name} ${r.repo} ${r.description} ${r.language || ''} ${r.topics.join(' ')}`.toLowerCase());
+
+function ecoCard(r, type, i) {
+  return `<article class="ecard" data-kind="${r.kind}" data-text="${ecoText(r)}" data-trend="${i}" data-stars="${r.count}" data-new="${Date.parse(r.createdAt)}" data-upd="${Date.parse(r.pushedAt)}">
+  <div class="ecard-head">
+    <img class="ecard-av" src="${esc(avatar(r.avatar))}" alt="" width="32" height="32" loading="lazy" decoding="async">
+    <div class="ecard-who"><h3><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a></h3><small>${esc(r.owner)}</small></div>
+    <span class="ecard-kind ek-${r.kind}">${ECO[type].tag[r.kind]}</span>
+  </div>
+  ${r.description ? `<p class="ecard-sum">${esc(r.description)}</p>` : ''}
+  <div class="ecard-foot">
+    <span title="${r.count.toLocaleString('en-US')} stars">★ ${compact(r.count)}</span>
+    ${r.starsPerWeek > 0 ? `<span class="trend" title="Stars gained in the last week">↗ +${compact(r.starsPerWeek)}/wk</span>` : ''}
+    ${r.language ? `<span>${esc(r.language)}</span>` : ''}
+    ${r.license ? `<span>${esc(r.license)}</span>` : ''}
+    <span>updated ${time(r.pushedAt)}</span>
+  </div>
+</article>`;
+}
+
+function registryList(reg) {
+  return `<aside class="side"><div class="side-card">
+    <p class="eyebrow">Official MCP Registry</p>
+    <h2>Just published</h2>
+    <p class="muted small">${reg.total.toLocaleString('en-US')}${reg.capped ? '+' : ''} servers published or updated on <a href="https://registry.modelcontextprotocol.io" target="_blank" rel="noopener">the official registry</a> in the last ${reg.days === 1 ? '24 hours' : `${reg.days} days`}. Newest first.</p>
+    <ol class="reg">${reg.servers.slice(0, 30).map((s) => `<li>
+      <div class="reg-top">${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener nofollow">${esc(s.title)}</a>` : `<strong>${esc(s.title)}</strong>`}<code>${esc(s.version)}</code></div>
+      ${s.description ? `<p>${esc(s.description.length > 120 ? `${s.description.slice(0, 117)}…` : s.description)}</p>` : ''}
+      <div class="reg-meta"><span>${esc(s.name)}</span>${s.remote ? '<span>remote</span>' : ''}${s.packages.map((p) => `<span>${esc(p)}</span>`).join('')}${time(s.publishedAt)}</div>
+    </li>`).join('')}</ol>
+  </div></aside>`;
+}
+
+function ecoPage(type) {
+  const root = '../';
+  const cfg = ECO[type], list = cfg.list;
+  const counts = Object.fromEntries(Object.keys(cfg.kinds).map((k) => [k, list.filter((r) => r.kind === k).length]));
+  const weekStars = list.reduce((s, r) => s + Math.max(0, r.starsPerWeek || 0), 0);
+  const reg = type === 'mcp' && eco.registry?.servers?.length ? eco.registry : null;
+  const grid = `<div class="egrid">${list.map((r, i) => ecoCard(r, type, i)).join('')}</div><p class="empty eempty" hidden>Nothing matches these filters.</p>`;
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">${cfg.eyebrow}</p>
+  <h1>${cfg.h1}</h1>
+  <p class="lede">${cfg.lede}</p>
+  <dl class="stats eco-stats">
+    <div><dt>Repos tracked</dt><dd>${list.length}</dd></div>
+    <div><dt>Combined stars</dt><dd>${compact(list.reduce((s, r) => s + r.count, 0))}</dd></div>
+    <div><dt>${weekStars ? 'Stars gained, 7 days' : 'New in 30 days'}</dt><dd>${weekStars ? `+${compact(weekStars)}` : list.filter((r) => NOW - Date.parse(r.createdAt) < 30 * DAY).length}</dd></div>
+    <div><dt>${reg ? `Registry, last ${reg.days === 1 ? '24h' : `${reg.days} days`}` : 'Single skills'}</dt><dd>${reg ? compact(reg.total) : counts.skill || 0}</dd></div>
+  </dl>
+</section>
+
+${banner()}
+<section class="wrap section eco">
+  <div class="section-head">
+    <div class="echips" role="group" aria-label="Filter by type">
+      <button type="button" class="chip on" data-ekind="all" aria-pressed="true">All <small>${list.length}</small></button>
+      ${Object.entries(cfg.kinds).filter(([k]) => counts[k]).map(([k, l]) => `<button type="button" class="chip" data-ekind="${k}" aria-pressed="false">${esc(l)} <small>${counts[k]}</small></button>`).join('')}
+    </div>
+    <div class="eco-tools">
+      <label class="eco-search"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="eq" type="search" placeholder="Search ${type === 'mcp' ? 'servers' : 'skills'}…" aria-label="Search" autocomplete="off"></label>
+      <label class="ntool-pick"><select id="esort" aria-label="Sort by">
+        <option value="trend">Trending</option><option value="stars">Most stars</option><option value="new">Newest</option><option value="upd">Recently updated</option>
+      </select></label>
+    </div>
+  </div>
+  ${list.length ? (reg ? `<div class="feed-layout eco-layout"><div>${grid}</div>${registryList(reg)}</div>` : grid) : '<p class="muted">No data yet — it appears after the next full refresh.</p>'}
+  ${ad('inline')}
+  <p class="muted small section-note eco-note">Repos come from the GitHub Search API (${type === 'mcp' ? 'MCP topics and descriptions' : 'Agent Skills topics, descriptions and SKILL.md mentions'}), must have been pushed to in the last 90 days, and are ranked by stars gained over the past week. Refreshed every few hours${eco.fetchedAt ? `; last ${time(eco.fetchedAt)}` : ''}.</p>
+</section>`;
+  return layout({
+    root, path: cfg.path, active: type, title: cfg.title,
+    description: `${cfg.eyebrow}: ${list.slice(0, 6).map((r) => r.name).join(', ')} and ${Math.max(0, list.length - 6)} more trending open-source repos.`,
+    jsonld: { '@context': 'https://schema.org', '@type': 'ItemList', name: cfg.eyebrow, itemListElement: list.slice(0, 50).map((r, i) => ({ '@type': 'ListItem', position: i + 1, name: r.name, url: r.url })) },
+    body,
+  });
+}
+
 // ── usage (OpenCode Data) ─────────────────────────────────
 // Real-world usage across OpenCode (scripts/opencode.mjs): which models people actually run, and what it costs.
 const oc = snap.opencode?.leaderboard?.pastWeek?.length ? snap.opencode : null;
@@ -1376,6 +1492,8 @@ await out('tools/index.html', toolsIndexPage());
 await out('news/index.html', newsPage());
 await out('compare/index.html', comparePage());
 if (models.length) await out('models/index.html', modelsPage());
+for (const type of Object.keys(ECO)) if (ECO[type].list.length) await out(`${ECO[type].path}index.html`, ecoPage(type));
+if (models.length) await out('learn/index.html', learnPage());
 for (const l of labs) await out(`${labPath(l[0].labId)}index.html`, labPage(l));
 for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
@@ -1390,6 +1508,8 @@ await out('data.json', JSON.stringify({
   news: news.map(({ score, ...n }) => n),
   models: models.map(({ color, labId, ...m }) => m),
   benchmarkSource: BENCH_SOURCE,
+  skills: ECO.skills.list.map(({ stars, avatar, ...r }) => r),
+  mcp: ECO.mcp.list.map(({ stars, avatar, ...r }) => r),
   ...(oc ? { opencodeUsage: { source: OPENCODE_SOURCE, updatedAt: oc.updatedAt, pastWeek: oc.leaderboard.pastWeek } } : {}),
 }));
 // Tiny file the open page polls to announce new updates without a full reload of data.json.
@@ -1403,7 +1523,8 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
-${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${models.length ? `<url><loc>${SITE_URL}/learn/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+` : ''}${Object.values(ECO).filter((c) => c.list.length).map((c) => `<url><loc>${SITE_URL}/${c.path}</loc><lastmod>${eco.fetchedAt || snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 </urlset>`);
@@ -1411,4 +1532,4 @@ await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap
 if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
 `);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 4 + (models.length ? 1 + labs.length + models.length : 0)} pages → dist/`);
+console.log(`Built ${tools.length + 4 + Object.values(ECO).filter((c) => c.list.length).length + (models.length ? 2 + labs.length + models.length : 0)} pages → dist/`);

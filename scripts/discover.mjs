@@ -18,7 +18,8 @@ const STRONG = /\bagentic ide\b|\bai (code )?editor\b/i;
 const CATEGORY = (r) => {
   const s = `${r.description} ${(r.topics || []).join(' ')}`.toLowerCase();
   if (/vs ?code|vscode-extension|xcode|jetbrains|neovim|nvim|emacs|\bextension\b|\bplugin\b/.test(s)) return 'extension';
-  if (/\bide\b|\beditor\b|\bdesktop\b|\bworkspace\b/.test(s)) return 'ide';
+  if (/\bdesktop\b|\belectron\b|\btauri\b|\bmacos app\b/.test(s)) return 'desktop';
+  if (/\bide\b|\beditor\b|\bworkspace\b/.test(s)) return 'ide';
   return 'cli';
 };
 
