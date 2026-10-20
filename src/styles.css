@@ -159,7 +159,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .nav-menu a:hover b { color: var(--accent-ink); }
 .nav-menu a[aria-current]::before { content: ''; position: absolute; left: 3px; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: var(--accent); }
 .nav-wire {
-  position: absolute; left: 14px; right: 14px; bottom: -1px; height: 2px; pointer-events: none; border-radius: 2px;
+  position: absolute; left: 12px; right: 12px; bottom: -1px; height: 2px; pointer-events: none; border-radius: 2px;
   background: linear-gradient(90deg, transparent, var(--accent) 30%, var(--accent-ink));
   transform-origin: 0 50%; transform: scaleX(var(--read, 0)); opacity: 0; transition: opacity .3s;
 }
