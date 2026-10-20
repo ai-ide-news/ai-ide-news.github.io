@@ -6,6 +6,7 @@ import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
 import { LAB_ICONS } from './models.mjs';
 import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
 import { AA_SOURCE } from './aa.mjs';
+import { OPENCODE_SOURCE } from './opencode.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -162,7 +163,6 @@ ${body}
     </div>
     <div class="foot-meta">
       <p>Last refreshed ${time(snap.generatedAt, 'live-ago')}</p>
-      <p><a href="${root}feed.xml">RSS</a> · <a href="${root}data.json">JSON API</a> · <a href="${REPO_URL}" rel="noopener">GitHub</a></p>
       <p class="credit">Made by <a href="${AUTHOR.url}" rel="author noopener">${AUTHOR.name}</a> · <a href="${AUTHOR.url}" rel="noopener">github.com/AbdullahElTiby</a></p>
       <p class="muted">Not affiliated with any of the tools listed. All trademarks belong to their owners.</p>
     </div>
@@ -228,7 +228,7 @@ const sourceLink = (s) => `<a class="src${/^X ·/.test(s.name) ? ' src-x' : /^Ha
 function newsCard(n, root, { lead = false } = {}) {
   const ts = n.toolIds.map((id) => byId[id]).filter(Boolean);
   const c = ts[0]?.color || '#d4ff3f';
-  return `<article class="ncard${lead ? ` ncard-lead${n.summary ? ' tall' : ''}` : ''}${n.major ? ' major' : ''}" data-tag="${esc(n.tag.toLowerCase())}" style="--c:${c}">
+  return `<article class="ncard${lead ? ` ncard-lead${n.summary ? ' tall' : ''}` : ''}${n.major ? ' major' : ''}" data-tag="${esc(n.tag.toLowerCase())}" data-tools="${esc(n.toolIds.join(' '))}" style="--c:${c}">
   <div class="ncard-meta"><span class="ntag ntag-${esc(n.tag.toLowerCase())}">${esc(n.tag)}</span>${n.major ? '<span class="nmajor">Major</span>' : ''}${time(n.date, 'fcard-time')}</div>
   <h3 class="ncard-title"><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a></h3>
   ${n.summary ? `<p class="ncard-sum">${esc(n.summary)}</p>` : ''}
@@ -239,14 +239,19 @@ function newsCard(n, root, { lead = false } = {}) {
 </article>`;
 }
 // `limit` keeps the 3-column grid free of orphans: a tall lead fills 4 cells, a short one 2.
-function newsGrid(list, root, limit = Infinity) {
-  if (!list.length) return '<p class="muted">No major news in the last 30 days.</p>';
+function newsFit(list, limit = Infinity) {
+  if (!list.length) return [];
   const lead = list.find((n) => n.major) || list[0];
   const rest = list.filter((n) => n !== lead);
   const cells = lead.summary ? 4 : 2;
   const n = Math.min(rest.length, limit === Infinity ? rest.length : limit - 1);
   const fit = n > 3 ? n - ((n + cells) % 3) : n;
-  return `<div class="ngrid">${newsCard(lead, root, { lead: true })}${rest.slice(0, fit).map((x) => newsCard(x, root)).join('')}</div>`;
+  return [lead, ...rest.slice(0, fit)];
+}
+function newsGrid(list, root, limit = Infinity) {
+  if (!list.length) return '<p class="muted">No major news in the last 30 days.</p>';
+  const [lead, ...rest] = newsFit(list, limit);
+  return `<div class="ngrid">${newsCard(lead, root, { lead: true })}${rest.map((x) => newsCard(x, root)).join('')}</div>`;
 }
 
 // ── models ────────────────────────────────────────────────
@@ -307,7 +312,7 @@ function modelRow(m, root) {
   <th scope="row"><div class="ptool-cell"><button type="button" class="pick" data-pick="${esc(m.id)}" aria-pressed="false" aria-label="Add ${esc(m.name)} to comparison" title="Add to comparison"></button><div class="ptool">${labTile(m, root)}<span><a class="ptool-name" href="${root}${modelPath(m)}"><strong>${esc(m.name)}</strong></a><small><a class="lab-link" href="${root}${labPath(m.labId)}">${esc(m.lab)}</a> · <code>${esc(m.id)}</code></small></span></div></div>${m.summary ? `<p class="msum">${esc(m.summary)}</p>` : ''}<div class="mtags">${modelTags(m)}</div></th>
   <td class="mnum">${fmtDate(m.date)}<small>${time(m.date)}</small></td>
   <td class="mnum">${tokens(m.context)}${m.maxOutput ? `<small>${tokens(m.maxOutput)} out</small>` : ''}</td>
-  <td class="mnum">${mprice(m.input)}</td>
+  <td class="mnum">${mprice(m.input)}${provCount(m) > 1 ? `<small>${provCount(m)} providers</small>` : ''}</td>
   <td class="mnum">${mprice(m.output)}</td>
   <td class="mnum mbench-cell">${benchCell(m, BENCH_DEFAULT)}</td>
 </tr>`;
@@ -340,7 +345,7 @@ const lbIndex = (m, ix) => {
   return ids.length < ix.min ? null : Math.round((ids.reduce((s, id) => s + m.bench[id] / benchMax[id], 0) / ids.length) * 100);
 };
 const blended = (m) => (3 * m.input + m.output) / 4;
-const LB_TOP = 12;
+const LB_TOP = 20;
 // Artificial Analysis rows matched to our models by slug ("claude-opus-5-5", plus effort suffixes like "-max");
 // several efforts of one model keep the best value of each metric.
 const AA_EFFORT = /^(-(reasoning|non-reasoning|thinking|adaptive|minimal|low|medium|high|xhigh|max|\d{4,}))*$/;
@@ -525,6 +530,41 @@ function benchTable(m, root) {
     }).join('')}</tbody></table></div>`;
 }
 
+// Every provider serving the model (scripts/models.mjs, via OpenRouter), cheapest first by blended price (3:1 input:output).
+const provCount = (m) => new Set((m.providers || []).map((p) => p.name)).size;
+function providerTable(m) {
+  const list = m.providers || [];
+  if (!list.length) return `<p class="muted">No provider list for ${esc(m.name)} yet. It appears here after the next data refresh.</p>`;
+  const low = Math.min(...list.map(blended)), high = Math.max(...list.map(blended));
+  const cheapest = list.filter((p) => blended(p) === low);
+  const has = (k) => list.some((p) => p[k] != null);
+  const cols = [
+    has('cacheRead') && ['Cache read', (p) => (p.cacheRead == null ? '<span class="muted">—</span>' : mprice(p.cacheRead))],
+    ['Context', (p) => tokens(p.context)],
+    has('maxOutput') && ['Max output', (p) => tokens(p.maxOutput)],
+    has('speed') && ['Speed', (p) => (p.speed == null ? '<span class="muted">—</span>' : `${p.speed}<small>tok/s</small>`)],
+    has('latency') && ['Latency', (p) => (p.latency == null ? '<span class="muted">—</span>' : `${(p.latency / 1000).toFixed(2)}<small>s</small>`)],
+    has('uptime') && ['Uptime', (p) => (p.uptime == null ? '<span class="muted">—</span>' : `${p.uptime}%<small>24h</small>`)],
+  ].filter(Boolean);
+  const names = [...new Set(cheapest.map((p) => p.name))];
+  const lead = list.length === 1
+    ? `Only <strong>${esc(list[0].name)}</strong> serves ${esc(m.name)} on OpenRouter right now.`
+    : low === high
+      ? `All ${provCount(m)} providers charge the same: ${priceLine(list[0])} per 1M input / output tokens.`
+      : `Cheapest: <strong>${names.slice(0, 3).map(esc).join(', ')}${names.length > 3 ? ` +${names.length - 3} more` : ''}</strong> at ${priceLine(cheapest[0])} per 1M input / output tokens — ${Math.round((1 - low / high) * 100)}% less than the priciest option.`;
+  return `<p class="prov-lead">${lead}</p>
+  <div class="ptable-wrap"><table class="ptable dtable prov-table">
+    <thead><tr><th scope="col">Provider</th><th scope="col">Input</th><th scope="col">Output</th>${cols.map(([h]) => `<th scope="col">${h}</th>`).join('')}<th scope="col">vs. best</th></tr></thead>
+    <tbody>${list.map((p) => {
+      const d = low > 0 ? Math.round((blended(p) / low - 1) * 100) : (blended(p) > 0 ? null : 0);
+      return `<tr${blended(p) === low ? ' class="prov-best"' : ''}><th scope="row"><strong>${esc(p.name)}</strong><small>${[p.region, p.quant && p.quant.toUpperCase(), !p.tools && 'no tool calling'].filter(Boolean).map(esc).join(' · ')}</small></th>
+        <td class="mnum">${mprice(p.input)}</td>
+        <td class="mnum">${mprice(p.output)}</td>
+        ${cols.map(([, f]) => `<td class="mnum">${f(p)}</td>`).join('')}
+        <td class="mnum">${blended(p) === low ? '<span class="pbadge free">Cheapest</span>' : d == null ? 'Paid' : `+${d}%`}</td></tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
 // A model's standout benchmarks: where it lands in the top half of every scored model, best first.
 function strengths(m) {
   const top = BENCHMARKS.filter((b) => m.bench[b.id] != null).map((b) => ({ b, ...benchRank(b, m.bench[b.id]) }))
@@ -616,6 +656,7 @@ function modelPage(m) {
   const siblings = lab.filter((x) => x.id !== m.id).slice(0, 8);
   const rivals = models.filter((x) => showdown.includes(x.id) && x.labId !== m.labId);
   const nScores = Object.keys(m.bench).length;
+  const cheap = m.providers?.length ? { input: Math.min(...m.providers.map((p) => p.input)), output: Math.min(...m.providers.map((p) => p.output)) } : null;
   const body = `
 <section class="wrap tool-hero" style="--c:${m.color}">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}models/">Models</a><span>/</span><a href="${root}${labPath(m.labId)}">${esc(m.lab)}</a><span>/</span><span>${esc(m.name)}</span></nav>
@@ -637,8 +678,8 @@ function modelPage(m) {
   <dl class="stats tool-stats">
     <div><dt>Released</dt><dd>${fmtDate(m.date).replace(/, \d{4}$/, '')}<small> ${new Date(m.date).getUTCFullYear()}</small></dd></div>
     <div><dt>Context window</dt><dd>${tokens(m.context)}${m.maxOutput ? `<small> ${tokens(m.maxOutput)} out</small>` : ''}</dd></div>
-    <div><dt>Input / 1M tokens</dt><dd>${mprice(m.input)}</dd></div>
-    <div><dt>Output / 1M tokens</dt><dd>${mprice(m.output)}</dd></div>
+    <div><dt>Input / 1M tokens</dt><dd>${mprice(m.input)}${cheap && cheap.input < m.input ? `<small> from ${mprice(cheap.input)}</small>` : ''}</dd></div>
+    <div><dt>Output / 1M tokens</dt><dd>${mprice(m.output)}${cheap && cheap.output < m.output ? `<small> from ${mprice(cheap.output)}</small>` : ''}</dd></div>
   </dl>
 </section>
 
@@ -647,8 +688,10 @@ ${banner()}
 <section class="wrap section">
   <div class="feed-layout">
     <div class="feed">
-      ${valueChart(m, root) ? `<div class="section-head"><div><p class="eyebrow">Value</p><h2>Price vs. performance</h2></div></div>${valueChart(m, root)}` : ''}
-      <div ${valueChart(m, root) ? 'class="section-head dsub"' : 'class="section-head"'}><div><p class="eyebrow">Benchmarks</p><h2>${nScores ? `${nScores} benchmark score${nScores === 1 ? '' : 's'}` : 'Benchmark scores'}</h2></div></div>
+      <div class="section-head"><div><p class="eyebrow">Where to run it</p><h2>${provCount(m) > 1 ? `${provCount(m)} providers compared` : 'Providers'}</h2></div></div>
+      ${providerTable(m)}
+      ${valueChart(m, root) ? `<div class="section-head dsub"><div><p class="eyebrow">Value</p><h2>Price vs. performance</h2></div></div>${valueChart(m, root)}` : ''}
+      <div class="section-head dsub"><div><p class="eyebrow">Benchmarks</p><h2>${nScores ? `${nScores} benchmark score${nScores === 1 ? '' : 's'}` : 'Benchmark scores'}</h2></div></div>
       ${benchTable(m, root)}
       <div class="section-head dsub"><div><p class="eyebrow">Specs</p><h2>Details</h2></div></div>
       <dl class="specs">
@@ -658,13 +701,14 @@ ${banner()}
         <div><dt>Context window</dt><dd>${m.context ? `${m.context.toLocaleString('en-US')} tokens` : '—'}</dd></div>
         <div><dt>Max output</dt><dd>${m.maxOutput ? `${m.maxOutput.toLocaleString('en-US')} tokens` : '—'}</dd></div>
         <div><dt>API price</dt><dd>${priceLine(m)} <span class="muted">per 1M input / output tokens</span></dd></div>
+        <div><dt>Providers</dt><dd>${provCount(m) || '—'}</dd></div>
         <div><dt>Input types</dt><dd>${esc(m.modalities.join(', ') || '—')}</dd></div>
         <div><dt>Reasoning</dt><dd>${yesNo(m.reasoning)}</dd></div>
         <div><dt>Tool calling</dt><dd>${yesNo(m.tools)}</dd></div>
         <div><dt>Open weights</dt><dd>${yesNo(m.openWeights)}</dd></div>
         <div><dt>Free tier</dt><dd>${yesNo(m.free)}</dd></div>
       </dl>
-      <p class="muted small section-note">Release date and prices from OpenRouter's catalog; first-party API prices can differ. Benchmark scores are the best result per benchmark from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a>, licensed CC BY 4.0. Rank counts every model tracked here with a score.</p>
+      <p class="muted small section-note">Release date, prices and providers from OpenRouter's catalog; buying directly from a provider can cost a little differently. Uptime is the share of OpenRouter requests each provider served over the last day. Benchmark scores are the best result per benchmark from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a>, licensed CC BY 4.0. Rank counts every model tracked here with a score.</p>
     </div>
     <aside class="side">
       ${ad('side')}
@@ -928,6 +972,7 @@ function toolPage(t) {
       <div class="tool-links">
         <a class="btn" href="${esc(t.site)}" target="_blank" rel="noopener">Official site ↗</a>
         ${t.meta.repoUrl ? `<a class="btn ghost" href="${esc(t.meta.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>` : ''}
+        ${t.id === 'opencode' && oc ? `<a class="btn ghost" href="#usage">Model usage data ↓</a>` : ''}
         ${snap.x?.handles?.[t.id]?.handle ? `<a class="btn ghost" href="https://x.com/${esc(snap.x.handles[t.id].handle)}" target="_blank" rel="noopener">𝕏 @${esc(snap.x.handles[t.id].handle)} ↗</a>` : ''}
       </div>
     </div>
@@ -963,7 +1008,7 @@ ${banner()}
     </aside>
   </div>
 </section>
-
+${t.id === 'opencode' && oc ? ocSections(root) : ''}
 ${banner()}`;
 
   return layout({
@@ -1000,6 +1045,25 @@ ${banner()}
   });
 }
 
+// Topic chips and a tool picker; src/app.js hides the cards that don't match.
+function newsFilters() {
+  const shown = newsFit(news);
+  if (shown.length < 2) return '';
+  const count = (key) => shown.reduce((m, n) => [].concat(key(n)).reduce((m, k) => m.set(k, (m.get(k) || 0) + 1), m), new Map());
+  const tags = [...count((n) => n.tag)].sort((a, b) => b[1] - a[1]);
+  const tools = [...count((n) => n.toolIds)].filter(([id]) => byId[id]).sort((a, b) => b[1] - a[1] || byId[a[0]].name.localeCompare(byId[b[0]].name));
+  return `<div class="nfilters">
+  <div class="nchips" role="group" aria-label="Filter by topic">
+    <button type="button" class="chip on" data-tag="all" aria-pressed="true">All <small>${shown.length}</small></button>
+    ${tags.map(([t, c]) => `<button type="button" class="chip" data-tag="${esc(t.toLowerCase())}" aria-pressed="false">${esc(t)} <small>${c}</small></button>`).join('')}
+  </div>
+  <label class="ntool-pick"><select id="ntool" aria-label="Filter by tool">
+    <option value="">All tools</option>
+    ${tools.map(([id, c]) => `<option value="${esc(id)}">${esc(byId[id].name)} (${c})</option>`).join('')}
+  </select></label>
+</div>`;
+}
+
 function newsPage() {
   const root = '../';
   const body = `
@@ -1010,11 +1074,171 @@ function newsPage() {
 </section>
 
 ${banner()}
-<section class="wrap section">${newsGrid(news, root)}${ad('inline')}</section>`;
+<section class="wrap section">${newsFilters()}${newsGrid(news, root)}<p class="muted nempty" hidden>No stories match these filters.</p>${ad('inline')}</section>`;
   return layout({
     root, path: 'news/', active: 'news', title: `AI Coding News — Launches, Models, Security & Pricing | ${SITE_NAME}`,
     description: `The important AI IDE and coding-agent news: ${news.slice(0, 4).map((n) => n.title).join(' · ')}`, body,
   });
+}
+
+// ── usage (OpenCode Data) ─────────────────────────────────
+// Real-world usage across OpenCode (scripts/opencode.mjs): which models people actually run, and what it costs.
+const oc = snap.opencode?.leaderboard?.pastWeek?.length ? snap.opencode : null;
+const big = (n) => {
+  if (n == null) return '—';
+  const [d, s] = n >= 1e12 ? [1e12, 'T'] : n >= 1e9 ? [1e9, 'B'] : n >= 1e6 ? [1e6, 'M'] : n >= 1e3 ? [1e3, 'K'] : [1, ''];
+  const v = n / d;
+  return `${v < 10 && s ? v.toFixed(1).replace(/\.0$/, '') : Math.round(v)}${s}`;
+};
+const OC_LABS = { zhipu: 'Zhipu', reflection: 'Reflection', meituan: 'Meituan', stepfun: 'StepFun', xiaomi: 'Xiaomi' };
+const ocLab = (id) => OC_LABS[id] || models.find((m) => m.labId === id)?.lab || (id ? id[0].toUpperCase() + id.slice(1) : '');
+// OpenCode's model slug ("deepseek-v4.1-flash") → our model page, when we track that exact model.
+const ocModel = Object.fromEntries(models.map((m) => [m.id.split('/').slice(1).join('/'), m]));
+const ocName = (slug) => oc?.leaderboard.pastWeek.find((r) => r.model === slug)?.name || ocModel[slug]?.name || slug;
+// Series colours for stacked charts (lab colours repeat when one lab has several models); "Other" stays neutral.
+const OC_PALETTE = ['#ff6b35', '#7fa8d6', '#7fbf7f', '#b89bd1', '#e2c35a', '#e2457a', '#4fc1b0', '#9b8cff', '#d98b5f', '#6fb3e0'];
+const ocColor = (keys) => Object.fromEntries(keys.map((k, i) => [k, k === 'Other' ? 'var(--ink-3)' : OC_PALETTE[i % OC_PALETTE.length]]));
+const country = (() => { try { const d = new Intl.DisplayNames(['en'], { type: 'region' }); return (c) => { try { return d.of(c); } catch { return c; } }; } catch { return (c) => c; } })();
+const shortDay = (d) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+function ocModelLink(r, root) {
+  const m = ocModel[r.model];
+  return m ? `<a href="${root}${modelPath(m)}">${esc(r.name || m.name)}</a>` : `<a href="${esc(r.page || OPENCODE_SOURCE.url)}" target="_blank" rel="noopener">${esc(r.name || r.model)}</a>`;
+}
+
+// Ranked token leaderboard with week-over-week change.
+function ocRanking(rows, root, { change = true } = {}) {
+  const max = Math.max(...rows.map((r) => r.tokens)) || 1;
+  return `<ol class="oc-rank">${rows.map((r) => {
+    const m = ocModel[r.model];
+    const delta = !change ? '' : r.changePercent == null ? '<span class="oc-chg oc-new">New</span>'
+      : `<span class="oc-chg ${r.changePercent >= 0 ? 'oc-up' : 'oc-down'}">${r.changePercent >= 0 ? '+' : ''}${r.changePercent}%</span>`;
+    return `<li style="--c:${m?.color || 'var(--accent)'};--w:${Math.max(0.6, (r.tokens / max) * 100).toFixed(1)}%">
+      <span class="oc-n">${String(r.rank).padStart(2, '0')}</span>
+      <span class="oc-who">${ocModelLink(r, root)}<small>${esc(ocLab(r.lab))}</small></span>
+      <span class="oc-bar"><i></i></span>
+      <span class="oc-v">${big(r.tokens)}<small> tokens</small></span>${delta}
+    </li>`;
+  }).join('')}</ol>`;
+}
+
+// Stacked daily bars (SVG). `days`: [{ date, parts: { key: value } }]; `pct` charts shares that sum to 100.
+function ocStacked(days, keys, { label, fmt = big, pct = false, names = (k) => k } = {}) {
+  const W = 960, H = 260, L = 46, B = 24, T = 8;
+  const colors = ocColor(keys);
+  const totals = days.map((d) => keys.reduce((s, k) => s + (d.parts[k] || 0), 0));
+  const top = Math.max(...totals) || 1;
+  const step = 10 ** Math.floor(Math.log10(top / 4)), unit = [1, 2, 2.5, 5, 10].find((f) => f * step * 4 >= top) * step;
+  const max = pct ? 100 : unit * 4; // four even gridlines, rounded
+  const bw = (W - L) / days.length;
+  const y = (v) => T + (H - T - B) * (1 - v / max);
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * max);
+  const bars = days.map((d, i) => {
+    let acc = 0;
+    const x = L + i * bw + bw * 0.12;
+    return keys.map((k) => {
+      const v = d.parts[k] || 0;
+      if (!v) return '';
+      const y1 = y(acc + v), h = y(acc) - y1;
+      acc += v;
+      return `<rect x="${x.toFixed(1)}" y="${y1.toFixed(1)}" width="${(bw * 0.76).toFixed(1)}" height="${Math.max(0.5, h).toFixed(1)}" fill="${colors[k]}"><title>${esc(`${shortDay(d.date)} · ${names(k)}: ${pct ? `${v}%` : fmt(v)}`)}</title></rect>`;
+    }).join('');
+  }).join('');
+  const every = Math.max(1, Math.round(days.length / 6));
+  return `<figure class="oc-chart">
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">
+      ${ticks.map((t) => `<line x1="${L}" x2="${W}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}" class="oc-gl"/><text x="${L - 8}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end" class="oc-ax">${pct ? `${Math.round(t)}%` : fmt(t)}</text>`).join('')}
+      ${bars}
+      ${days.map((d, i) => (i % every ? '' : `<text x="${(L + i * bw + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle" class="oc-ax">${esc(shortDay(d.date).toUpperCase())}</text>`)).join('')}
+    </svg>
+    <figcaption class="oc-legend">${keys.map((k) => `<span><i style="background:${colors[k]}"></i>${esc(names(k))}</span>`).join('')}</figcaption>
+  </figure>`;
+}
+
+// Simple horizontal bars for the small cards (session cost, cache ratio, countries…).
+const ocBars = (rows, { fmt, max = Math.max(...rows.map((r) => r.v)) || 1 }) => `<ol class="oc-hbars">${rows.map((r) => `<li style="--w:${Math.max(1, (r.v / max) * 100).toFixed(1)}%"><span class="oc-hl">${r.label}</span><span class="oc-hb"><i></i></span><span class="oc-hv">${fmt(r.v)}</span></li>`).join('')}</ol>`;
+
+function ocTabs(id, label, views) {
+  return `<div class="lb-body oc-tabs">
+    <div class="lb-nav" role="tablist" aria-label="${esc(label)}" aria-orientation="vertical">
+      ${views.map((v, i) => `<button type="button" role="tab" id="${id}-tab-${v.id}" aria-controls="${id}-${v.id}" aria-selected="${!i}"${i ? ' tabindex="-1"' : ''}>${esc(v.name)}</button>`).join('')}
+    </div>
+    <div class="lb-panels">${views.map((v, i) => `<div class="lb-panel" role="tabpanel" id="${id}-${v.id}" aria-labelledby="${id}-tab-${v.id}"${i ? ' hidden' : ''}>
+      <div class="lb-head"><h3><i class="lb-sq" style="--t:var(--${v.tone || 'accent'})"></i>${esc(v.title || v.name)}</h3><p class="muted small">${v.desc}</p></div>
+      ${v.html}
+    </div>`).join('')}</div>
+  </div>`;
+}
+
+const usd4 = (n) => `$${n < 0.01 ? n.toFixed(4) : n < 1 ? n.toFixed(3) : n.toFixed(2)}`;
+
+// Model usage across OpenCode, shown on the OpenCode tool page.
+function ocSections(root) {
+  const lb = oc.leaderboard;
+  const lead = lb.pastWeek[0];
+  const series = (list) => {
+    const keys = Object.keys(list.at(-1)?.models || {});
+    return { keys: [...keys.filter((k) => k !== 'Other'), ...keys.filter((k) => k === 'Other')], days: list.map((d) => ({ date: d.date, parts: d.models })) };
+  };
+  const tok = series(oc.dailyTokens), users = series(oc.dailyUniqueUsers);
+  const labsOrder = Object.keys(Object.fromEntries((oc.marketShare.at(-1)?.labs || []).map((l) => [l.lab, 1])));
+  const labKeys = [...labsOrder.filter((k) => k !== 'Other'), ...labsOrder.filter((k) => k === 'Other')];
+  const share = oc.marketShare.map((d) => ({ date: d.date, parts: Object.fromEntries(d.labs.map((l) => [l.lab, l.sharePercent])) }));
+  const span = `${shortDay(oc.dailyTokens[0].date)} – ${shortDay(oc.dailyTokens.at(-1).date)}`;
+  const weekTotal = lb.pastWeek.reduce((s, r) => s + r.tokens, 0);
+  const peakUsers = Math.max(...oc.dailyUniqueUsers.map((d) => d.total));
+  const today = oc.marketShare.at(-1);
+
+  return `
+<section id="usage" class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Usage data</p><h2>Which models OpenCode users <em>actually run</em></h2></div><p class="muted small section-note">${esc(oc.summary)} Source: <a href="${OPENCODE_SOURCE.url}" target="_blank" rel="noopener">${OPENCODE_SOURCE.name}</a> · updated ${time(oc.updatedAt)} · aggregated hourly, days in UTC.</p></div>
+  <dl class="stats oc-stats">
+    <div><dt>Most used · 7 days</dt><dd>${esc(lead.name)}<small> ${big(lead.tokens)}</small></dd></div>
+    <div><dt>Tokens · top ${lb.pastWeek.length} models, 7 days</dt><dd>${big(weekTotal)}</dd></div>
+    <div><dt>Peak daily users</dt><dd>${big(peakUsers)}</dd></div>
+    <div><dt>Top lab today</dt><dd>${esc(today?.labs.slice().sort((a, b) => b.sharePercent - a.sharePercent)[0]?.lab || '—')}<small> ${today?.labs.slice().sort((a, b) => b.sharePercent - a.sharePercent)[0]?.sharePercent ?? ''}%</small></dd></div>
+  </dl>
+</section>
+
+<section id="top-models" class="wrap section lb">
+  <div class="section-head"><div><p class="eyebrow">Leaderboard</p><h2>Top models by tokens</h2></div><p class="muted small section-note">Input, output, reasoning and cached tokens per request, summed. Names link to the model's page here when we track it.</p></div>
+  ${ocTabs('ocl', 'Leaderboard period', [
+    { id: 'week', name: 'Past 7 days', title: 'Past 7 days', desc: 'Change compared with the 7 days before', html: ocRanking(lb.pastWeek, root) },
+    ...(lb.pastDay.length ? [{ id: 'day', name: 'Past 24 hours', title: 'Past 24 hours', tone: 'k-changelog', desc: 'Tokens served so far in the current UTC day', html: ocRanking(lb.pastDay, root, { change: false }) }] : []),
+  ])}
+</section>
+
+<section id="trends" class="wrap section lb">
+  <div class="section-head"><div><p class="eyebrow">Trends · ${esc(span)}</p><h2>How the mix is shifting</h2></div><p class="muted small section-note">Daily totals for today's top models; everything else is grouped as Other. Hover a bar for the exact figure.</p></div>
+  ${ocTabs('oct', 'Trend chart', [
+    { id: 'tokens', name: 'Tokens', title: 'Daily tokens', desc: 'Tokens served per day, by model', html: ocStacked(tok.days, tok.keys, { label: 'Daily tokens by model', names: ocName }) },
+    { id: 'users', name: 'Unique users', title: 'Daily unique users', tone: 'k-release', desc: 'Approximate distinct OpenCode users per day, by model', html: ocStacked(users.days, users.keys, { label: 'Daily unique users by model', names: ocName }) },
+    { id: 'share', name: 'Market share', title: 'Market share by lab', tone: 'k-blog', desc: 'Share of each day’s tokens by the lab that made the model', html: ocStacked(share, labKeys, { label: 'Token share by lab', pct: true }) },
+  ])}
+</section>
+
+<section id="economics" class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Economics</p><h2>Retention, cost &amp; caching</h2></div></div>
+  <div class="oc-grid">
+    ${oc.weeklyRetention.length ? `<div class="side-card oc-card"><p class="eyebrow">Weekly retention</p><h2>Who comes back</h2><p class="muted small">Share of a model's users one week who use it again the next week.</p>
+      <table class="oc-table"><thead><tr><th>#</th><th>Model</th><th>Retained</th><th>Users</th></tr></thead><tbody>${oc.weeklyRetention.map((r) => `<tr><td class="muted">${String(r.rank).padStart(2, '0')}</td><td>${ocModelLink(r, root)}</td><td><b>${r.retentionPercent}%</b></td><td class="muted">${big(r.eligibleUserWeeks)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    ${oc.sessionCost.length ? `<div class="side-card oc-card"><p class="eyebrow">Session cost</p><h2>Cost per session</h2><p class="muted small">Average list-price cost of one OpenCode session, and its tokens.</p>
+      ${ocBars(oc.sessionCost.map((r) => ({ label: `${esc(ocName(r.model))}<small>${big(r.tokensPerSession)} tokens</small>`, v: r.costPerSessionUsd })), { fmt: usd4 })}</div>` : ''}
+    ${oc.tokenPrices.length ? `<div class="side-card oc-card"><p class="eyebrow">Token prices</p><h2>Price per 1M tokens</h2><p class="muted small">List prices in OpenCode's model catalog, USD.</p>
+      <table class="oc-table"><thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cached</th></tr></thead><tbody>${oc.tokenPrices.map((r) => `<tr><td>${esc(ocName(r.model))}</td><td>${usd4(r.input)}</td><td><b>${usd4(r.output)}</b></td><td class="muted">${usd4(r.cachedInput)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    ${oc.cacheRatio.length ? `<div class="side-card oc-card"><p class="eyebrow">Cache ratio</p><h2>Input served from cache</h2><p class="muted small">Share of input tokens that were cache hits.</p>
+      ${ocBars(oc.cacheRatio.map((r) => ({ label: `${esc(ocName(r.model))}<small>${big(r.cachedInputTokens)} cached</small>`, v: r.cachedInputPercent })), { fmt: (v) => `${Math.round(v)}%`, max: 100 })}</div>` : ''}
+  </div>
+</section>
+
+${oc.countries.length ? `<section id="geography" class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Geography</p><h2>Where the tokens come from</h2></div><p class="muted small section-note">Tokens by the requesting user's country over the period shown.</p></div>
+  <div class="oc-geo">${ocBars(oc.countries.slice(0, 20).map((r) => ({ label: `<span class="muted">${String(r.rank).padStart(2, '0')}</span> ${esc(country(r.country))}`, v: r.tokens })), { fmt: big })}</div>
+</section>` : ''}
+
+<section class="wrap section">
+  <p class="muted small section-note">Data from <a href="${OPENCODE_SOURCE.url}" target="_blank" rel="noopener">${OPENCODE_SOURCE.name}</a> (opencode.ai/data), updated ${fmtDate(oc.updatedAt)} ${new Date(oc.updatedAt).toISOString().slice(11, 16)} UTC. Tokens count input, output, reasoning and cached tokens for each request; users and sessions are approximate distinct counts; costs use list prices. It reflects OpenCode's users only, not the wider market.</p>
+</section>`;
 }
 
 // ── pricing ───────────────────────────────────────────────
@@ -1166,6 +1390,7 @@ await out('data.json', JSON.stringify({
   news: news.map(({ score, ...n }) => n),
   models: models.map(({ color, labId, ...m }) => m),
   benchmarkSource: BENCH_SOURCE,
+  ...(oc ? { opencodeUsage: { source: OPENCODE_SOURCE, updatedAt: oc.updatedAt, pastWeek: oc.leaderboard.pastWeek } } : {}),
 }));
 // Tiny file the open page polls to announce new updates without a full reload of data.json.
 await out('version.json', JSON.stringify({

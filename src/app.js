@@ -123,6 +123,34 @@
     });
   }
   more?.addEventListener('click', () => { state.page += 40; apply(); });
+  // News page: filter cards by topic and tool; the choice lives in ?tag=&tool= so it can be shared.
+  const nf = $('.nfilters');
+  if (nf) {
+    const grid = $('.ngrid'), cards = $$('.ncard', grid), pick = $('#ntool', nf), empty = $('.nempty');
+    const url = new URL(location.href);
+    let tag = url.searchParams.get('tag') || 'all';
+    if (!$(`.chip[data-tag="${CSS.escape(tag)}"]`, nf)) tag = 'all';
+    pick.value = url.searchParams.get('tool') || '';
+    if (pick.selectedIndex < 0) pick.value = '';
+    const run = () => {
+      const tool = pick.value;
+      let shown = 0;
+      cards.forEach((c) => {
+        const ok = (tag === 'all' || c.dataset.tag === tag) && (!tool || c.dataset.tools.split(' ').includes(tool));
+        c.hidden = !ok; shown += ok;
+      });
+      $$('.chip', nf).forEach((x) => { const on = x.dataset.tag === tag; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
+      grid.classList.toggle('filtered', tag !== 'all' || !!tool);
+      grid.hidden = !shown; empty.hidden = !!shown;
+      const u = new URL(location.href);
+      tag === 'all' ? u.searchParams.delete('tag') : u.searchParams.set('tag', tag);
+      tool ? u.searchParams.set('tool', tool) : u.searchParams.delete('tool');
+      history.replaceState(null, '', u);
+    };
+    nf.addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) { tag = b.dataset.tag; run(); } });
+    pick.addEventListener('change', run);
+    run();
+  }
   if ($('#cmp-data')) comparePlans();
   if ($('.mtable')) compareModels();
   $$('.vzoom').forEach(zoomChart);
@@ -693,24 +721,26 @@
   setInterval(checkForUpdates, 90000);
   document.addEventListener('visibilitychange', checkForUpdates);
 
-  // Leaderboard (Models page): metric tabs, arrow keys move between them; the bars replay their grow-in.
-  const lbTabs = $$('.lb-nav [role="tab"]');
-  const lbShow = (tab, focus) => {
-    lbTabs.forEach((t) => {
-      const on = t === tab;
-      t.setAttribute('aria-selected', String(on));
-      t.tabIndex = on ? 0 : -1;
-      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
-    });
-    if (focus) tab.focus();
-  };
-  lbTabs.forEach((t, i) => {
-    t.addEventListener('click', () => lbShow(t));
-    t.addEventListener('keydown', (e) => {
-      const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
-      if (!step) return;
-      e.preventDefault();
-      lbShow(lbTabs[(i + step + lbTabs.length) % lbTabs.length], true);
+  // Leaderboard tabs (Models and Usage pages): each tab group on its own, arrow keys move between tabs.
+  $$('.lb-nav').forEach((nav) => {
+    const tabs = [...nav.querySelectorAll('[role="tab"]')];
+    const show = (tab, focus) => {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      });
+      if (focus) tab.focus();
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => show(t));
+      t.addEventListener('keydown', (e) => {
+        const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+        if (!step) return;
+        e.preventDefault();
+        show(tabs[(i + step + tabs.length) % tabs.length], true);
+      });
     });
   });
 })();
