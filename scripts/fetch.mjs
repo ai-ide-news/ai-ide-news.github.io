@@ -21,6 +21,8 @@ const DAY = 86400e3;
 const NOW = Date.now();
 const MAX_PER_TOOL = 40;
 const RELEASES_PAGE = 100;
+const RELEASES_PAGE_SMALL = 30;
+const MAX_RELEASE_DATES = 600; // how far back a full run pages for the activity chart
 const CADENCE_WINDOW = 26 * 7 * DAY; // the tool page's weekly activity chart
 // QUICK=1: the frequent "is there anything new?" run — skips trending discovery and repo metadata,
 // and uses conditional requests so unchanged GitHub repos cost nothing against the rate limit.
@@ -78,15 +80,27 @@ const ghHeaders = () => ({ Accept: 'application/vnd.github+json', ...(GH_TOKEN ?
 
 // ── GitHub releases ────────────────────────────────────────
 // `old` is the tool's previous snapshot entry: its ETag lets GitHub answer 304 (free) when nothing shipped.
+async function releasesPage(tool, size, headers = {}) {
+  const url = `https://api.github.com/repos/${tool.github}/releases?per_page=${size}`;
+  const res = await fetch(url, { headers: { 'User-Agent': UA, ...ghHeaders(), ...headers }, signal: AbortSignal.timeout(30000) });
+  if (!res.ok && res.status !== 304) throw Object.assign(new Error(`${res.status} ${url}`), { status: res.status });
+  return { res, releases: res.status === 304 ? [] : await res.json() };
+}
+
 async function fetchGithub(tool, old) {
-  const url = `https://api.github.com/repos/${tool.github}/releases?per_page=${RELEASES_PAGE}`;
-  const res = await fetch(url, { headers: { 'User-Agent': UA, ...ghHeaders(), ...(old?.meta?.etag ? { 'If-None-Match': old.meta.etag } : {}) }, signal: AbortSignal.timeout(30000) });
+  const conditional = old?.meta?.etag ? { 'If-None-Match': old.meta.etag } : {};
+  let size = RELEASES_PAGE, page;
+  try { page = await releasesPage(tool, size, conditional); } catch (e) {
+    // Repos with very long release notes (Codex) can make a full page time out; ask for smaller ones.
+    if (e.status < 500) throw e;
+    size = RELEASES_PAGE_SMALL;
+    page = await releasesPage(tool, size, conditional);
+  }
+  const { res, releases } = page;
   const reuse = QUICK && old?.meta?.repo;
   if (res.status === 304 && !tool.npm) {
     return { items: old.items.filter((i) => i.kind === 'release'), meta: old.meta };
   }
-  if (!res.ok && res.status !== 304) throw new Error(`${res.status} ${url}`);
-  const releases = res.status === 304 ? [] : await res.json();
   const etag = res.headers.get('etag');
   const repo = reuse ? null : await get(`https://api.github.com/repos/${tool.github}`, { json: true, headers: ghHeaders() });
   const meta = repo
@@ -94,7 +108,7 @@ async function fetchGithub(tool, old) {
     : { ...old.meta, etag };
   if (tool.npm) return fetchNpm(tool, meta);
   const stable = releases.filter((r) => !r.draft && !r.prerelease && !UNSTABLE.test(r.tag_name) && !UNSTABLE.test(r.name || '') && (!tool.tagFilter || tool.tagFilter.test(r.tag_name)));
-  const { cadence, cadenceFrom } = await releaseDates(tool, releases, old);
+  const { cadence, cadenceFrom } = await releaseDates(tool, releases, old, size);
   const items = stable.slice(0, MAX_PER_TOOL).map((r) => {
     const version = r.tag_name.replace(/^rust-/, '');
     const body = r.body || '';
@@ -113,17 +127,17 @@ async function fetchGithub(tool, old) {
 // Release dates behind the activity chart. Busy repos ship more than a page of releases in the
 // chart's window, so full runs page further back and every run keeps earlier runs' dates.
 // cadenceFrom is where known history starts when it doesn't reach the window (null = complete).
-async function releaseDates(tool, releases, old) {
+async function releaseDates(tool, releases, old, size) {
   const start = NOW - CADENCE_WINDOW;
   const dates = releases.filter((r) => !r.draft).map((r) => r.published_at);
-  let complete = releases.length < RELEASES_PAGE;
+  let complete = releases.length < size;
   // Pages aren't strictly ordered by publish date, so track the earliest date seen.
   const earliest = () => dates.reduce((a, b) => (a < b ? a : b), dates[0]);
-  for (let page = 2; !complete && !QUICK && page <= 5 && Date.parse(earliest()) > start; page++) {
-    const more = await get(`https://api.github.com/repos/${tool.github}/releases?per_page=${RELEASES_PAGE}&page=${page}`, { json: true, headers: ghHeaders() }).catch(() => null);
+  for (let page = 2; !complete && !QUICK && page * size <= MAX_RELEASE_DATES && Date.parse(earliest()) > start; page++) {
+    const more = await get(`https://api.github.com/repos/${tool.github}/releases?per_page=${size}&page=${page}`, { json: true, headers: ghHeaders() }).catch(() => null);
     if (!more) break;
     dates.push(...more.filter((r) => !r.draft).map((r) => r.published_at));
-    complete = more.length < RELEASES_PAGE;
+    complete = more.length < size;
   }
   const oldest = earliest();
   const covered = complete || Date.parse(oldest) <= start;
@@ -166,9 +180,21 @@ async function fetchCask(tool, old) {
     summary: `${tool.name} ${v} for macOS, published to Homebrew as the ${tool.cask} cask.`, html: '', source: 'Homebrew',
   });
   let items = (old?.items || []).filter((i) => i.kind === 'release' && i.id.startsWith('cask:'));
+  // Quick runs reuse the stored history; full runs page back far enough to cover the activity chart.
+  let cadence = old?.meta?.cadence || [], cadenceFrom = old?.meta?.cadenceFrom;
   if (!QUICK || !items.length) {
     const path = `Casks/${tool.cask[0]}/${tool.cask}.rb`;
-    const commits = await get(`https://api.github.com/repos/Homebrew/homebrew-cask/commits?path=${path}&per_page=100`, { json: true, headers: ghHeaders() });
+    const commits = [];
+    let covered = false;
+    for (let page = 1; page <= 5 && !covered; page++) {
+      const url = `https://api.github.com/repos/Homebrew/homebrew-cask/commits?path=${path}&per_page=100&page=${page}`;
+      const batch = await get(url, { json: true, headers: ghHeaders() }).catch((e) => { if (page === 1) throw e; return null; });
+      if (!batch) break;
+      commits.push(...batch);
+      covered = batch.length < 100 || Date.parse(batch.at(-1).commit.committer.date) <= NOW - CADENCE_WINDOW;
+    }
+    cadence = [];
+    cadenceFrom = covered ? null : commits.at(-1)?.commit.committer.date;
     const prefix = `${tool.cask} `;
     const known = new Map(items.map((i) => [i.id, i]));
     items = commits
@@ -181,7 +207,8 @@ async function fetchCask(tool, old) {
   if (!items.some((i) => i.version === `v${current}`)) items.unshift(item(current, new Date(NOW).toISOString()));
   const seen = new Set();
   items = items.filter((i) => !seen.has(i.id) && seen.add(i.id)).sort((a, b) => b.date.localeCompare(a.date));
-  return { items: items.slice(0, MAX_PER_TOOL), meta: { ...(old?.meta || {}), cask: tool.cask, cadence: items.map((i) => i.date) } };
+  cadence = [...new Set([...cadence, ...items.map((i) => i.date)])].filter((d) => Date.parse(d) >= NOW - CADENCE_WINDOW).sort().reverse();
+  return { items: items.slice(0, MAX_PER_TOOL), meta: { ...(old?.meta || {}), cask: tool.cask, cadence, cadenceFrom } };
 }
 
 // ── RSS / Atom feeds ───────────────────────────────────────
