@@ -140,7 +140,6 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
     <nav class="nav-links" aria-label="Primary">
       ${news.length ? `<a href="${root}news/" ${active === 'news' ? 'aria-current="page"' : ''}>News</a>` : ''}
       ${models.length ? `<a href="${root}models/" ${active === 'models' ? 'aria-current="page"' : ''}>Models</a>` : ''}
-      ${oc ? `<a href="${root}usage/" ${active === 'usage' ? 'aria-current="page"' : ''}>Usage</a>` : ''}
       <a href="${root}#versions" ${active === 'versions' ? 'aria-current="page"' : ''}>Latest versions</a>
       <a href="${root}#feed">Changelog</a>
       ${trending.length ? `<a href="${root}#trending">Trending</a>` : ''}
@@ -612,13 +611,6 @@ function labTimeline(list, root, highlight, { w: W = 640 } = {}) {
 
 const modelList = (list, root) => `<ul class="similar">${list.map((x) => `<li><a href="${root}${modelPath(x)}" style="--c:${x.color}">${labTile(x, root)}<span>${esc(x.name)}</span><code>${fmtDate(x.date).replace(/, \d{4}$/, '')}</code></a></li>`).join('')}</ul>`;
 
-// "#1 on OpenCode · 85T tokens in the past 7 days", when OpenCode Data ranks this model.
-function ocUsage(m, root) {
-  const slug = m.id.split('/').slice(1).join('/');
-  const r = oc?.leaderboard.pastWeek.find((x) => x.model === slug);
-  return r ? `<div><dt>OpenCode usage</dt><dd><a href="${root}usage/">#${r.rank} · ${big(r.tokens)} tokens</a> <span class="muted">past 7 days${r.changePercent != null ? `, ${r.changePercent >= 0 ? '+' : ''}${r.changePercent}% week on week` : ''}</span></dd></div>` : '';
-}
-
 function modelPage(m) {
   const root = '../../../';
   const lab = models.filter((x) => x.labId === m.labId);
@@ -667,7 +659,6 @@ ${banner()}
         <div><dt>Context window</dt><dd>${m.context ? `${m.context.toLocaleString('en-US')} tokens` : '—'}</dd></div>
         <div><dt>Max output</dt><dd>${m.maxOutput ? `${m.maxOutput.toLocaleString('en-US')} tokens` : '—'}</dd></div>
         <div><dt>API price</dt><dd>${priceLine(m)} <span class="muted">per 1M input / output tokens</span></dd></div>
-        ${ocUsage(m, root)}
         <div><dt>Input types</dt><dd>${esc(m.modalities.join(', ') || '—')}</dd></div>
         <div><dt>Reasoning</dt><dd>${yesNo(m.reasoning)}</dd></div>
         <div><dt>Tool calling</dt><dd>${yesNo(m.tools)}</dd></div>
@@ -938,7 +929,7 @@ function toolPage(t) {
       <div class="tool-links">
         <a class="btn" href="${esc(t.site)}" target="_blank" rel="noopener">Official site ↗</a>
         ${t.meta.repoUrl ? `<a class="btn ghost" href="${esc(t.meta.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>` : ''}
-        ${t.id === 'opencode' && oc ? `<a class="btn ghost" href="${root}usage/">Model usage data →</a>` : ''}
+        ${t.id === 'opencode' && oc ? `<a class="btn ghost" href="#usage">Model usage data ↓</a>` : ''}
         ${snap.x?.handles?.[t.id]?.handle ? `<a class="btn ghost" href="https://x.com/${esc(snap.x.handles[t.id].handle)}" target="_blank" rel="noopener">𝕏 @${esc(snap.x.handles[t.id].handle)} ↗</a>` : ''}
       </div>
     </div>
@@ -974,7 +965,7 @@ ${banner()}
     </aside>
   </div>
 </section>
-
+${t.id === 'opencode' && oc ? ocSections(root) : ''}
 ${banner()}`;
 
   return layout({
@@ -1119,8 +1110,8 @@ function ocTabs(id, label, views) {
 
 const usd4 = (n) => `$${n < 0.01 ? n.toFixed(4) : n < 1 ? n.toFixed(3) : n.toFixed(2)}`;
 
-function usagePage() {
-  const root = '../';
+// Model usage across OpenCode, shown on the OpenCode tool page.
+function ocSections(root) {
   const lb = oc.leaderboard;
   const lead = lb.pastWeek[0];
   const series = (list) => {
@@ -1136,16 +1127,10 @@ function usagePage() {
   const peakUsers = Math.max(...oc.dailyUniqueUsers.map((d) => d.total));
   const today = oc.marketShare.at(-1);
 
-  const body = `
-<section class="wrap hero hero-sm">
-  <p class="eyebrow">Usage · OpenCode</p>
-  <h1>Which models developers <em>actually use</em></h1>
-  <p class="lede">${esc(oc.summary)} Real token usage, daily users, retention, cost and cache hit rates across every model on OpenCode, the open-source coding agent.</p>
-  <p class="muted small">Source: <a href="${OPENCODE_SOURCE.url}" target="_blank" rel="noopener">${OPENCODE_SOURCE.name}</a> · updated ${time(oc.updatedAt)} · aggregated hourly, days in UTC</p>
-</section>
-
-<section class="wrap">
-  <dl class="stats">
+  return `
+<section id="usage" class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Usage data</p><h2>Which models OpenCode users <em>actually run</em></h2></div><p class="muted small section-note">${esc(oc.summary)} Source: <a href="${OPENCODE_SOURCE.url}" target="_blank" rel="noopener">${OPENCODE_SOURCE.name}</a> · updated ${time(oc.updatedAt)} · aggregated hourly, days in UTC.</p></div>
+  <dl class="stats oc-stats">
     <div><dt>Most used · 7 days</dt><dd>${esc(lead.name)}<small> ${big(lead.tokens)}</small></dd></div>
     <div><dt>Tokens · top ${lb.pastWeek.length} models, 7 days</dt><dd>${big(weekTotal)}</dd></div>
     <div><dt>Peak daily users</dt><dd>${big(peakUsers)}</dd></div>
@@ -1160,8 +1145,6 @@ function usagePage() {
     ...(lb.pastDay.length ? [{ id: 'day', name: 'Past 24 hours', title: 'Past 24 hours', tone: 'k-changelog', desc: 'Tokens served so far in the current UTC day', html: ocRanking(lb.pastDay, root, { change: false }) }] : []),
   ])}
 </section>
-
-${banner()}
 
 <section id="trends" class="wrap section lb">
   <div class="section-head"><div><p class="eyebrow">Trends · ${esc(span)}</p><h2>How the mix is shifting</h2></div><p class="muted small section-note">Daily totals for today's top models; everything else is grouped as Other. Hover a bar for the exact figure.</p></div>
@@ -1194,12 +1177,6 @@ ${oc.countries.length ? `<section id="geography" class="wrap section">
 <section class="wrap section">
   <p class="muted small section-note">Data from <a href="${OPENCODE_SOURCE.url}" target="_blank" rel="noopener">${OPENCODE_SOURCE.name}</a> (opencode.ai/data), updated ${fmtDate(oc.updatedAt)} ${new Date(oc.updatedAt).toISOString().slice(11, 16)} UTC. Tokens count input, output, reasoning and cached tokens for each request; users and sessions are approximate distinct counts; costs use list prices. It reflects OpenCode's users only, not the wider market.</p>
 </section>`;
-  return layout({
-    root, path: 'usage/', active: 'usage',
-    title: `AI Model Usage Rankings — Tokens, Users & Cost on OpenCode | ${SITE_NAME}`,
-    description: `${oc.summary} Daily tokens, unique users, retention, session cost, cache ratio and market share by lab.`.slice(0, 300),
-    body,
-  });
 }
 
 // ── pricing ───────────────────────────────────────────────
@@ -1337,7 +1314,6 @@ await out('tools/index.html', toolsIndexPage());
 await out('news/index.html', newsPage());
 await out('compare/index.html', comparePage());
 if (models.length) await out('models/index.html', modelsPage());
-if (oc) await out('usage/index.html', usagePage());
 for (const l of labs) await out(`${labPath(l[0].labId)}index.html`, labPage(l));
 for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
@@ -1365,8 +1341,7 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
-${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${oc ? `<url><loc>${SITE_URL}/usage/</loc><lastmod>${oc.updatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.8</priority></url>
-` : ''}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 </urlset>`);
@@ -1374,4 +1349,4 @@ await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap
 if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
 `);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 4 + (oc ? 1 : 0) + (models.length ? 1 + labs.length + models.length : 0)} pages → dist/`);
+console.log(`Built ${tools.length + 4 + (models.length ? 1 + labs.length + models.length : 0)} pages → dist/`);

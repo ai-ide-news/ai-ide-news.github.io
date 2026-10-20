@@ -771,3 +771,4 @@ a:hover > .pt { opacity: 1; r: 7; }
   .oc-rank li { grid-template-columns: 22px minmax(0, 1fr) 70px 46px; gap: 8px; }
   .oc-rank .oc-bar { display: none; }
 }
+.oc-stats { margin-top: 18px; }
