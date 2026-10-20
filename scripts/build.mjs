@@ -1089,9 +1089,9 @@ ${banner()}
 function learnPage() {
   const root = '../';
   return layout({
-    root, path: 'learn/', active: 'learn', title: `How AI Works — Tokens, Context, Cache Hits & Mixture of Experts | ${SITE_NAME}`,
-    description: 'A plain-language guide to how AI models work: tokens, context windows, prompt cache hits, mixture of experts, reasoning tokens and quantization — with real prices and examples, and a read-aloud mode.',
-    body: learnBody({ models, root, esc, modelPath, generatedAt: snap.generatedAt }),
+    root, path: 'learn/', active: 'learn', title: `How AI Works — Tokens, Context, Agents, MCP, RAG & Mixture of Experts | ${SITE_NAME}`,
+    description: 'A plain-language, interactive guide to how AI models work: tokens, context windows, system prompts, cache hits, agents and tool calling, MCP, embeddings and RAG, hallucinations, training, mixture of experts, quantization and more — with real prices, hands-on demos and narrated audio.',
+    body: learnBody({ models, root, esc, modelPath, generatedAt: snap.generatedAt, bench: snap.benchmarks?.scores ? { scores: snap.benchmarks.scores, list: BENCHMARKS, key: benchKey, source: BENCH_SOURCE } : null }),
     jsonld: { '@context': 'https://schema.org', '@type': 'Article', headline: 'How AI actually works', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url }, dateModified: snap.generatedAt, url: `${SITE_URL}/learn/` },
   });
 }
@@ -1123,7 +1123,7 @@ const ecoText = (r) => esc(`${r.name} ${r.repo} ${r.description} ${r.language ||
 function ecoCard(r, type, i) {
   return `<article class="ecard" data-kind="${r.kind}" data-text="${ecoText(r)}" data-trend="${i}" data-stars="${r.count}" data-new="${Date.parse(r.createdAt)}" data-upd="${Date.parse(r.pushedAt)}">
   <div class="ecard-head">
-    <img class="ecard-av" src="${esc(avatar(r.avatar))}" alt="" width="32" height="32" loading="lazy" decoding="async">
+    <img class="ecard-av skel" src="${esc(avatar(r.avatar))}" alt="" width="32" height="32" loading="lazy" decoding="async">
     <div class="ecard-who"><h3><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a></h3><small>${esc(r.owner)}</small></div>
     <span class="ecard-kind ek-${r.kind}">${ECO[type].tag[r.kind]}</span>
   </div>

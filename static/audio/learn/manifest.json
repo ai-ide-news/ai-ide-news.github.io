@@ -1,0 +1,128 @@
+{
+  "what": {
+    "hash": "420ee49b1381",
+    "seconds": 50,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "how": {
+    "hash": "2e5d9b90d0c7",
+    "seconds": 53,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "tokens": {
+    "hash": "7bbfa51782b3",
+    "seconds": 52,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "context": {
+    "hash": "0da8111c4031",
+    "seconds": 48,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "prompts": {
+    "hash": "6fac76e47364",
+    "seconds": 45,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "cache": {
+    "hash": "281a2b8647c9",
+    "seconds": 56,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "reasoning": {
+    "hash": "95e1a8c761bf",
+    "seconds": 48,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "tools": {
+    "hash": "4589cc5a103a",
+    "seconds": 52,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "mcp": {
+    "hash": "f30f166aced4",
+    "seconds": 54,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "embeddings": {
+    "hash": "8b965e8091e0",
+    "seconds": 49,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "hallucinations": {
+    "hash": "f41363723c79",
+    "seconds": 50,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "training": {
+    "hash": "e0bf8703ac8e",
+    "seconds": 55,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "moe": {
+    "hash": "a0da6db80396",
+    "seconds": 44,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "quant": {
+    "hash": "498127b02c93",
+    "seconds": 46,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "weights": {
+    "hash": "ec9979b7dbab",
+    "seconds": 49,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "multimodal": {
+    "hash": "a7a0cb019cd7",
+    "seconds": 49,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "speed": {
+    "hash": "90cf6345eb96",
+    "seconds": 48,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "benchmarks": {
+    "hash": "b5ee3c3f1055",
+    "seconds": 46,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  }
+}
