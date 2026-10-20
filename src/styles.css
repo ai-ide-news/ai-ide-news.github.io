@@ -81,21 +81,22 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ── masthead ─────────────────────────── */
 /* A floating panel: a pulsing signal mark, sections grouped into small menus, an ink slug that
-   glides between groups and a hairline that fills as you read. It frosts once the page moves and
-   tucks up out of the way while you read down; scroll up a little and it's back. */
+   glides between groups and a hairline that fills as you read. It frosts once the page moves and,
+   once you're reading, slims to hug its links (the search flies out to the orb). Always on screen. */
 :root { --navh: 76px; }
-html.nav-tucked { --navh: 8px; }
-.nav {
-  position: sticky; top: 0; z-index: 50; padding: 10px 16px 0; pointer-events: none;
-  transition: translate .45s var(--ease), opacity .3s;
-}
-.nav.tucked { translate: 0 calc(-100% - 14px); opacity: 0; }
+.nav { position: sticky; top: 0; z-index: 50; padding: 10px 16px 0; pointer-events: none; }
 .nav-in {
   position: relative; pointer-events: auto; display: flex; align-items: center; gap: 18px; height: 56px;
-  width: auto; max-width: calc(var(--wrap) + 24px); margin: 0 auto; padding: 0 8px 0 20px;
+  /* A real length (not auto) so the slim state's fit-content can animate from it. */
+  width: min(100%, calc(var(--wrap) + 24px)); max-width: calc(var(--wrap) + 24px); margin: 0 auto; padding: 0 8px 0 20px;
   background: var(--bg); border: 1px solid var(--line-2); border-radius: 14px;
   box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 6%, transparent) inset, 0 14px 34px -24px rgb(0 0 0 / .55);
-  transition: background .3s, border-color .3s, box-shadow .3s, height .3s var(--ease);
+  interpolate-size: allow-keywords;
+  transition: background .3s, border-color .3s, box-shadow .3s, height .3s var(--ease), width .5s var(--ease);
+}
+@media (min-width: 981px) {
+  .nav.slim .nav-in { width: fit-content; }
+  .nav.slim .nav-actions { margin-left: 0; }
 }
 .nav.stuck .nav-in {
   height: 52px; background: color-mix(in oklab, var(--bg) 80%, transparent);
@@ -166,7 +167,7 @@ html.nav-tucked { --navh: 8px; }
 @media (max-width: 1100px) and (min-width: 981px) { .nav-in { gap: 12px; } .nav-cat { padding: 7px 8px; font-size: 13.5px; } }
 @media (prefers-reduced-motion: reduce) {
   .brand-sig::before, .brand-sig::after { animation: none; opacity: 0; }
-  .nav, .nav-glide, .nav-glide::before, .nav-in, .nav-menu { transition: none; }
+  .nav-glide, .nav-glide::before, .nav-in, .nav-menu { transition: none; }
   .nav-cat::before { animation: none !important; }
 }
 .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }

@@ -1,4 +1,4 @@
-// Seek: the site-wide search. It lives in the masthead; when the masthead tucks away it flies out
+// Seek: the site-wide search. It lives in the masthead; when the masthead slims down it flies out
 // as an orb that keeps to a quiet patch of screen (or wherever you drag and pin it), opening into a
 // pill when there's room, and a palette grows out of whatever you clicked. It searches dist/search.json
 // (every page, tool, update, news story, model, lab, skill, MCP server and Learn chapter) plus the
@@ -149,7 +149,7 @@
   typeIdea();
 
   // ── where the dock lives ─────────────────────────────
-  // The search sits in the masthead; when the masthead tucks away to let you read, it flies out
+  // The search sits in the masthead; when the masthead slims down to let you read, it flies out
   // and rides along as the orb (always on small screens, and always once you've pinned it).
   // Left alone, it looks for a quiet patch of screen and keeps out from under the words. Drag it
   // and it stays exactly where you dropped it; the little pin sets it free again.
@@ -164,7 +164,7 @@
   dock.append(pinEl);
 
   const bounds = () => {
-    const navB = nav && !nav.classList.contains('tucked') ? Math.max(0, nav.getBoundingClientRect().bottom) : 0;
+    const navB = nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0;
     // Stay clear of bars pinned to the bottom (Learn player, compare tray, live toast).
     const lift = Math.max(0, ...$$('.lplayer, .ctray, .live-toast').filter((el) => !el.hidden && el.offsetParent !== null).map((el) => VH() - el.getBoundingClientRect().top));
     return { l: EDGE + R, r: VW() - EDGE - R, t: navB + EDGE + R, b: VH() - lift - EDGE - R - (VW() <= 980 ? 0 : 4) };
@@ -233,8 +233,9 @@
     dock.animate(into ? frames.reverse() : frames, { duration: into ? 420 : 620, easing: 'cubic-bezier(.2,.8,.2,1)' });
   };
   const update = () => {
-    const want = !!pin || VW() <= 980 || !nav || nav.classList.contains('tucked');
+    const want = !!pin || VW() <= 980 || !nav || nav.classList.contains('slim');
     dock.classList.toggle('pinned', !!pin);
+    trigger.classList.toggle('away', want && VW() > 980);
     if (want === docked) return;
     docked = want;
     // Appear in place: no gliding over from wherever it was last time.

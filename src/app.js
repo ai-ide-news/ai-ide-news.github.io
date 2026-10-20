@@ -114,7 +114,8 @@
     links.addEventListener('focusout', (e) => { if (!links.contains(e.relatedTarget)) moveTo(null); });
     addEventListener('resize', () => moveTo(lit));
 
-    // Scroll: frost, reading wire, and tuck away going down / come back going up.
+    // Scroll: frost, reading wire, and slim down to just what it holds once you're reading
+    // (the search flies out to the orb, so the bar hugs its links). It never leaves the screen.
     let ticking = false, lastY = scrollY, travel = 0;
     const onScroll = () => {
       ticking = false;
@@ -124,16 +125,9 @@
       navBar.style.setProperty('--read', max > 0 ? Math.min(1, y / max).toFixed(4) : 0);
       travel = Math.sign(dy) === Math.sign(travel) ? travel + dy : dy;
       if (openGrp && Math.abs(travel) > 80 && !openGrp.contains(document.activeElement)) setGrp(null);
-      const busy = navBar.classList.contains('open') || openGrp || links.querySelector(':focus-visible');
-      let tuck = navBar.classList.contains('tucked');
-      if (y < 160 || busy) tuck = false;
-      else if (travel > 24) tuck = true;
-      else if (travel < -48) tuck = false;
-      if (tuck !== navBar.classList.contains('tucked')) {
-        navBar.classList.toggle('tucked', tuck);
-        document.documentElement.classList.toggle('nav-tucked', tuck);
-        if (tuck) setGrp(null);
-      }
+      // A little hysteresis so it doesn't flicker right at the threshold.
+      const slim = navBar.classList.contains('slim') ? y > 60 : y > 120;
+      if (slim !== navBar.classList.contains('slim')) navBar.classList.toggle('slim', slim);
     };
     addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
     onScroll();
