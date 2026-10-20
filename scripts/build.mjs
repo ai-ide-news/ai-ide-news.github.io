@@ -6,6 +6,7 @@ import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
 import { LAB_ICONS } from './models.mjs';
 import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
 import { AA_SOURCE } from './aa.mjs';
+import { OPENCODE_SOURCE } from './opencode.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -139,6 +140,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
     <nav class="nav-links" aria-label="Primary">
       ${news.length ? `<a href="${root}news/" ${active === 'news' ? 'aria-current="page"' : ''}>News</a>` : ''}
       ${models.length ? `<a href="${root}models/" ${active === 'models' ? 'aria-current="page"' : ''}>Models</a>` : ''}
+      ${oc ? `<a href="${root}usage/" ${active === 'usage' ? 'aria-current="page"' : ''}>Usage</a>` : ''}
       <a href="${root}#versions" ${active === 'versions' ? 'aria-current="page"' : ''}>Latest versions</a>
       <a href="${root}#feed">Changelog</a>
       ${trending.length ? `<a href="${root}#trending">Trending</a>` : ''}
@@ -610,6 +612,13 @@ function labTimeline(list, root, highlight, { w: W = 640 } = {}) {
 
 const modelList = (list, root) => `<ul class="similar">${list.map((x) => `<li><a href="${root}${modelPath(x)}" style="--c:${x.color}">${labTile(x, root)}<span>${esc(x.name)}</span><code>${fmtDate(x.date).replace(/, \d{4}$/, '')}</code></a></li>`).join('')}</ul>`;
 
+// "#1 on OpenCode · 85T tokens in the past 7 days", when OpenCode Data ranks this model.
+function ocUsage(m, root) {
+  const slug = m.id.split('/').slice(1).join('/');
+  const r = oc?.leaderboard.pastWeek.find((x) => x.model === slug);
+  return r ? `<div><dt>OpenCode usage</dt><dd><a href="${root}usage/">#${r.rank} · ${big(r.tokens)} tokens</a> <span class="muted">past 7 days${r.changePercent != null ? `, ${r.changePercent >= 0 ? '+' : ''}${r.changePercent}% week on week` : ''}</span></dd></div>` : '';
+}
+
 function modelPage(m) {
   const root = '../../../';
   const lab = models.filter((x) => x.labId === m.labId);
@@ -658,6 +667,7 @@ ${banner()}
         <div><dt>Context window</dt><dd>${m.context ? `${m.context.toLocaleString('en-US')} tokens` : '—'}</dd></div>
         <div><dt>Max output</dt><dd>${m.maxOutput ? `${m.maxOutput.toLocaleString('en-US')} tokens` : '—'}</dd></div>
         <div><dt>API price</dt><dd>${priceLine(m)} <span class="muted">per 1M input / output tokens</span></dd></div>
+        ${ocUsage(m, root)}
         <div><dt>Input types</dt><dd>${esc(m.modalities.join(', ') || '—')}</dd></div>
         <div><dt>Reasoning</dt><dd>${yesNo(m.reasoning)}</dd></div>
         <div><dt>Tool calling</dt><dd>${yesNo(m.tools)}</dd></div>
@@ -928,6 +938,7 @@ function toolPage(t) {
       <div class="tool-links">
         <a class="btn" href="${esc(t.site)}" target="_blank" rel="noopener">Official site ↗</a>
         ${t.meta.repoUrl ? `<a class="btn ghost" href="${esc(t.meta.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>` : ''}
+        ${t.id === 'opencode' && oc ? `<a class="btn ghost" href="${root}usage/">Model usage data →</a>` : ''}
         ${snap.x?.handles?.[t.id]?.handle ? `<a class="btn ghost" href="https://x.com/${esc(snap.x.handles[t.id].handle)}" target="_blank" rel="noopener">𝕏 @${esc(snap.x.handles[t.id].handle)} ↗</a>` : ''}
       </div>
     </div>
@@ -1014,6 +1025,180 @@ ${banner()}
   return layout({
     root, path: 'news/', active: 'news', title: `AI Coding News — Launches, Models, Security & Pricing | ${SITE_NAME}`,
     description: `The important AI IDE and coding-agent news: ${news.slice(0, 4).map((n) => n.title).join(' · ')}`, body,
+  });
+}
+
+// ── usage (OpenCode Data) ─────────────────────────────────
+// Real-world usage across OpenCode (scripts/opencode.mjs): which models people actually run, and what it costs.
+const oc = snap.opencode?.leaderboard?.pastWeek?.length ? snap.opencode : null;
+const big = (n) => {
+  if (n == null) return '—';
+  const [d, s] = n >= 1e12 ? [1e12, 'T'] : n >= 1e9 ? [1e9, 'B'] : n >= 1e6 ? [1e6, 'M'] : n >= 1e3 ? [1e3, 'K'] : [1, ''];
+  const v = n / d;
+  return `${v < 10 && s ? v.toFixed(1).replace(/\.0$/, '') : Math.round(v)}${s}`;
+};
+const OC_LABS = { zhipu: 'Zhipu', reflection: 'Reflection', meituan: 'Meituan', stepfun: 'StepFun', xiaomi: 'Xiaomi' };
+const ocLab = (id) => OC_LABS[id] || models.find((m) => m.labId === id)?.lab || (id ? id[0].toUpperCase() + id.slice(1) : '');
+// OpenCode's model slug ("deepseek-v4.1-flash") → our model page, when we track that exact model.
+const ocModel = Object.fromEntries(models.map((m) => [m.id.split('/').slice(1).join('/'), m]));
+const ocName = (slug) => oc?.leaderboard.pastWeek.find((r) => r.model === slug)?.name || ocModel[slug]?.name || slug;
+// Series colours for stacked charts (lab colours repeat when one lab has several models); "Other" stays neutral.
+const OC_PALETTE = ['#ff6b35', '#7fa8d6', '#7fbf7f', '#b89bd1', '#e2c35a', '#e2457a', '#4fc1b0', '#9b8cff', '#d98b5f', '#6fb3e0'];
+const ocColor = (keys) => Object.fromEntries(keys.map((k, i) => [k, k === 'Other' ? 'var(--ink-3)' : OC_PALETTE[i % OC_PALETTE.length]]));
+const country = (() => { try { const d = new Intl.DisplayNames(['en'], { type: 'region' }); return (c) => { try { return d.of(c); } catch { return c; } }; } catch { return (c) => c; } })();
+const shortDay = (d) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+function ocModelLink(r, root) {
+  const m = ocModel[r.model];
+  return m ? `<a href="${root}${modelPath(m)}">${esc(r.name || m.name)}</a>` : `<a href="${esc(r.page || OPENCODE_SOURCE.url)}" target="_blank" rel="noopener">${esc(r.name || r.model)}</a>`;
+}
+
+// Ranked token leaderboard with week-over-week change.
+function ocRanking(rows, root, { change = true } = {}) {
+  const max = Math.max(...rows.map((r) => r.tokens)) || 1;
+  return `<ol class="oc-rank">${rows.map((r) => {
+    const m = ocModel[r.model];
+    const delta = !change ? '' : r.changePercent == null ? '<span class="oc-chg oc-new">New</span>'
+      : `<span class="oc-chg ${r.changePercent >= 0 ? 'oc-up' : 'oc-down'}">${r.changePercent >= 0 ? '+' : ''}${r.changePercent}%</span>`;
+    return `<li style="--c:${m?.color || 'var(--accent)'};--w:${Math.max(0.6, (r.tokens / max) * 100).toFixed(1)}%">
+      <span class="oc-n">${String(r.rank).padStart(2, '0')}</span>
+      <span class="oc-who">${ocModelLink(r, root)}<small>${esc(ocLab(r.lab))}</small></span>
+      <span class="oc-bar"><i></i></span>
+      <span class="oc-v">${big(r.tokens)}<small> tokens</small></span>${delta}
+    </li>`;
+  }).join('')}</ol>`;
+}
+
+// Stacked daily bars (SVG). `days`: [{ date, parts: { key: value } }]; `pct` charts shares that sum to 100.
+function ocStacked(days, keys, { label, fmt = big, pct = false, names = (k) => k } = {}) {
+  const W = 960, H = 260, L = 46, B = 24, T = 8;
+  const colors = ocColor(keys);
+  const totals = days.map((d) => keys.reduce((s, k) => s + (d.parts[k] || 0), 0));
+  const top = Math.max(...totals) || 1;
+  const step = 10 ** Math.floor(Math.log10(top / 4)), unit = [1, 2, 2.5, 5, 10].find((f) => f * step * 4 >= top) * step;
+  const max = pct ? 100 : unit * 4; // four even gridlines, rounded
+  const bw = (W - L) / days.length;
+  const y = (v) => T + (H - T - B) * (1 - v / max);
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * max);
+  const bars = days.map((d, i) => {
+    let acc = 0;
+    const x = L + i * bw + bw * 0.12;
+    return keys.map((k) => {
+      const v = d.parts[k] || 0;
+      if (!v) return '';
+      const y1 = y(acc + v), h = y(acc) - y1;
+      acc += v;
+      return `<rect x="${x.toFixed(1)}" y="${y1.toFixed(1)}" width="${(bw * 0.76).toFixed(1)}" height="${Math.max(0.5, h).toFixed(1)}" fill="${colors[k]}"><title>${esc(`${shortDay(d.date)} · ${names(k)}: ${pct ? `${v}%` : fmt(v)}`)}</title></rect>`;
+    }).join('');
+  }).join('');
+  const every = Math.max(1, Math.round(days.length / 6));
+  return `<figure class="oc-chart">
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">
+      ${ticks.map((t) => `<line x1="${L}" x2="${W}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}" class="oc-gl"/><text x="${L - 8}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end" class="oc-ax">${pct ? `${Math.round(t)}%` : fmt(t)}</text>`).join('')}
+      ${bars}
+      ${days.map((d, i) => (i % every ? '' : `<text x="${(L + i * bw + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle" class="oc-ax">${esc(shortDay(d.date).toUpperCase())}</text>`)).join('')}
+    </svg>
+    <figcaption class="oc-legend">${keys.map((k) => `<span><i style="background:${colors[k]}"></i>${esc(names(k))}</span>`).join('')}</figcaption>
+  </figure>`;
+}
+
+// Simple horizontal bars for the small cards (session cost, cache ratio, countries…).
+const ocBars = (rows, { fmt, max = Math.max(...rows.map((r) => r.v)) || 1 }) => `<ol class="oc-hbars">${rows.map((r) => `<li style="--w:${Math.max(1, (r.v / max) * 100).toFixed(1)}%"><span class="oc-hl">${r.label}</span><span class="oc-hb"><i></i></span><span class="oc-hv">${fmt(r.v)}</span></li>`).join('')}</ol>`;
+
+function ocTabs(id, label, views) {
+  return `<div class="lb-body oc-tabs">
+    <div class="lb-nav" role="tablist" aria-label="${esc(label)}" aria-orientation="vertical">
+      ${views.map((v, i) => `<button type="button" role="tab" id="${id}-tab-${v.id}" aria-controls="${id}-${v.id}" aria-selected="${!i}"${i ? ' tabindex="-1"' : ''}>${esc(v.name)}</button>`).join('')}
+    </div>
+    <div class="lb-panels">${views.map((v, i) => `<div class="lb-panel" role="tabpanel" id="${id}-${v.id}" aria-labelledby="${id}-tab-${v.id}"${i ? ' hidden' : ''}>
+      <div class="lb-head"><h3><i class="lb-sq" style="--t:var(--${v.tone || 'accent'})"></i>${esc(v.title || v.name)}</h3><p class="muted small">${v.desc}</p></div>
+      ${v.html}
+    </div>`).join('')}</div>
+  </div>`;
+}
+
+const usd4 = (n) => `$${n < 0.01 ? n.toFixed(4) : n < 1 ? n.toFixed(3) : n.toFixed(2)}`;
+
+function usagePage() {
+  const root = '../';
+  const lb = oc.leaderboard;
+  const lead = lb.pastWeek[0];
+  const series = (list) => {
+    const keys = Object.keys(list.at(-1)?.models || {});
+    return { keys: [...keys.filter((k) => k !== 'Other'), ...keys.filter((k) => k === 'Other')], days: list.map((d) => ({ date: d.date, parts: d.models })) };
+  };
+  const tok = series(oc.dailyTokens), users = series(oc.dailyUniqueUsers);
+  const labsOrder = Object.keys(Object.fromEntries((oc.marketShare.at(-1)?.labs || []).map((l) => [l.lab, 1])));
+  const labKeys = [...labsOrder.filter((k) => k !== 'Other'), ...labsOrder.filter((k) => k === 'Other')];
+  const share = oc.marketShare.map((d) => ({ date: d.date, parts: Object.fromEntries(d.labs.map((l) => [l.lab, l.sharePercent])) }));
+  const span = `${shortDay(oc.dailyTokens[0].date)} – ${shortDay(oc.dailyTokens.at(-1).date)}`;
+  const weekTotal = lb.pastWeek.reduce((s, r) => s + r.tokens, 0);
+  const peakUsers = Math.max(...oc.dailyUniqueUsers.map((d) => d.total));
+  const today = oc.marketShare.at(-1);
+
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">Usage · OpenCode</p>
+  <h1>Which models developers <em>actually use</em></h1>
+  <p class="lede">${esc(oc.summary)} Real token usage, daily users, retention, cost and cache hit rates across every model on OpenCode, the open-source coding agent.</p>
+  <p class="muted small">Source: <a href="${OPENCODE_SOURCE.url}" target="_blank" rel="noopener">${OPENCODE_SOURCE.name}</a> · updated ${time(oc.updatedAt)} · aggregated hourly, days in UTC</p>
+</section>
+
+<section class="wrap">
+  <dl class="stats">
+    <div><dt>Most used · 7 days</dt><dd>${esc(lead.name)}<small> ${big(lead.tokens)}</small></dd></div>
+    <div><dt>Tokens · top ${lb.pastWeek.length} models, 7 days</dt><dd>${big(weekTotal)}</dd></div>
+    <div><dt>Peak daily users</dt><dd>${big(peakUsers)}</dd></div>
+    <div><dt>Top lab today</dt><dd>${esc(today?.labs.slice().sort((a, b) => b.sharePercent - a.sharePercent)[0]?.lab || '—')}<small> ${today?.labs.slice().sort((a, b) => b.sharePercent - a.sharePercent)[0]?.sharePercent ?? ''}%</small></dd></div>
+  </dl>
+</section>
+
+<section id="top-models" class="wrap section lb">
+  <div class="section-head"><div><p class="eyebrow">Leaderboard</p><h2>Top models by tokens</h2></div><p class="muted small section-note">Input, output, reasoning and cached tokens per request, summed. Names link to the model's page here when we track it.</p></div>
+  ${ocTabs('ocl', 'Leaderboard period', [
+    { id: 'week', name: 'Past 7 days', title: 'Past 7 days', desc: 'Change compared with the 7 days before', html: ocRanking(lb.pastWeek, root) },
+    ...(lb.pastDay.length ? [{ id: 'day', name: 'Past 24 hours', title: 'Past 24 hours', tone: 'k-changelog', desc: 'Tokens served so far in the current UTC day', html: ocRanking(lb.pastDay, root, { change: false }) }] : []),
+  ])}
+</section>
+
+${banner()}
+
+<section id="trends" class="wrap section lb">
+  <div class="section-head"><div><p class="eyebrow">Trends · ${esc(span)}</p><h2>How the mix is shifting</h2></div><p class="muted small section-note">Daily totals for today's top models; everything else is grouped as Other. Hover a bar for the exact figure.</p></div>
+  ${ocTabs('oct', 'Trend chart', [
+    { id: 'tokens', name: 'Tokens', title: 'Daily tokens', desc: 'Tokens served per day, by model', html: ocStacked(tok.days, tok.keys, { label: 'Daily tokens by model', names: ocName }) },
+    { id: 'users', name: 'Unique users', title: 'Daily unique users', tone: 'k-release', desc: 'Approximate distinct OpenCode users per day, by model', html: ocStacked(users.days, users.keys, { label: 'Daily unique users by model', names: ocName }) },
+    { id: 'share', name: 'Market share', title: 'Market share by lab', tone: 'k-blog', desc: 'Share of each day’s tokens by the lab that made the model', html: ocStacked(share, labKeys, { label: 'Token share by lab', pct: true }) },
+  ])}
+</section>
+
+<section id="economics" class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Economics</p><h2>Retention, cost &amp; caching</h2></div></div>
+  <div class="oc-grid">
+    ${oc.weeklyRetention.length ? `<div class="side-card oc-card"><p class="eyebrow">Weekly retention</p><h2>Who comes back</h2><p class="muted small">Share of a model's users one week who use it again the next week.</p>
+      <table class="oc-table"><thead><tr><th>#</th><th>Model</th><th>Retained</th><th>Users</th></tr></thead><tbody>${oc.weeklyRetention.map((r) => `<tr><td class="muted">${String(r.rank).padStart(2, '0')}</td><td>${ocModelLink(r, root)}</td><td><b>${r.retentionPercent}%</b></td><td class="muted">${big(r.eligibleUserWeeks)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    ${oc.sessionCost.length ? `<div class="side-card oc-card"><p class="eyebrow">Session cost</p><h2>Cost per session</h2><p class="muted small">Average list-price cost of one OpenCode session, and its tokens.</p>
+      ${ocBars(oc.sessionCost.map((r) => ({ label: `${esc(ocName(r.model))}<small>${big(r.tokensPerSession)} tokens</small>`, v: r.costPerSessionUsd })), { fmt: usd4 })}</div>` : ''}
+    ${oc.tokenPrices.length ? `<div class="side-card oc-card"><p class="eyebrow">Token prices</p><h2>Price per 1M tokens</h2><p class="muted small">List prices in OpenCode's model catalog, USD.</p>
+      <table class="oc-table"><thead><tr><th>Model</th><th>Input</th><th>Output</th><th>Cached</th></tr></thead><tbody>${oc.tokenPrices.map((r) => `<tr><td>${esc(ocName(r.model))}</td><td>${usd4(r.input)}</td><td><b>${usd4(r.output)}</b></td><td class="muted">${usd4(r.cachedInput)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    ${oc.cacheRatio.length ? `<div class="side-card oc-card"><p class="eyebrow">Cache ratio</p><h2>Input served from cache</h2><p class="muted small">Share of input tokens that were cache hits.</p>
+      ${ocBars(oc.cacheRatio.map((r) => ({ label: `${esc(ocName(r.model))}<small>${big(r.cachedInputTokens)} cached</small>`, v: r.cachedInputPercent })), { fmt: (v) => `${Math.round(v)}%`, max: 100 })}</div>` : ''}
+  </div>
+</section>
+
+${oc.countries.length ? `<section id="geography" class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Geography</p><h2>Where the tokens come from</h2></div><p class="muted small section-note">Tokens by the requesting user's country over the period shown.</p></div>
+  <div class="oc-geo">${ocBars(oc.countries.slice(0, 20).map((r) => ({ label: `<span class="muted">${String(r.rank).padStart(2, '0')}</span> ${esc(country(r.country))}`, v: r.tokens })), { fmt: big })}</div>
+</section>` : ''}
+
+<section class="wrap section">
+  <p class="muted small section-note">Data from <a href="${OPENCODE_SOURCE.url}" target="_blank" rel="noopener">${OPENCODE_SOURCE.name}</a> (opencode.ai/data), updated ${fmtDate(oc.updatedAt)} ${new Date(oc.updatedAt).toISOString().slice(11, 16)} UTC. Tokens count input, output, reasoning and cached tokens for each request; users and sessions are approximate distinct counts; costs use list prices. It reflects OpenCode's users only, not the wider market.</p>
+</section>`;
+  return layout({
+    root, path: 'usage/', active: 'usage',
+    title: `AI Model Usage Rankings — Tokens, Users & Cost on OpenCode | ${SITE_NAME}`,
+    description: `${oc.summary} Daily tokens, unique users, retention, session cost, cache ratio and market share by lab.`.slice(0, 300),
+    body,
   });
 }
 
@@ -1152,6 +1337,7 @@ await out('tools/index.html', toolsIndexPage());
 await out('news/index.html', newsPage());
 await out('compare/index.html', comparePage());
 if (models.length) await out('models/index.html', modelsPage());
+if (oc) await out('usage/index.html', usagePage());
 for (const l of labs) await out(`${labPath(l[0].labId)}index.html`, labPage(l));
 for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
@@ -1166,6 +1352,7 @@ await out('data.json', JSON.stringify({
   news: news.map(({ score, ...n }) => n),
   models: models.map(({ color, labId, ...m }) => m),
   benchmarkSource: BENCH_SOURCE,
+  ...(oc ? { opencodeUsage: { source: OPENCODE_SOURCE, updatedAt: oc.updatedAt, pastWeek: oc.leaderboard.pastWeek } } : {}),
 }));
 // Tiny file the open page polls to announce new updates without a full reload of data.json.
 await out('version.json', JSON.stringify({
@@ -1178,7 +1365,8 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
-${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${oc ? `<url><loc>${SITE_URL}/usage/</loc><lastmod>${oc.updatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.8</priority></url>
+` : ''}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 </urlset>`);
@@ -1186,4 +1374,4 @@ await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap
 if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
 `);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 4 + (models.length ? 1 + labs.length + models.length : 0)} pages → dist/`);
+console.log(`Built ${tools.length + 4 + (oc ? 1 : 0) + (models.length ? 1 + labs.length + models.length : 0)} pages → dist/`);

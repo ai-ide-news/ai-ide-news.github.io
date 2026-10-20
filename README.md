@@ -14,6 +14,7 @@ A live tracker of the latest releases, patches, changelogs and community discuss
 | Hacker News (Algolia API) | Community discussion |
 | GitHub Search API | Auto-discovering trending open-source coding agents, IDEs & extensions |
 | OpenRouter models API | New models from the major labs (release date, context window, API price) |
+| OpenCode Data (`opencode.ai/data/index.json`) | Real-world model usage on the Usage page: tokens, daily users, retention, session cost, cache ratio, market share by lab, countries |
 
 ### Trending auto-discovery
 

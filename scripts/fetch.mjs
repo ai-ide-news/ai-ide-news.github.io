@@ -11,6 +11,7 @@ import { resolveHandles, toolsByHandle } from './xaccounts.mjs';
 import { fetchModels } from './models.mjs';
 import { fetchBenchmarks } from './benchmarks.mjs';
 import { fetchAA } from './aa.mjs';
+import { fetchOpenCode } from './opencode.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
 const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
@@ -344,6 +345,13 @@ async function main() {
     } catch (e) { report.push(`⚠ Artificial Analysis: ${e.message} (kept previous)`); }
   }
 
+  // OpenCode usage data (one small request; the source re-aggregates hourly).
+  let opencode = prev.opencode || null;
+  try {
+    opencode = await fetchOpenCode(get);
+    report.push(`✓ OpenCode Data          ${opencode.leaderboard.pastWeek.length} models, updated ${opencode.updatedAt}`);
+  } catch (e) { report.push(`⚠ OpenCode Data: ${e.message} (kept previous)`); }
+
   // X: every tool's own account (found automatically, like the tools themselves) plus the AI labs.
   // Read on full runs only (keeps requests to X low); quick runs reuse the last batch.
   let x = { posts: [], userIds: {}, ...prev.x };
@@ -388,7 +396,7 @@ async function main() {
   if (QUICK && !changed) { console.log(report.sort().join('\n')); return; } // nothing new: leave the snapshot untouched
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions, news, models, benchmarks, aa, x }, null, 1));
+  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions, news, models, benchmarks, aa, opencode, x }, null, 1));
   console.log(report.sort().join('\n'));
 }
 

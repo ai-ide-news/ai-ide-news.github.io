@@ -693,24 +693,26 @@
   setInterval(checkForUpdates, 90000);
   document.addEventListener('visibilitychange', checkForUpdates);
 
-  // Leaderboard (Models page): metric tabs, arrow keys move between them; the bars replay their grow-in.
-  const lbTabs = $$('.lb-nav [role="tab"]');
-  const lbShow = (tab, focus) => {
-    lbTabs.forEach((t) => {
-      const on = t === tab;
-      t.setAttribute('aria-selected', String(on));
-      t.tabIndex = on ? 0 : -1;
-      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
-    });
-    if (focus) tab.focus();
-  };
-  lbTabs.forEach((t, i) => {
-    t.addEventListener('click', () => lbShow(t));
-    t.addEventListener('keydown', (e) => {
-      const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
-      if (!step) return;
-      e.preventDefault();
-      lbShow(lbTabs[(i + step + lbTabs.length) % lbTabs.length], true);
+  // Leaderboard tabs (Models and Usage pages): each tab group on its own, arrow keys move between tabs.
+  $$('.lb-nav').forEach((nav) => {
+    const tabs = [...nav.querySelectorAll('[role="tab"]')];
+    const show = (tab, focus) => {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      });
+      if (focus) tab.focus();
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => show(t));
+      t.addEventListener('keydown', (e) => {
+        const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+        if (!step) return;
+        e.preventDefault();
+        show(tabs[(i + step + tabs.length) % tabs.length], true);
+      });
     });
   });
 })();
