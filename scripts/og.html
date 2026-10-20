@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- Source for static/og.png (1200×630), styled with the site's tokens from src/styles.css. Render with:
+     msedge --headless --disable-gpu --hide-scrollbars --virtual-time-budget=5000 --window-size=1200,630 --screenshot=<abs>/static/og.png file:///<abs>/scripts/og.html -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;650&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f1e9; --card: #faf8f2; --line: rgba(27,26,23,.12); --line-2: rgba(27,26,23,.24);
+    --ink: #1b1a17; --ink-2: #4c4a44; --ink-3: #75726a; --accent: #c8401a; --ok: #2f6b2f;
+    --font: 'Geist', system-ui, sans-serif; --mono: 'Geist Mono', Consolas, monospace; --serif: 'Instrument Serif', Georgia, serif;
+  }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    box-sizing: border-box; padding: 44px 64px 52px; background: var(--bg); color: var(--ink);
+    font-family: var(--font); display: grid; grid-template-rows: auto auto 1fr auto;
+  }
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 14px; font: 650 34px/1 var(--font); letter-spacing: -.03em; }
+  .sig { width: 18px; height: 18px; background: var(--accent); }
+  .wire { font: 400 17px/1 var(--mono); color: var(--ink-3); display: flex; align-items: center; gap: 10px; }
+  .wire i { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); }
+  .rule { margin-top: 26px; border-top: 2px solid var(--ink); }
+  main { display: grid; grid-template-columns: 1fr 300px; gap: 56px; align-items: center; }
+  h1 { margin: 0; font: 650 78px/1.02 var(--font); letter-spacing: -.045em; }
+  h1 em { display: block; margin-top: 6px; font: italic 400 84px/1 var(--serif); letter-spacing: -.02em; color: var(--accent); }
+  .stats { border-top: 2px solid var(--ink); }
+  .stats div { display: flex; justify-content: space-between; align-items: baseline; padding: 15px 0; border-bottom: 1px solid var(--line-2); }
+  .stats span { font: 400 16px/1 var(--mono); color: var(--ink-2); }
+  .stats b { font: 650 34px/1 var(--font); letter-spacing: -.03em; }
+  .tools { padding-top: 18px; border-top: 1px solid var(--line-2); font: 400 18px/1 var(--mono); color: var(--ink-2); white-space: nowrap; }
+  .tools b { color: var(--accent); font-weight: 500; }
+</style></head>
+<body>
+  <div class="top">
+    <div class="brand"><i class="sig"></i>Patchwire</div>
+    <div class="wire"><i></i>Live · updated automatically</div>
+  </div>
+  <div class="rule"></div>
+  <main>
+    <h1>What changed in your AI coding tools,<em>and why it matters.</em></h1>
+    <div class="stats">
+      <div><span>Tools tracked</span><b>52</b></div>
+      <div><span>Sources</span><b>Official</b></div>
+      <div><span>Checked every</span><b>10 min</b></div>
+    </div>
+  </main>
+  <div class="tools">Cursor · Claude Code · Codex · Gemini CLI · Copilot · Kiro · Zed · Windsurf <b>+ 44 more</b></div>
+</body></html>
