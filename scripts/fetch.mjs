@@ -20,6 +20,8 @@ const GH_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
 const DAY = 86400e3;
 const NOW = Date.now();
 const MAX_PER_TOOL = 40;
+const RELEASES_PAGE = 100;
+const CADENCE_WINDOW = 26 * 7 * DAY; // the tool page's weekly activity chart
 // QUICK=1: the frequent "is there anything new?" run — skips trending discovery and repo metadata,
 // and uses conditional requests so unchanged GitHub repos cost nothing against the rate limit.
 const QUICK = process.env.QUICK === '1';
@@ -77,7 +79,7 @@ const ghHeaders = () => ({ Accept: 'application/vnd.github+json', ...(GH_TOKEN ?
 // ── GitHub releases ────────────────────────────────────────
 // `old` is the tool's previous snapshot entry: its ETag lets GitHub answer 304 (free) when nothing shipped.
 async function fetchGithub(tool, old) {
-  const url = `https://api.github.com/repos/${tool.github}/releases?per_page=60`;
+  const url = `https://api.github.com/repos/${tool.github}/releases?per_page=${RELEASES_PAGE}`;
   const res = await fetch(url, { headers: { 'User-Agent': UA, ...ghHeaders(), ...(old?.meta?.etag ? { 'If-None-Match': old.meta.etag } : {}) }, signal: AbortSignal.timeout(30000) });
   const reuse = QUICK && old?.meta?.repo;
   if (res.status === 304 && !tool.npm) {
@@ -92,7 +94,7 @@ async function fetchGithub(tool, old) {
     : { ...old.meta, etag };
   if (tool.npm) return fetchNpm(tool, meta);
   const stable = releases.filter((r) => !r.draft && !r.prerelease && !UNSTABLE.test(r.tag_name) && !UNSTABLE.test(r.name || '') && (!tool.tagFilter || tool.tagFilter.test(r.tag_name)));
-  const cadence = releases.filter((r) => !r.draft).map((r) => r.published_at);
+  const { cadence, cadenceFrom } = await releaseDates(tool, releases, old);
   const items = stable.slice(0, MAX_PER_TOOL).map((r) => {
     const version = r.tag_name.replace(/^rust-/, '');
     const body = r.body || '';
@@ -105,7 +107,37 @@ async function fetchGithub(tool, old) {
       url: r.html_url, date: r.published_at, summary: excerpt(text), html, source: 'GitHub Releases',
     };
   });
-  return { items, meta: { ...meta, cadence } };
+  return { items, meta: { ...meta, cadence, cadenceFrom } };
+}
+
+// Release dates behind the activity chart. Busy repos ship more than a page of releases in the
+// chart's window, so full runs page further back and every run keeps earlier runs' dates.
+// cadenceFrom is where known history starts when it doesn't reach the window (null = complete).
+async function releaseDates(tool, releases, old) {
+  const start = NOW - CADENCE_WINDOW;
+  const dates = releases.filter((r) => !r.draft).map((r) => r.published_at);
+  let complete = releases.length < RELEASES_PAGE;
+  // Pages aren't strictly ordered by publish date, so track the earliest date seen.
+  const earliest = () => dates.reduce((a, b) => (a < b ? a : b), dates[0]);
+  for (let page = 2; !complete && !QUICK && page <= 5 && Date.parse(earliest()) > start; page++) {
+    const more = await get(`https://api.github.com/repos/${tool.github}/releases?per_page=${RELEASES_PAGE}&page=${page}`, { json: true, headers: ghHeaders() }).catch(() => null);
+    if (!more) break;
+    dates.push(...more.filter((r) => !r.draft).map((r) => r.published_at));
+    complete = more.length < RELEASES_PAGE;
+  }
+  const oldest = earliest();
+  const covered = complete || Date.parse(oldest) <= start;
+  let from = covered ? null : oldest;
+  const prev = old?.meta?.cadence || [];
+  // Earlier dates only help if they overlap what we just fetched; a gap would read as quiet weeks.
+  if (!covered && prev.length && prev.some((d) => d >= oldest)) {
+    dates.push(...prev.filter((d) => d < oldest));
+    // Snapshots from before cadenceFrom existed were capped at one page, so treat them as partial.
+    const prevFrom = old.meta.cadenceFrom === undefined ? prev.reduce((a, b) => (a < b ? a : b)) : old.meta.cadenceFrom;
+    from = prevFrom && (prevFrom < oldest ? prevFrom : oldest);
+  }
+  const cadence = [...new Set(dates)].filter((d) => Date.parse(d) >= start).sort().reverse();
+  return { cadence, cadenceFrom: from && Date.parse(from) > start ? from : null };
 }
 
 // ── npm registry (for tools that publish versions without GitHub Release pages) ──

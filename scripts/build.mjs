@@ -65,21 +65,26 @@ const trending = tools.filter((t) => t.discovered).sort((a, b) => b.score - a.sc
 const trendBadge = (t) => (t.starsPerWeek > 0 ? `↗ +${compact(t.starsPerWeek)}★` : '↗');
 
 // Weekly activity sparkline (12 weeks). Single series → one hue, per-bar hover tooltip.
-function sparkline(dates, { weeks = 12, w = 132, h = 32 } = {}) {
+// Weeks that end before `since` (where the fetched history starts) are drawn as "no data", not zero.
+function sparkline(dates, { weeks = 12, w = 132, h = 32, since = null } = {}) {
   const counts = Array(weeks).fill(0);
   for (const d of dates) {
     const k = Math.floor((NOW - Date.parse(d)) / (7 * DAY));
     if (k >= 0 && k < weeks) counts[weeks - 1 - k]++;
   }
+  const known = (i) => !since || NOW - (weeks - 1 - i) * 7 * DAY >= Date.parse(since);
   const max = Math.max(1, ...counts);
   const gap = 2, bw = (w - gap * (weeks - 1)) / weeks;
   const bars = counts.map((c, i) => {
+    const ago = weeks - 1 - i === 0 ? 'this week' : `${weeks - 1 - i}w ago`;
+    const x = (i * (bw + gap)).toFixed(1), hit = `<rect class="hit" x="${x}" y="0" width="${(bw + gap).toFixed(1)}" height="${h}"/>`;
+    if (!known(i)) return `<g>${hit}<rect class="bar none" x="${x}" y="${h - 1}" width="${bw.toFixed(1)}" height="1" rx="0.5"/><title>No data · ${ago}</title></g>`;
     const bh = c ? Math.max(3, (c / max) * (h - 2)) : 1.5;
-    const label = `${c} update${c === 1 ? '' : 's'} · ${weeks - 1 - i === 0 ? 'this week' : `${weeks - 1 - i}w ago`}`;
-    return `<g><rect class="hit" x="${(i * (bw + gap)).toFixed(1)}" y="0" width="${(bw + gap).toFixed(1)}" height="${h}"/><rect class="${c ? 'bar' : 'bar zero'}" x="${(i * (bw + gap)).toFixed(1)}" y="${(h - bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="1.5"/><title>${label}</title></g>`;
+    return `<g>${hit}<rect class="${c ? 'bar' : 'bar zero'}" x="${x}" y="${(h - bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="1.5"/><title>${c} update${c === 1 ? '' : 's'} · ${ago}</title></g>`;
   }).join('');
   const total = counts.reduce((a, b) => a + b, 0);
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" preserveAspectRatio="none" role="img" aria-label="${total} updates in the last ${weeks} weeks">${bars}</svg>`;
+  const shown = counts.filter((_, i) => known(i)).length;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" preserveAspectRatio="none" role="img" aria-label="${total} updates in the last ${shown} weeks">${bars}</svg>`;
 }
 
 // Real logo per tool (scripts/icons.mjs). Mono logos are CSS masks so they follow the theme;
@@ -862,7 +867,7 @@ function versionCard(t, root) {
   <span class="vcard-name"><strong>${esc(t.name)}</strong>${fresh ? '<span class="fresh" title="Shipped in the last 48 hours">new</span>' : ''}${t.discovered ? `<span class="trend" title="Trending on GitHub${t.starsPerWeek > 0 ? ` · +${t.starsPerWeek} stars this week` : ''}">${trendBadge(t)}</span>` : ''}<small>${esc(t.vendor)} · ${CATEGORIES[t.category].short}</small></span>
   <span class="vcard-ver">${ver ? `<code>${esc(ver)}</code>` : `<span class="vcard-upd">${esc(l?.title || '—')}</span>`}</span>
   <span class="vcard-meta">${l ? time(l.date) : 'no data'}${t.meta.stars ? `<small>★ ${compact(t.meta.stars)}</small>` : ''}</span>
-  ${sparkline(t.activity)}
+  ${sparkline(t.activity, { since: t.meta.cadenceFrom })}
 </a>`;
 }
 
@@ -1017,7 +1022,7 @@ function toolPage(t) {
     ${t.discovered ? `<div><dt>GitHub stars</dt><dd>${compact(t.meta.stars || 0)}${t.starsPerWeek > 0 ? `<small> +${compact(t.starsPerWeek)}/wk</small>` : ''}</dd></div>` : `<div><dt>Updates · 90 days</dt><dd>${rel90.length}</dd></div>`}
     <div><dt>${avgGap != null ? 'Avg. release gap' : 'GitHub stars'}</dt><dd>${avgGap != null ? `${avgGap < 1 ? '<1' : avgGap.toFixed(1)}<small> days</small>` : (t.meta.stars ? compact(t.meta.stars) : '—')}</dd></div>
   </dl>
-  <div class="tool-spark"><span class="muted small">Weekly activity · last 26 weeks</span>${sparkline(t.activity, { weeks: 26, w: 520, h: 56 })}</div>
+  <div class="tool-spark"><span class="muted small">Weekly activity · last 26 weeks</span>${sparkline(t.activity, { weeks: 26, w: 520, h: 56, since: t.meta.cadenceFrom })}</div>
 </section>
 
 ${banner()}

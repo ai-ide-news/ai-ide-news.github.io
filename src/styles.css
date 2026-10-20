@@ -265,6 +265,8 @@ h2 { font: 600 clamp(26px, 3vw, 34px)/1.1 var(--font); letter-spacing: -.035em; 
 .spark { display: block; overflow: visible; }
 .spark .bar { fill: var(--ink-2); transition: fill .15s; }
 .spark .bar.zero { fill: var(--line-2); }
+.spark .bar.none { fill: var(--line); }
+.spark g:hover .bar.none { fill: var(--line-2); }
 .spark .hit { fill: transparent; }
 .spark g:hover .bar { fill: var(--accent); }
 
