@@ -76,3 +76,45 @@ export async function fetchModels(get, now) {
   }
   return out.sort((a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name));
 }
+
+// Every provider serving each model, from OpenRouter's per-model endpoints list
+// (https://openrouter.ai/api/v1/models/<id>/endpoints — no key needed), so the site can show who is cheapest.
+// One request per model, a few at a time; a model whose request fails keeps the providers it had before.
+const pct = (v) => (Number.isFinite(v) ? Math.round(v * 10) / 10 : null);
+
+export async function fetchProviders(get, models, prev = {}, concurrency = 8) {
+  const out = {};
+  let failed = 0;
+  const queue = [...models];
+  await Promise.all(Array.from({ length: concurrency }, async () => {
+    for (let m; (m = queue.shift());) {
+      try {
+        const { data } = await get(`${API}/${m.id}/endpoints`, { json: true });
+        const seen = new Set();
+        out[m.id] = (data?.endpoints || []).flatMap((e) => {
+          const input = perM(e.pricing?.prompt), output = perM(e.pricing?.completion);
+          if (input == null || output == null || seen.has(e.tag)) return [];
+          seen.add(e.tag);
+          const [, ...region] = (e.tag || '').split('/').filter((s) => !/^(fp|bf|int)\d+$|^flex$|^turbo$/.test(s));
+          return [{
+            name: e.provider_name,
+            region: region.join('/') || null,
+            input, output,
+            cacheRead: perM(e.pricing?.input_cache_read),
+            context: e.context_length || null,
+            maxOutput: e.max_completion_tokens || null,
+            quant: e.quantization && e.quantization !== 'unknown' ? e.quantization : null,
+            uptime: pct(e.uptime_last_1d),
+            latency: Number.isFinite(e.latency_last_30m) ? Math.round(e.latency_last_30m) : null,
+            speed: Number.isFinite(e.throughput_last_30m) ? Math.round(e.throughput_last_30m) : null,
+            tools: (e.supported_parameters || []).includes('tools'),
+          }];
+        }).sort((a, b) => a.input * 3 + a.output - (b.input * 3 + b.output) || (b.uptime ?? 0) - (a.uptime ?? 0));
+      } catch {
+        failed++;
+        if (prev[m.id]) out[m.id] = prev[m.id];
+      }
+    }
+  }));
+  return { providers: out, failed };
+}

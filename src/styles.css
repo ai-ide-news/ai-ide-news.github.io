@@ -127,7 +127,7 @@ h1 em, h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; 
 .eyebrow { font: 12px var(--mono); color: var(--ink-3); margin: 0 0 4px; }
 .hero-sm .eyebrow { margin-bottom: 14px; }
 h2 { font: 600 clamp(26px, 3vw, 34px)/1.1 var(--font); letter-spacing: -.035em; margin: 0; }
-.tabs, .chips { display: flex; gap: 2px 16px; flex-wrap: wrap; }
+.tabs, .chips, .nchips { display: flex; gap: 2px 16px; flex-wrap: wrap; }
 .tabs { overflow-x: auto; scrollbar-width: none; max-width: 100%; flex-wrap: nowrap; }
 .tabs button, .chip { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 0; font-size: 13.5px; color: var(--ink-3); white-space: nowrap; border-bottom: 2px solid transparent; }
 .tabs button i { font: normal 11.5px var(--mono); color: var(--ink-3); }
@@ -344,6 +344,13 @@ h2 { font: 600 clamp(26px, 3vw, 34px)/1.1 var(--font); letter-spacing: -.035em; 
 [data-theme='light'] .ncard[data-tag='pricing'] { --nt: #8a6410; }
 [data-theme='light'] .ncard[data-tag='deprecation'] { --nt: #a84a10; }
 [data-theme='light'] .ncard[data-tag='policy'] { --nt: #1f6b5e; }
+.nfilters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
+.nchips small { font: 11px var(--mono); color: var(--ink-3); }
+.ntool-pick select { padding: 6px 28px 6px 10px; border: 1px solid var(--line-2); border-radius: var(--r); background: var(--bg); color: var(--ink); font: 500 13px var(--mono); }
+.ngrid.filtered .ncard-lead { grid-column: auto; grid-row: auto; padding: 20px 22px 22px; }
+.ngrid.filtered .ncard-lead .ncard-title { font: 600 17px/1.35 var(--font); letter-spacing: -.015em; }
+.ngrid.filtered .ncard-lead .ncard-sum { font-size: 14px; -webkit-line-clamp: 3; }
+.ncard[hidden] { display: none; }
 @media (max-width: 980px) { .ngrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) {
   .ngrid { grid-template-columns: minmax(0, 1fr); }
@@ -772,3 +779,8 @@ a:hover > .pt { opacity: 1; r: 7; }
   .oc-rank .oc-bar { display: none; }
 }
 .oc-stats { margin-top: 18px; }
+
+/* Model page: provider comparison */
+.prov-lead { margin: 0 0 14px; color: var(--ink-2); }
+.prov-table tbody tr.prov-best th strong { color: var(--k-release); }
+.prov-table tbody tr.prov-best { background: color-mix(in srgb, var(--k-release) 6%, transparent); }

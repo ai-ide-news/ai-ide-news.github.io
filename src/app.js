@@ -123,6 +123,34 @@
     });
   }
   more?.addEventListener('click', () => { state.page += 40; apply(); });
+  // News page: filter cards by topic and tool; the choice lives in ?tag=&tool= so it can be shared.
+  const nf = $('.nfilters');
+  if (nf) {
+    const grid = $('.ngrid'), cards = $$('.ncard', grid), pick = $('#ntool', nf), empty = $('.nempty');
+    const url = new URL(location.href);
+    let tag = url.searchParams.get('tag') || 'all';
+    if (!$(`.chip[data-tag="${CSS.escape(tag)}"]`, nf)) tag = 'all';
+    pick.value = url.searchParams.get('tool') || '';
+    if (pick.selectedIndex < 0) pick.value = '';
+    const run = () => {
+      const tool = pick.value;
+      let shown = 0;
+      cards.forEach((c) => {
+        const ok = (tag === 'all' || c.dataset.tag === tag) && (!tool || c.dataset.tools.split(' ').includes(tool));
+        c.hidden = !ok; shown += ok;
+      });
+      $$('.chip', nf).forEach((x) => { const on = x.dataset.tag === tag; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
+      grid.classList.toggle('filtered', tag !== 'all' || !!tool);
+      grid.hidden = !shown; empty.hidden = !!shown;
+      const u = new URL(location.href);
+      tag === 'all' ? u.searchParams.delete('tag') : u.searchParams.set('tag', tag);
+      tool ? u.searchParams.set('tool', tool) : u.searchParams.delete('tool');
+      history.replaceState(null, '', u);
+    };
+    nf.addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) { tag = b.dataset.tag; run(); } });
+    pick.addEventListener('change', run);
+    run();
+  }
   if ($('#cmp-data')) comparePlans();
   if ($('.mtable')) compareModels();
   $$('.vzoom').forEach(zoomChart);

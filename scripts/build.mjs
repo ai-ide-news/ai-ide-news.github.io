@@ -163,7 +163,6 @@ ${body}
     </div>
     <div class="foot-meta">
       <p>Last refreshed ${time(snap.generatedAt, 'live-ago')}</p>
-      <p><a href="${root}feed.xml">RSS</a> · <a href="${root}data.json">JSON API</a> · <a href="${REPO_URL}" rel="noopener">GitHub</a></p>
       <p class="credit">Made by <a href="${AUTHOR.url}" rel="author noopener">${AUTHOR.name}</a> · <a href="${AUTHOR.url}" rel="noopener">github.com/AbdullahElTiby</a></p>
       <p class="muted">Not affiliated with any of the tools listed. All trademarks belong to their owners.</p>
     </div>
@@ -229,7 +228,7 @@ const sourceLink = (s) => `<a class="src${/^X ·/.test(s.name) ? ' src-x' : /^Ha
 function newsCard(n, root, { lead = false } = {}) {
   const ts = n.toolIds.map((id) => byId[id]).filter(Boolean);
   const c = ts[0]?.color || '#d4ff3f';
-  return `<article class="ncard${lead ? ` ncard-lead${n.summary ? ' tall' : ''}` : ''}${n.major ? ' major' : ''}" data-tag="${esc(n.tag.toLowerCase())}" style="--c:${c}">
+  return `<article class="ncard${lead ? ` ncard-lead${n.summary ? ' tall' : ''}` : ''}${n.major ? ' major' : ''}" data-tag="${esc(n.tag.toLowerCase())}" data-tools="${esc(n.toolIds.join(' '))}" style="--c:${c}">
   <div class="ncard-meta"><span class="ntag ntag-${esc(n.tag.toLowerCase())}">${esc(n.tag)}</span>${n.major ? '<span class="nmajor">Major</span>' : ''}${time(n.date, 'fcard-time')}</div>
   <h3 class="ncard-title"><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a></h3>
   ${n.summary ? `<p class="ncard-sum">${esc(n.summary)}</p>` : ''}
@@ -240,14 +239,19 @@ function newsCard(n, root, { lead = false } = {}) {
 </article>`;
 }
 // `limit` keeps the 3-column grid free of orphans: a tall lead fills 4 cells, a short one 2.
-function newsGrid(list, root, limit = Infinity) {
-  if (!list.length) return '<p class="muted">No major news in the last 30 days.</p>';
+function newsFit(list, limit = Infinity) {
+  if (!list.length) return [];
   const lead = list.find((n) => n.major) || list[0];
   const rest = list.filter((n) => n !== lead);
   const cells = lead.summary ? 4 : 2;
   const n = Math.min(rest.length, limit === Infinity ? rest.length : limit - 1);
   const fit = n > 3 ? n - ((n + cells) % 3) : n;
-  return `<div class="ngrid">${newsCard(lead, root, { lead: true })}${rest.slice(0, fit).map((x) => newsCard(x, root)).join('')}</div>`;
+  return [lead, ...rest.slice(0, fit)];
+}
+function newsGrid(list, root, limit = Infinity) {
+  if (!list.length) return '<p class="muted">No major news in the last 30 days.</p>';
+  const [lead, ...rest] = newsFit(list, limit);
+  return `<div class="ngrid">${newsCard(lead, root, { lead: true })}${rest.map((x) => newsCard(x, root)).join('')}</div>`;
 }
 
 // ── models ────────────────────────────────────────────────
@@ -308,7 +312,7 @@ function modelRow(m, root) {
   <th scope="row"><div class="ptool-cell"><button type="button" class="pick" data-pick="${esc(m.id)}" aria-pressed="false" aria-label="Add ${esc(m.name)} to comparison" title="Add to comparison"></button><div class="ptool">${labTile(m, root)}<span><a class="ptool-name" href="${root}${modelPath(m)}"><strong>${esc(m.name)}</strong></a><small><a class="lab-link" href="${root}${labPath(m.labId)}">${esc(m.lab)}</a> · <code>${esc(m.id)}</code></small></span></div></div>${m.summary ? `<p class="msum">${esc(m.summary)}</p>` : ''}<div class="mtags">${modelTags(m)}</div></th>
   <td class="mnum">${fmtDate(m.date)}<small>${time(m.date)}</small></td>
   <td class="mnum">${tokens(m.context)}${m.maxOutput ? `<small>${tokens(m.maxOutput)} out</small>` : ''}</td>
-  <td class="mnum">${mprice(m.input)}</td>
+  <td class="mnum">${mprice(m.input)}${provCount(m) > 1 ? `<small>${provCount(m)} providers</small>` : ''}</td>
   <td class="mnum">${mprice(m.output)}</td>
   <td class="mnum mbench-cell">${benchCell(m, BENCH_DEFAULT)}</td>
 </tr>`;
@@ -526,6 +530,41 @@ function benchTable(m, root) {
     }).join('')}</tbody></table></div>`;
 }
 
+// Every provider serving the model (scripts/models.mjs, via OpenRouter), cheapest first by blended price (3:1 input:output).
+const provCount = (m) => new Set((m.providers || []).map((p) => p.name)).size;
+function providerTable(m) {
+  const list = m.providers || [];
+  if (!list.length) return `<p class="muted">No provider list for ${esc(m.name)} yet. It appears here after the next data refresh.</p>`;
+  const low = Math.min(...list.map(blended)), high = Math.max(...list.map(blended));
+  const cheapest = list.filter((p) => blended(p) === low);
+  const has = (k) => list.some((p) => p[k] != null);
+  const cols = [
+    has('cacheRead') && ['Cache read', (p) => (p.cacheRead == null ? '<span class="muted">—</span>' : mprice(p.cacheRead))],
+    ['Context', (p) => tokens(p.context)],
+    has('maxOutput') && ['Max output', (p) => tokens(p.maxOutput)],
+    has('speed') && ['Speed', (p) => (p.speed == null ? '<span class="muted">—</span>' : `${p.speed}<small>tok/s</small>`)],
+    has('latency') && ['Latency', (p) => (p.latency == null ? '<span class="muted">—</span>' : `${(p.latency / 1000).toFixed(2)}<small>s</small>`)],
+    has('uptime') && ['Uptime', (p) => (p.uptime == null ? '<span class="muted">—</span>' : `${p.uptime}%<small>24h</small>`)],
+  ].filter(Boolean);
+  const names = [...new Set(cheapest.map((p) => p.name))];
+  const lead = list.length === 1
+    ? `Only <strong>${esc(list[0].name)}</strong> serves ${esc(m.name)} on OpenRouter right now.`
+    : low === high
+      ? `All ${provCount(m)} providers charge the same: ${priceLine(list[0])} per 1M input / output tokens.`
+      : `Cheapest: <strong>${names.slice(0, 3).map(esc).join(', ')}${names.length > 3 ? ` +${names.length - 3} more` : ''}</strong> at ${priceLine(cheapest[0])} per 1M input / output tokens — ${Math.round((1 - low / high) * 100)}% less than the priciest option.`;
+  return `<p class="prov-lead">${lead}</p>
+  <div class="ptable-wrap"><table class="ptable dtable prov-table">
+    <thead><tr><th scope="col">Provider</th><th scope="col">Input</th><th scope="col">Output</th>${cols.map(([h]) => `<th scope="col">${h}</th>`).join('')}<th scope="col">vs. best</th></tr></thead>
+    <tbody>${list.map((p) => {
+      const d = low > 0 ? Math.round((blended(p) / low - 1) * 100) : (blended(p) > 0 ? null : 0);
+      return `<tr${blended(p) === low ? ' class="prov-best"' : ''}><th scope="row"><strong>${esc(p.name)}</strong><small>${[p.region, p.quant && p.quant.toUpperCase(), !p.tools && 'no tool calling'].filter(Boolean).map(esc).join(' · ')}</small></th>
+        <td class="mnum">${mprice(p.input)}</td>
+        <td class="mnum">${mprice(p.output)}</td>
+        ${cols.map(([, f]) => `<td class="mnum">${f(p)}</td>`).join('')}
+        <td class="mnum">${blended(p) === low ? '<span class="pbadge free">Cheapest</span>' : d == null ? 'Paid' : `+${d}%`}</td></tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
 // A model's standout benchmarks: where it lands in the top half of every scored model, best first.
 function strengths(m) {
   const top = BENCHMARKS.filter((b) => m.bench[b.id] != null).map((b) => ({ b, ...benchRank(b, m.bench[b.id]) }))
@@ -617,6 +656,7 @@ function modelPage(m) {
   const siblings = lab.filter((x) => x.id !== m.id).slice(0, 8);
   const rivals = models.filter((x) => showdown.includes(x.id) && x.labId !== m.labId);
   const nScores = Object.keys(m.bench).length;
+  const cheap = m.providers?.length ? { input: Math.min(...m.providers.map((p) => p.input)), output: Math.min(...m.providers.map((p) => p.output)) } : null;
   const body = `
 <section class="wrap tool-hero" style="--c:${m.color}">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}models/">Models</a><span>/</span><a href="${root}${labPath(m.labId)}">${esc(m.lab)}</a><span>/</span><span>${esc(m.name)}</span></nav>
@@ -638,8 +678,8 @@ function modelPage(m) {
   <dl class="stats tool-stats">
     <div><dt>Released</dt><dd>${fmtDate(m.date).replace(/, \d{4}$/, '')}<small> ${new Date(m.date).getUTCFullYear()}</small></dd></div>
     <div><dt>Context window</dt><dd>${tokens(m.context)}${m.maxOutput ? `<small> ${tokens(m.maxOutput)} out</small>` : ''}</dd></div>
-    <div><dt>Input / 1M tokens</dt><dd>${mprice(m.input)}</dd></div>
-    <div><dt>Output / 1M tokens</dt><dd>${mprice(m.output)}</dd></div>
+    <div><dt>Input / 1M tokens</dt><dd>${mprice(m.input)}${cheap && cheap.input < m.input ? `<small> from ${mprice(cheap.input)}</small>` : ''}</dd></div>
+    <div><dt>Output / 1M tokens</dt><dd>${mprice(m.output)}${cheap && cheap.output < m.output ? `<small> from ${mprice(cheap.output)}</small>` : ''}</dd></div>
   </dl>
 </section>
 
@@ -648,8 +688,10 @@ ${banner()}
 <section class="wrap section">
   <div class="feed-layout">
     <div class="feed">
-      ${valueChart(m, root) ? `<div class="section-head"><div><p class="eyebrow">Value</p><h2>Price vs. performance</h2></div></div>${valueChart(m, root)}` : ''}
-      <div ${valueChart(m, root) ? 'class="section-head dsub"' : 'class="section-head"'}><div><p class="eyebrow">Benchmarks</p><h2>${nScores ? `${nScores} benchmark score${nScores === 1 ? '' : 's'}` : 'Benchmark scores'}</h2></div></div>
+      <div class="section-head"><div><p class="eyebrow">Where to run it</p><h2>${provCount(m) > 1 ? `${provCount(m)} providers compared` : 'Providers'}</h2></div></div>
+      ${providerTable(m)}
+      ${valueChart(m, root) ? `<div class="section-head dsub"><div><p class="eyebrow">Value</p><h2>Price vs. performance</h2></div></div>${valueChart(m, root)}` : ''}
+      <div class="section-head dsub"><div><p class="eyebrow">Benchmarks</p><h2>${nScores ? `${nScores} benchmark score${nScores === 1 ? '' : 's'}` : 'Benchmark scores'}</h2></div></div>
       ${benchTable(m, root)}
       <div class="section-head dsub"><div><p class="eyebrow">Specs</p><h2>Details</h2></div></div>
       <dl class="specs">
@@ -659,13 +701,14 @@ ${banner()}
         <div><dt>Context window</dt><dd>${m.context ? `${m.context.toLocaleString('en-US')} tokens` : '—'}</dd></div>
         <div><dt>Max output</dt><dd>${m.maxOutput ? `${m.maxOutput.toLocaleString('en-US')} tokens` : '—'}</dd></div>
         <div><dt>API price</dt><dd>${priceLine(m)} <span class="muted">per 1M input / output tokens</span></dd></div>
+        <div><dt>Providers</dt><dd>${provCount(m) || '—'}</dd></div>
         <div><dt>Input types</dt><dd>${esc(m.modalities.join(', ') || '—')}</dd></div>
         <div><dt>Reasoning</dt><dd>${yesNo(m.reasoning)}</dd></div>
         <div><dt>Tool calling</dt><dd>${yesNo(m.tools)}</dd></div>
         <div><dt>Open weights</dt><dd>${yesNo(m.openWeights)}</dd></div>
         <div><dt>Free tier</dt><dd>${yesNo(m.free)}</dd></div>
       </dl>
-      <p class="muted small section-note">Release date and prices from OpenRouter's catalog; first-party API prices can differ. Benchmark scores are the best result per benchmark from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a>, licensed CC BY 4.0. Rank counts every model tracked here with a score.</p>
+      <p class="muted small section-note">Release date, prices and providers from OpenRouter's catalog; buying directly from a provider can cost a little differently. Uptime is the share of OpenRouter requests each provider served over the last day. Benchmark scores are the best result per benchmark from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a>, licensed CC BY 4.0. Rank counts every model tracked here with a score.</p>
     </div>
     <aside class="side">
       ${ad('side')}
@@ -1002,6 +1045,25 @@ ${banner()}
   });
 }
 
+// Topic chips and a tool picker; src/app.js hides the cards that don't match.
+function newsFilters() {
+  const shown = newsFit(news);
+  if (shown.length < 2) return '';
+  const count = (key) => shown.reduce((m, n) => [].concat(key(n)).reduce((m, k) => m.set(k, (m.get(k) || 0) + 1), m), new Map());
+  const tags = [...count((n) => n.tag)].sort((a, b) => b[1] - a[1]);
+  const tools = [...count((n) => n.toolIds)].filter(([id]) => byId[id]).sort((a, b) => b[1] - a[1] || byId[a[0]].name.localeCompare(byId[b[0]].name));
+  return `<div class="nfilters">
+  <div class="nchips" role="group" aria-label="Filter by topic">
+    <button type="button" class="chip on" data-tag="all" aria-pressed="true">All <small>${shown.length}</small></button>
+    ${tags.map(([t, c]) => `<button type="button" class="chip" data-tag="${esc(t.toLowerCase())}" aria-pressed="false">${esc(t)} <small>${c}</small></button>`).join('')}
+  </div>
+  <label class="ntool-pick"><select id="ntool" aria-label="Filter by tool">
+    <option value="">All tools</option>
+    ${tools.map(([id, c]) => `<option value="${esc(id)}">${esc(byId[id].name)} (${c})</option>`).join('')}
+  </select></label>
+</div>`;
+}
+
 function newsPage() {
   const root = '../';
   const body = `
@@ -1012,7 +1074,7 @@ function newsPage() {
 </section>
 
 ${banner()}
-<section class="wrap section">${newsGrid(news, root)}${ad('inline')}</section>`;
+<section class="wrap section">${newsFilters()}${newsGrid(news, root)}<p class="muted nempty" hidden>No stories match these filters.</p>${ad('inline')}</section>`;
   return layout({
     root, path: 'news/', active: 'news', title: `AI Coding News — Launches, Models, Security & Pricing | ${SITE_NAME}`,
     description: `The important AI IDE and coding-agent news: ${news.slice(0, 4).map((n) => n.title).join(' · ')}`, body,

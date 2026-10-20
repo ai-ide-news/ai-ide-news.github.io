@@ -8,7 +8,7 @@ import { TOOLS, HN_MATCH, HN_QUERIES, DISCOVERY } from './sources.mjs';
 import { searchCandidates, toTool } from './discover.mjs';
 import { NEWS_FEEDS, LAB_ACCOUNTS, fetchX, pickNews } from './news.mjs';
 import { resolveHandles, toolsByHandle } from './xaccounts.mjs';
-import { fetchModels } from './models.mjs';
+import { fetchModels, fetchProviders } from './models.mjs';
 import { fetchBenchmarks } from './benchmarks.mjs';
 import { fetchAA } from './aa.mjs';
 import { fetchOpenCode } from './opencode.mjs';
@@ -324,6 +324,20 @@ async function main() {
     report.push(`⚠ Models: ${e.message} (kept ${models.length} previous)`);
   }
 
+  // Who serves each model and at what price (one request per model): full runs, or when the last pass is over 6 hours old.
+  const prevProviders = Object.fromEntries((prev.models || []).filter((m) => m.providers).map((m) => [m.id, m.providers]));
+  const providersAt = prev.providersAt || null;
+  let providersFresh = providersAt;
+  if (!QUICK || !providersAt || NOW - Date.parse(providersAt) > DAY / 4) {
+    const { providers, failed } = await fetchProviders(get, models, prevProviders);
+    models = models.map((m) => (providers[m.id] ? { ...m, providers: providers[m.id] } : m));
+    providersFresh = new Date(NOW).toISOString();
+    const n = Object.values(providers).reduce((s, l) => s + l.length, 0);
+    report.push(`${failed ? '⚠' : '✓'} Model providers        ${n} endpoints across ${Object.keys(providers).length} models${failed ? ` (${failed} failed)` : ''}`);
+  } else {
+    models = models.map((m) => (prevProviders[m.id] ? { ...m, providers: prevProviders[m.id] } : m));
+  }
+
   // Benchmark scores (Epoch AI, ~2 MB zip): full runs only, or when the last copy is over a day old.
   let benchmarks = prev.benchmarks || null;
   if (!QUICK || !benchmarks || NOW - Date.parse(benchmarks.fetchedAt) > DAY) {
@@ -387,7 +401,7 @@ async function main() {
   // Did anything actually ship? (Ignores HN vote counts, which move constantly.)
   const fingerprint = (t) => Object.values(t || {}).flatMap((e) => e.items.map((i) => `${i.id}|${i.version || ''}|${i.title}`)).sort().join('\n');
   const ids = (list) => (list || []).map((d) => d.id).sort().join();
-  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered) || ids(news) !== ids(prev.news) || ids(models) !== ids(prev.models);
+  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered) || ids(news) !== ids(prev.news) || ids(models) !== ids(prev.models) || providersFresh !== providersAt;
   const newIds = new Set(Object.values(prev.tools || {}).flatMap((e) => e.items.map((i) => i.id)));
   const oldModels = new Set((prev.models || []).map((m) => m.id));
   const fresh = [...Object.values(tools).flatMap((e) => e.items).filter((i) => !newIds.has(i.id)), ...(prev.models ? models.filter((m) => !oldModels.has(m.id)).map((m) => ({ title: `New model: ${m.name}` })) : [])];
@@ -396,7 +410,7 @@ async function main() {
   if (QUICK && !changed) { console.log(report.sort().join('\n')); return; } // nothing new: leave the snapshot untouched
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), tools, discovered, discussions, news, models, benchmarks, aa, opencode, x }, null, 1));
+  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), providersAt: providersFresh, tools, discovered, discussions, news, models, benchmarks, aa, opencode, x }, null, 1));
   console.log(report.sort().join('\n'));
 }
 
