@@ -1,7 +1,7 @@
 {
   "packageId": "io.github.aiidenews.aiticker",
   "host": "ai-ide-news.github.io",
-  "name": "aiticker — AI IDE & CLI updates",
+  "name": "aiticker: AI News & Models",
   "launcherName": "aiticker",
   "display": "standalone",
   "orientation": "default",

@@ -1879,8 +1879,8 @@ const favicons = async () => {
 // Progressive web app: manifest, offline fallback page and a service worker stamped per build.
 const pwa = async () => {
   await out('manifest.webmanifest', JSON.stringify({
-    id: '/', name: `${SITE_NAME} — AI IDE & CLI updates`, short_name: SITE_NAME,
-    description: 'Live changelog tracker for AI IDEs, coding CLIs and editor agents.',
+    id: '/', name: `${SITE_NAME}: AI News & Models`, short_name: SITE_NAME,
+    description: 'Live AI news, model launches, benchmarks and coding-tool updates.',
     start_url: '/', scope: '/', display: 'standalone', background_color: '#121211', theme_color: '#121211',
     categories: ['news', 'developer', 'productivity'],
     icons: [

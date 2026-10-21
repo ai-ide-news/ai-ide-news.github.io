@@ -1,36 +1,34 @@
 # Play Store listing: copy and paste
 
 ## App name (30 max)
-aiticker: AI IDE & CLI news
+aiticker: AI News & Models
 
 ## Short description (80 max)
-Live release notes & news for Cursor, Claude Code, Codex, Copilot and 40+ tools.
+Live AI news, model launches, benchmarks and coding-tool updates in one feed.
 
 ## Full description (4000 max)
-aiticker tracks every AI coding tool in one live feed, so you know what changed in your editor before it surprises you.
+aiticker follows the whole AI world in one live feed: new models, the labs and companies behind them, the tools built on top, and the news that actually matters.
 
 WHAT YOU GET
-• Every release, patch and changelog for 50+ AI IDEs, coding CLIs and editor agents: Cursor, Claude Code, Codex, Gemini CLI, GitHub Copilot, Windsurf, Kiro, Zed, Cline, Aider and more
-• Important news only: launches, pricing changes and security alerts, with the noise filtered out
-• Models: 280+ AI models with release dates, context windows, API prices, benchmark scores and a head-to-head comparison you build yourself
-• Compare plans: free tiers, seat prices and budgets side by side
-• Companies: who builds each tool, their founders and investors
-• Learn: short narrated chapters on how AI models actually work
-• Fast search across every tool, model and update
+• AI news, filtered: model launches, pricing changes and security alerts, without the noise
+• Models: 280+ AI models from OpenAI, Anthropic, Google, Meta, Mistral, DeepSeek and more, with release dates, context windows, API prices and benchmark scores
+• Leaderboard & showdown: rank models on intelligence, coding, speed and price, or put any of them head to head
+• Companies: every AI lab and toolmaker, with founders, investors and what they've shipped
+• Tools: release notes for 50+ AI apps, IDEs, coding agents and CLIs (Cursor, Claude Code, Codex, Gemini CLI, Copilot and more) as they ship
+• MCP servers & skills: the fastest-growing open-source AI add-ons, tracked from GitHub
+• Learn: short narrated chapters on how AI models actually work: tokens, context, reasoning, training and more
+• Fast search across every model, company, tool and story
 
 STRAIGHT FROM THE SOURCE
-Data comes from official GitHub releases, official changelogs and blog feeds, and Hacker News, refreshed automatically every few hours. No mock data, no sign-up.
+Data comes from official releases, changelogs and blogs, public benchmarks and Hacker News, refreshed automatically every few hours. No mock data, no sign-up.
 
 WORKS OFFLINE
 Pages you've opened stay readable without a connection and refresh when you're back online.
 
-aiticker is independent and not affiliated with any of the tools listed. All trademarks belong to their owners.
+aiticker is independent and not affiliated with any company listed. All trademarks belong to their owners.
 
 ## Category
-News & Magazines (alternative: Tools)
-
-## Tags / keywords to pick
-Developer news, Technology news
+News & Magazines
 
 ## Contact details
 - Website: https://ai-ide-news.github.io/
@@ -43,5 +41,3 @@ Developer news, Technology news
 | App icon (512×512) | icon-512.png |
 | Feature graphic (1024×500) | feature-graphic-1024x500.png |
 | Phone screenshots (2–8) | phone-1.png … phone-5.png |
-
-Phone screenshots double as 7" tablet screenshots if Play asks; 10" tablet ones are optional.

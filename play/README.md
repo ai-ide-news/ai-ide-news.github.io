@@ -13,7 +13,7 @@ The Android app is a Trusted Web Activity (TWA): a small wrapper that opens http
 
 ## 1. One-time Play Console setup
 1. Create a developer account at https://play.google.com/console ($25 one-time, identity verification).
-2. **Create app** → name `aiticker: AI IDE & CLI news`, App, Free, accept declarations.
+2. **Create app** → name `aiticker: AI News & Models`, App, Free, accept declarations.
 
 ## 2. Upload the bundle (closed test first)
 Personal accounts created after November 2023 must run a **closed test with at least 12 testers for 14 continuous days** before production access.
