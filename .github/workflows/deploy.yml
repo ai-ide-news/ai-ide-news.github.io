@@ -51,6 +51,7 @@ jobs:
           ADSENSE_SLOT_SIDE: ${{ vars.ADSENSE_SLOT_SIDE }}
           ADSENSE_SLOT_INLINE: ${{ vars.ADSENSE_SLOT_INLINE }}
           CF_ANALYTICS_TOKEN: ${{ vars.CF_ANALYTICS_TOKEN }}
+          FEED_PROXY: ${{ vars.FEED_PROXY }}   # optional: My feed outside sources (worker/)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # README lookups when resolving new logos
       - name: Commit data snapshot (keeps history + keeps the schedule alive)
         if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'

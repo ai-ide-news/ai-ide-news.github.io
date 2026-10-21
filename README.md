@@ -24,6 +24,18 @@ On every refresh, `scripts/discover.mjs` searches GitHub for repos in the niche 
 
 A GitHub Actions workflow checks every source for new releases every 10 minutes (using conditional requests, so unchanged repos cost nothing) and rebuilds + deploys only when something shipped; a full refresh (trending discovery, stars, HN) runs every 3 hours. An always-on watcher job (`.github/workflows/watch.yml`) also checks every source once a minute and triggers a deploy the moment something ships (~2–3 min from release to live). Open pages poll a tiny `version.json` and show a "new updates" prompt as soon as a new build lands. If a source fails, the previous snapshot for that source is kept.
 
+## My feed
+
+`/my-feed/` lets each reader build their own stream: pick tools from the catalog (releases & changelogs), toggle the curated news / Hacker News, and add any outside source — an RSS/Atom/JSON feed, a website (its feed is auto-discovered), a YouTube channel (`yt:@handle` or URL), a subreddit (`r/name`), a Bluesky profile, a Mastodon account (`@user@host`), or an Instagram / X profile. Picks are stored in the browser (localStorage) and can be shared with a link; there are no accounts.
+
+Outside sources are read through a small Cloudflare Worker (`worker/`), since browsers can't read most feeds directly:
+
+```bash
+cd worker && npm install && npx wrangler deploy
+```
+
+Then set the repo variable `FEED_PROXY` to the Worker URL (e.g. `https://aiticker-feeds.<you>.workers.dev`). Without it, the page still works with the catalog sources only. Instagram and X have no public feeds: set `INSTAGRAM_BRIDGE` / `X_BRIDGE` in `worker/wrangler.toml` to a bridge URL template such as a self-hosted RSSHub (`https://rsshub.example.com/instagram/user/{user}`), or users can paste an RSS.app / RSSHub link for the profile directly.
+
 ## Develop
 
 ```bash

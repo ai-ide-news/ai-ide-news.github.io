@@ -1,0 +1,13 @@
+# Feed proxy for the site's "My feed" page. Deploy: cd worker && npm install && npx wrangler deploy
+# Then set FEED_PROXY (repo variable) to the Worker's URL, e.g. https://aiticker-feeds.<you>.workers.dev
+name = "aiticker-feeds"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+# Pages allowed to call the proxy (comma-separated). localhost is always allowed for development.
+ALLOWED_ORIGINS = "https://ai-ide-news.github.io"
+# Optional: bridges that turn Instagram / X profiles into feeds. {user} is replaced with the handle.
+# e.g. a self-hosted RSSHub: "https://rsshub.example.com/instagram/user/{user}" and ".../twitter/user/{user}"
+INSTAGRAM_BRIDGE = ""
+X_BRIDGE = ""

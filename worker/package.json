@@ -1,0 +1,15 @@
+{
+  "name": "aiticker-feeds",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.11.2"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

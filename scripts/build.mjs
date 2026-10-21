@@ -29,6 +29,8 @@ const ADS = {
 };
 // Cloudflare Web Analytics site token. Unset → no beacon (local builds stay out of the stats).
 const CF_BEACON = (process.env.CF_ANALYTICS_TOKEN || '').trim();
+// Cloudflare Worker (worker/) that reads users' own sources for the My feed page; unset hides custom sources.
+const FEED_PROXY = (process.env.FEED_PROXY || '').trim().replace(/\/$/, '');
 // Block the site for visitors running an ad blocker. On whenever AdSense is; ADWALL=1 forces it locally.
 const ADWALL = !!ADS.client || process.env.ADWALL === '1';
 const PRIVACY_UPDATED = '21 October 2026';
@@ -145,6 +147,7 @@ function navGroups(root, active) {
       trending.length && ['Trending', `${root}#trending`, 'Rising on GitHub', ''],
       news.length && ['News', `${root}news/`, 'Only the important stories', 'news'],
       ['Community', `${root}#discussions`, 'Hacker News threads', ''],
+      ['My feed', `${root}my-feed/`, 'Your own pick of sources', 'myfeed'],
     ]],
     ['Tools', 'Pick your setup', [
       ['All tools', `${root}tools/`, `${tools.length} IDEs, CLIs and agents`, 'tools'],
@@ -1407,6 +1410,70 @@ ${banner()}
   });
 }
 
+// Personal feed: the reader picks tools from the catalog and adds any outside source (RSS, YouTube,
+// Reddit, Bluesky, Mastodon, Instagram…); src/myfeed.js keeps the picks in localStorage and reads
+// outside sources through the FEED_PROXY Worker (worker/).
+const MYFEED_PRESETS = [
+  ['Hacker News front page', 'https://hnrss.org/frontpage'],
+  ['Simon Willison', 'https://simonwillison.net/atom/everything/'],
+  ['r/LocalLLaMA', 'r/LocalLLaMA'],
+  ['r/ChatGPTCoding', 'r/ChatGPTCoding'],
+  ['The Verge · AI', 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml'],
+  ['Anthropic on YouTube', 'yt:@anthropic-ai'],
+  ['Simon on Bluesky', 'https://bsky.app/profile/simonwillison.net'],
+];
+function myFeedPage() {
+  const root = '../';
+  const data = {
+    tools: [...tools].sort((a, b) => a.name.localeCompare(b.name)).map((t) => ({ id: t.id, name: t.name, vendor: t.vendor, cat: CATEGORIES[t.category]?.short || '', color: t.color, icon: icon(t, root, 'sm') })),
+    presets: FEED_PROXY ? MYFEED_PRESETS.map(([name, input]) => ({ name, input })) : [],
+  };
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">My feed</p>
+  <h1>Your <em>own</em> feed</h1>
+  <p class="lede">Pick the tools you use and add any source you read: a blog's RSS, a website, a YouTube channel, a subreddit, a Bluesky or Mastodon account, an Instagram profile. Everything lands in one stream, newest first. Your picks stay in this browser; nothing is sent to us.</p>
+</section>
+
+<section class="wrap section mf" data-root="${root}" data-proxy="${esc(FEED_PROXY)}">
+  <div class="mf-setup">
+    <div class="side-card mf-panel">
+      <p class="eyebrow">Sources</p><h2>What you follow</h2>
+      <ul class="mf-mine" aria-live="polite"></ul>
+      ${FEED_PROXY ? `<form class="mf-add" autocomplete="off">
+        <label class="sr-only" for="mf-in">Link or handle</label>
+        <input id="mf-in" type="text" inputmode="url" placeholder="Paste a link, r/subreddit, @user@mastodon.social, instagram.com/name…" required>
+        <button class="btn" type="submit">Add</button>
+      </form>
+      <p class="mf-status muted small" role="status"></p>
+      ${data.presets.length ? `<p class="muted small mf-try">Try: <span class="mf-presets"></span></p>` : ''}` : '<p class="muted small">Outside sources are not switched on for this site yet; pick from the tools below.</p>'}
+      <div class="mf-built">
+        <label><input type="checkbox" data-builtin="news"> Important news <small class="muted">launches, pricing, security</small></label>
+        <label><input type="checkbox" data-builtin="hn"> Hacker News threads <small class="muted">about the tools you pick</small></label>
+      </div>
+      <p class="mf-actions"><button type="button" class="btn ghost mf-share">Copy share link</button><button type="button" class="btn ghost mf-reset">Reset</button></p>
+    </div>
+    <details class="side-card mf-panel mf-tools-box">
+      <summary><span><p class="eyebrow">Tools</p><h2>Releases &amp; changelogs</h2></span><small class="muted mf-tcount"></small></summary>
+      <input id="mf-tq" type="search" placeholder="Filter ${tools.length} tools…" aria-label="Filter tools" autocomplete="off">
+      <div class="mf-tools" role="group" aria-label="Tools to follow"></div>
+    </details>
+  </div>
+  <div class="mf-stream">
+    <div class="nchips mf-filter" role="group" aria-label="Filter by source"></div>
+    <div class="mf-list" id="mf-list" aria-busy="true"></div>
+    <p class="empty mf-empty" hidden>Your feed is empty. Pick a few tools or add a source to get started.</p>
+    <p class="more-link"><button type="button" class="btn ghost mf-more" hidden>Show more</button></p>
+  </div>
+  <script type="application/json" id="mf-data">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>
+</section>
+<script src="${root}assets/myfeed.js?v=${NOW}" defer></script>`;
+  return layout({
+    root, path: 'my-feed/', active: 'myfeed', title: `My feed — Follow Any Source in One Stream | ${SITE_NAME}`,
+    description: 'Build your own news feed: follow AI coding tools plus any RSS feed, website, YouTube channel, subreddit, Bluesky, Mastodon or Instagram account, all in one stream.', body,
+  });
+}
+
 // Plain-language guide to how AI works, with examples from the live model catalog (scripts/learn.mjs).
 function learnPage() {
   const root = '../';
@@ -1892,6 +1959,7 @@ const pwa = async () => {
     ],
     shortcuts: [
       { name: 'News', url: '/news/' },
+      { name: 'My feed', url: '/my-feed/' },
       { name: 'Models', url: '/models/' },
       { name: 'Compare plans', url: '/compare/' },
     ],
@@ -1920,6 +1988,7 @@ await pwa();
 await out('index.html', indexPage());
 await out('tools/index.html', toolsIndexPage());
 await out('news/index.html', newsPage());
+await out('my-feed/index.html', myFeedPage());
 await out('compare/index.html', comparePage());
 if (models.length) await out('models/index.html', modelsPage());
 for (const type of Object.keys(ECO)) if (ECO[type].list.length) await out(`${ECO[type].path}index.html`, ecoPage(type));
@@ -1961,6 +2030,7 @@ await out('search.json', JSON.stringify({ generatedAt: snap.generatedAt, items: 
   { t: 'page', n: 'All tools', s: `${tools.length} AI IDEs, CLIs and editor agents`, u: 'tools/', k: 'directory ides clis agents' },
   { t: 'page', n: 'Compare plans & pricing', s: 'Free tiers, seats and budgets side by side', u: 'compare/', k: 'pricing plans cost free budget seats' },
   ...(news.length ? [{ t: 'page', n: 'News', s: 'Only the important stories', u: 'news/', k: 'headlines stories' }] : []),
+  { t: 'page', n: 'My feed', s: 'Follow any source: RSS, YouTube, Reddit, Instagram…', u: 'my-feed/', k: 'custom personal follow subscribe rss instagram youtube reddit bluesky mastodon' },
   ...(models.length ? [
     { t: 'page', n: 'Models', s: `${models.length} models, benchmarks, leaderboard, showdown`, u: 'models/', k: 'llm benchmarks leaderboard showdown pricing context' },
     { t: 'page', n: 'Learn', s: 'How AI models actually work, narrated', u: 'learn/', k: 'guide course explain tutorial' },
@@ -1982,6 +2052,7 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
+<url><loc>${SITE_URL}/my-feed/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
 ${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${models.length ? `<url><loc>${SITE_URL}/learn/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 ` : ''}${Object.values(ECO).filter((c) => c.list.length).map((c) => `<url><loc>${SITE_URL}/${c.path}</loc><lastmod>${eco.fetchedAt || snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
