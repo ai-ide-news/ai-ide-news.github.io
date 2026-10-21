@@ -184,6 +184,9 @@ ${VERIFY.split(',').filter(Boolean).map((v) => `<meta name="google-site-verifica
 <link rel="icon" href="${root}favicon.ico" sizes="32x32">
 <link rel="icon" href="${root}favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="${root}apple-touch-icon.png">
+<link rel="manifest" href="${root}manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="${SITE_NAME}">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="alternate" type="application/rss+xml" title="${SITE_NAME} — all AI IDE & CLI updates" href="${root}feed.xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -1830,6 +1833,40 @@ const favicons = async () => {
   head.writeUInt32LE(ico32.length, 14); head.writeUInt32LE(22, 18);
   await writeFile(new URL('favicon.ico', DIST), Buffer.concat([head, ico32]));
   await writeFile(new URL('apple-touch-icon.png', DIST), png(180));
+  // Installable-app icons. The maskable one goes full-bleed with the mark inside the 80% safe zone.
+  const mark = svg.toString().match(/<g[\s\S]*<\/g>/)[0];
+  const maskable = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#121211"/><g transform="translate(6.4 6.4) scale(.6)">${mark}</g></svg>`);
+  const maskPng = (w) => new Resvg(maskable, { fitTo: { mode: 'width', value: w } }).render().asPng();
+  await writeFile(new URL('icons/pwa-192.png', DIST), png(192));
+  await writeFile(new URL('icons/pwa-512.png', DIST), png(512));
+  await writeFile(new URL('icons/pwa-maskable-512.png', DIST), maskPng(512));
+};
+
+// Progressive web app: manifest, offline fallback page and a service worker stamped per build.
+const pwa = async () => {
+  await out('manifest.webmanifest', JSON.stringify({
+    id: '/', name: `${SITE_NAME} — AI IDE & CLI updates`, short_name: SITE_NAME,
+    description: 'Live changelog tracker for AI IDEs, coding CLIs and editor agents.',
+    start_url: '/', scope: '/', display: 'standalone', background_color: '#121211', theme_color: '#121211',
+    categories: ['news', 'developer', 'productivity'],
+    icons: [
+      { src: '/icons/pwa-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icons/pwa-512.png', sizes: '512x512', type: 'image/png' },
+      { src: '/icons/pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
+    ],
+    shortcuts: [
+      { name: 'News', url: '/news/' },
+      { name: 'Models', url: '/models/' },
+      { name: 'Compare plans', url: '/compare/' },
+    ],
+  }));
+  await out('offline.html', layout({
+    root: '/', path: 'offline.html', title: `Offline · ${SITE_NAME}`, description: 'You are offline.',
+    body: `<section class="wrap" style="padding:15vh 0;text-align:center"><h1>You're offline</h1><p>This page isn't saved on this device yet. Pages you've already opened still work, and everything refreshes once you're back online.</p><p><a href="/">← Back to the latest updates</a></p></section>`,
+  }).replace('<head>', '<head>\n<meta name="robots" content="noindex">'));
+  const sw = await readFile(new URL('scripts/sw.js', ROOT), 'utf8');
+  await out('sw.js', sw.replace('__VERSION__', String(NOW)));
 };
 
 await rm(DIST, { recursive: true, force: true });
@@ -1839,6 +1876,7 @@ await cp(new URL('static/', ROOT), DIST, { recursive: true });
 await icons();
 await portraits();
 await favicons();
+await pwa();
 
 await out('index.html', indexPage());
 await out('tools/index.html', toolsIndexPage());

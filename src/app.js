@@ -1075,4 +1075,9 @@
     };
     setTimeout(tick, 350);
   });
+
+  // Installable app + offline reading (dist/sw.js, built from scripts/sw.js).
+  if ('serviceWorker' in navigator) {
+    addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}), { once: true });
+  }
 })();
