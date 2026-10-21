@@ -40,4 +40,4 @@ News & Magazines
 |---|---|
 | App icon (512×512) | icon-512.png |
 | Feature graphic (1024×500) | feature-graphic-1024x500.png |
-| Phone screenshots (2–8) | phone-1.png … phone-5.png |
+| Phone screenshots (2–8) | phone-1.png … phone-6.png (1080×1920) |
