@@ -1,3 +1,8 @@
 node_modules/
 dist/
 .claude/
+# Android app: signing key stays local; the Bubblewrap project is regenerated from twa-manifest.json.
+play/keystore/
+play/twa/*
+!play/twa/twa-manifest.json
+play/release/

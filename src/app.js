@@ -6,8 +6,15 @@
   // Ad blocker wall: a bait element that cosmetic filters hide, a probe of the AdSense script
   // that network filters block, and a check that the AdSense script in <head> really came from
   // Google (uBlock swaps in a local no-op stand-in that never shows up in resource timing).
-  // Any one tripping covers the page.
-  if (document.documentElement.hasAttribute('data-adwall') && navigator.onLine !== false) {
+  // Any one tripping covers the page. Skipped inside the Android app (a Trusted Web Activity,
+  // see play/): it opens with ?source=twa and an android-app:// referrer, remembered per tab.
+  const inApp = (() => {
+    try {
+      if (/^android-app:\/\//.test(document.referrer) || /[?&]source=twa\b/.test(location.search)) sessionStorage.setItem('twa', '1');
+      return sessionStorage.getItem('twa') === '1';
+    } catch { return false; }
+  })();
+  if (document.documentElement.hasAttribute('data-adwall') && navigator.onLine !== false && !inApp) {
     const ADS_JS = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
     const loaded = new Promise((r) => (document.readyState === 'complete' ? r() : addEventListener('load', r, { once: true })));
     const swapped = () => !!document.querySelector(`script[src^="${ADS_JS}"]`)

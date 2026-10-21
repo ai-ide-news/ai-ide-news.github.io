@@ -31,6 +31,12 @@ const ADS = {
 const CF_BEACON = (process.env.CF_ANALYTICS_TOKEN || '').trim();
 // Block the site for visitors running an ad blocker. On whenever AdSense is; ADWALL=1 forces it locally.
 const ADWALL = !!ADS.client || process.env.ADWALL === '1';
+const PRIVACY_UPDATED = '21 October 2026';
+// Android app (Trusted Web Activity, see play/). sha256 lists the signing-key fingerprints allowed
+// to open the site full-screen: the upload key, plus Play's app-signing key once Play Console shows it.
+const ANDROID_APP = { id: 'io.github.aiidenews.aiticker', sha256: [
+  '61:DC:7C:17:8F:8A:58:5F:35:AE:BA:3E:87:8C:53:37:89:6E:3A:05:09:63:1A:78:A9:D7:96:93:31:E1:BA:D3', // upload key
+] };
 
 const snap = JSON.parse(await readFile(new URL('data/snapshot.json', ROOT), 'utf8'));
 const NOW = Date.parse(snap.generatedAt);
@@ -227,7 +233,7 @@ ${body}
     <div class="foot-meta">
       <p>Last refreshed ${time(snap.generatedAt, 'live-ago')}</p>
       <p class="credit">Made by <a href="${AUTHOR.url}" rel="author noopener">${AUTHOR.name}</a> · <a href="${AUTHOR.url}" rel="noopener">github.com/AbdullahElTiby</a></p>
-      <p class="muted">Not affiliated with any of the tools listed. All trademarks belong to their owners.</p>
+      <p class="muted">Not affiliated with any of the tools listed. All trademarks belong to their owners. <a href="${root}privacy/">Privacy</a></p>
     </div>
   </div>
 </footer>
@@ -1081,6 +1087,34 @@ ${banner()}
   });
 }
 
+// Required for the Play Store listing (play/) and AdSense. Keep in step with what the site loads.
+function privacyPage() {
+  const root = '../';
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">Policy</p>
+  <h1>Privacy</h1>
+  <p class="lede">What ${SITE_NAME} and its Android app collect, and who else sees it. Last updated ${PRIVACY_UPDATED}.</p>
+</section>
+<section class="wrap section privacy" style="max-width:720px">
+  <h2>The short version</h2>
+  <p>${SITE_NAME} has no accounts, no sign-up and no forms. We don't collect your name, email or any other personal details. The Android app is the same website opened full-screen in Chrome, so everything here applies to both.</p>
+  <h2>Stored on your device</h2>
+  <p>Your colour theme and a few interface choices are kept in your browser's local storage. To work offline, the site saves pages you've opened in your browser's cache. None of this is sent to us, and clearing your browser data removes it.</p>
+  <h2>Analytics</h2>
+  <p>We use Cloudflare Web Analytics to count visits. It sets no cookies and doesn't track you across sites; it records things like the page viewed, referrer, country and browser type. See <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">Cloudflare's privacy policy</a>.</p>
+  <h2>Advertising</h2>
+  <p>Ads are served by Google AdSense. Google and its partners may use cookies and device identifiers to show ads, including ads based on your previous visits to this and other sites, and to measure them. You can turn off personalised ads in <a href="https://adssettings.google.com/" rel="noopener">Google's Ad Settings</a>, and read <a href="https://policies.google.com/technologies/ads" rel="noopener">how Google uses data from sites that use its services</a>.</p>
+  <h2>Third-party content</h2>
+  <p>Fonts load from Google Fonts, and links lead to GitHub, vendor sites, Hacker News and other sources with their own privacy policies.</p>
+  <h2>Children</h2>
+  <p>${SITE_NAME} is a developer news site and isn't directed at children under 13.</p>
+  <h2>Contact</h2>
+  <p>Questions or requests: open an issue at <a href="${REPO_URL}/issues" rel="noopener">${REPO_URL.replace('https://', '')}</a>, or reach <a href="${AUTHOR.url}" rel="author noopener">${AUTHOR.name}</a>.</p>
+</section>`;
+  return layout({ root, path: 'privacy/', title: `Privacy Policy | ${SITE_NAME}`, description: `How ${SITE_NAME} and its Android app handle data: no accounts, cookieless analytics, Google AdSense.`, body });
+}
+
 function versionCard(t, root) {
   const l = t.latest;
   const ver = t.latestRelease ? t.latestRelease.version : null;
@@ -1865,6 +1899,10 @@ const pwa = async () => {
     root: '/', path: 'offline.html', title: `Offline · ${SITE_NAME}`, description: 'You are offline.',
     body: `<section class="wrap" style="padding:15vh 0;text-align:center"><h1>You're offline</h1><p>This page isn't saved on this device yet. Pages you've already opened still work, and everything refreshes once you're back online.</p><p><a href="/">← Back to the latest updates</a></p></section>`,
   }).replace('<head>', '<head>\n<meta name="robots" content="noindex">'));
+  if (ANDROID_APP.sha256.length) await out('.well-known/assetlinks.json', JSON.stringify([{
+    relation: ['delegate_permission/common.handle_all_urls'],
+    target: { namespace: 'android_app', package_name: ANDROID_APP.id, sha256_cert_fingerprints: ANDROID_APP.sha256 },
+  }], null, 2));
   const sw = await readFile(new URL('scripts/sw.js', ROOT), 'utf8');
   await out('sw.js', sw.replace('__VERSION__', String(NOW)));
 };
@@ -1889,6 +1927,7 @@ for (const l of labs) await out(`${labPath(l[0].labId)}index.html`, labPage(l));
 for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
 await out('companies/index.html', companiesIndexPage());
+await out('privacy/index.html', privacyPage());
 for (const c of companies) await out(`${coPath(c)}index.html`, companyPage(c));
 
 const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date));
