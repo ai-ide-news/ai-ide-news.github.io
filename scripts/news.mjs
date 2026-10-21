@@ -6,7 +6,7 @@
 export const NEWS_MIN = 4; // minimum importance score to count as news
 export const NEWS_MAJOR = 6.5; // "major" stories get the headline treatment
 const WINDOW_DAYS = 30;
-const MAX_NEWS = 40;
+const MAX_NEWS = 60;
 
 // AI labs followed on X in addition to every tool's own account (found by xaccounts.mjs).
 export const LAB_ACCOUNTS = [
@@ -26,11 +26,26 @@ const labRelevant = (text) => {
   return DEV.test(head) || (SIGNALS.find(([n]) => n === 'Model')[2].test(head) && MODEL_LAUNCH.test(head));
 };
 
-// Extra official feeds read only for news (must also look relevant to AI coding).
+// Extra feeds read only for news (must also look relevant to AI coding). press: independent coverage, not an
+// official announcement, so it gets no "official" boost. scrape: index-page pattern for sites without RSS (see fetch.mjs).
+const CODING = /\b(cod(e|es|ing|er|ers)|developers?|programming|software engineer\w*|ide|cli|agents?|agentic|codex|claude code|copilot|cursor|windsurf|devin|vibe.?cod\w*|open.?weights?|open.?source (ai )?models?)\b/i;
 export const NEWS_FEEDS = [
   { url: 'https://openai.com/news/rss.xml', relevant: /codex|coding|developer|agent|\bapi\b|gpt-?\d/i },
   { url: 'https://github.blog/feed/', relevant: /copilot|agent|\bai\b|model/i },
   { url: 'https://blog.google/technology/developers/rss/', relevant: /gemini|jules|antigravity|code assist|agent/i },
+  {
+    url: 'https://www.anthropic.com/news', relevant: /claude|\bcod(e|ing)\b|developer|agent|\bapi\b|opus|sonnet|haiku|fable|model/i,
+    scrape: /<a [^>]*href="(?<url>\/news\/[a-z0-9-]+)"[^>]*><span[^>]*><span[^>]*><h3[^>]*>(?<title>[^<]+)<\/h3>[\s\S]{0,1500}?<time>(?<date>[^<]+)<\/time>/g,
+  },
+  { url: 'https://mistral.ai/rss.xml', relevant: /cod(e|ing)|codestral|devstral|vibe|developer|agent|\bapi\b|mistral (large|medium|small)|magistral|model/i },
+  { url: 'https://deepmind.google/blog/rss.xml', relevant: /gemini \d|coding|developer|agent|antigravity|jules/i },
+  { url: 'https://blog.google/technology/ai/rss/', relevant: /gemini \d|coding|developer|agent|antigravity|jules/i },
+  { url: 'https://huggingface.co/blog/feed.xml', relevant: CODING },
+  { url: 'https://techcrunch.com/category/artificial-intelligence/feed/', press: true, relevant: CODING },
+  { url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', press: true, relevant: CODING },
+  { url: 'https://the-decoder.com/feed/', press: true, relevant: CODING },
+  { url: 'https://www.latent.space/feed', press: true, relevant: CODING },
+  { url: 'https://simonwillison.net/atom/everything/', press: true, relevant: CODING },
 ];
 
 // [tag, weight, pattern] — the first tag that matches the title (else the body) labels the story.
@@ -226,7 +241,7 @@ export function pickNews({ items, extra, discussions, posts, matchTools, handleT
     add({ id: i.id, title: i.title, url: i.url, date: i.date, summary: i.summary, toolIds: [i.toolId], sources: [{ name: i.source, url: i.url }], ...scoreNews({ title: i.title, text: i.summary, official: true, routine: i.kind === 'changelog' }) });
   }
   for (const e of extra) {
-    add({ id: `feed:${e.url}`, title: e.title, url: e.url, date: e.date, summary: e.summary, toolIds: matchTools(e.title), sources: [{ name: e.source, url: e.url }], ...scoreNews({ title: e.title, text: e.summary, official: true }) });
+    add({ id: `feed:${e.url}`, title: e.title, url: e.url, date: e.date, summary: e.summary, toolIds: matchTools(e.title), sources: [{ name: e.source, url: e.url }], ...scoreNews({ title: e.title, text: e.summary, official: !e.press }) });
   }
   for (const d of discussions) {
     add({ id: d.id, title: d.title, url: d.url, date: d.date, summary: '', toolIds: d.toolIds || [d.toolId], points: d.points, comments: d.comments, sources: [{ name: `Hacker News · ▲${d.points}`, url: d.hnUrl }], ...scoreNews({ title: d.title, points: d.points }) });

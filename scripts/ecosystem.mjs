@@ -110,7 +110,30 @@ async function fetchRegistry(get, now) {
   return { fetchedAt: new Date(now).toISOString(), days: ECOSYSTEM.mcp.registryDays, total: servers.length, capped: !!cursor, servers: servers.slice(0, 60) };
 }
 
-/** Returns { skills, mcp, registry }; each part falls back to the previous snapshot on failure. */
+// The most-installed individual skills and servers, from the catalogs agents install from — most of these live inside
+// bigger repos or are hosted services, so the GitHub repo search above never sees them.
+// Skills: claude-plugins.dev (every SKILL.md on GitHub, by installs). MCP: Smithery's registry (by use count).
+const POPULAR = 100;
+async function fetchPopularSkills(get) {
+  const { skills = [] } = await get(`https://claude-plugins.dev/api/skills?limit=${POPULAR}&offset=0`, { json: true });
+  return skills.filter((s) => s.installs > 0 && s.sourceUrl).map((s) => ({
+    id: s.namespace || s.id, name: s.name, owner: s.author || s.metadata?.repoOwner || '',
+    repo: s.metadata?.repoOwner && s.metadata?.repoName ? `${s.metadata.repoOwner}/${s.metadata.repoName}` : null,
+    url: s.sourceUrl, description: (s.description || '').replace(/\s+/g, ' ').trim(),
+    installs: s.installs, stars: s.stars ?? null, updatedAt: s.updatedAt || s.createdAt || null,
+  }));
+}
+async function fetchPopularServers(get) {
+  const { servers = [] } = await get(`https://registry.smithery.ai/servers?pageSize=${POPULAR}&page=1`, { json: true });
+  return servers.filter((s) => !s.unlisted && !s.inactive && s.useCount > 0).map((s) => ({
+    id: s.qualifiedName, name: s.displayName || s.qualifiedName, owner: s.namespace || '',
+    url: `https://smithery.ai/servers/${s.qualifiedName}`, homepage: s.homepage || null, icon: s.iconUrl || null,
+    description: (s.description || '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\s+/g, ' ').trim(),
+    uses: s.useCount, verified: !!s.verified, remote: !!s.remote, createdAt: s.createdAt || null,
+  })).sort((a, b) => b.uses - a.uses);
+}
+
+/** Returns { skills, mcp, registry, skillsTop, mcpTop }; each part falls back to the previous snapshot on failure. */
 export async function fetchEcosystem({ get, ghHeaders, prev = {}, now, report }) {
   const out = { ...prev };
   for (const type of ['skills', 'mcp']) {
@@ -125,5 +148,13 @@ export async function fetchEcosystem({ get, ghHeaders, prev = {}, now, report })
     out.registry = await fetchRegistry(get, now);
     report.push(`✓ MCP Registry           ${out.registry.total} servers updated in ${out.registry.days} days`);
   } catch (e) { report.push(`⚠ MCP Registry: ${e.message} (kept previous)`); }
+  try {
+    out.skillsTop = await fetchPopularSkills(get);
+    report.push(`✓ Most-installed skills  ${out.skillsTop.length} from claude-plugins.dev`);
+  } catch (e) { report.push(`⚠ Most-installed skills: ${e.message} (kept previous)`); }
+  try {
+    out.mcpTop = await fetchPopularServers(get);
+    report.push(`✓ Most-used MCP servers  ${out.mcpTop.length} from Smithery`);
+  } catch (e) { report.push(`⚠ Most-used MCP servers: ${e.message} (kept previous)`); }
   return out;
 }

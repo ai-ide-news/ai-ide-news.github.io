@@ -1583,6 +1583,38 @@ function registryList(reg) {
   </div></aside>`;
 }
 
+// Most-installed skills (claude-plugins.dev) and most-used servers (Smithery), shown above the trending repos.
+const POP_SHOWN = 24;
+function popCard(r, type) {
+  const img = type === 'mcp' ? r.icon : r.owner && `https://github.com/${encodeURIComponent(r.owner)}.png?size=64`;
+  const count = type === 'mcp' ? r.uses : r.installs;
+  return `<article class="ecard">
+  <div class="ecard-head">
+    <img class="ecard-av skel" src="${esc(img || '')}" alt="" width="32" height="32" loading="lazy" decoding="async">
+    <div class="ecard-who"><h3><a href="${esc(r.url)}" target="_blank" rel="noopener nofollow">${esc(r.name)}</a></h3><small>${esc(r.repo || r.owner)}</small></div>
+    <span class="ecard-kind ek-${type === 'mcp' ? 'server' : 'skill'}">${type === 'mcp' ? (r.remote ? 'Hosted' : 'Server') : 'Skill'}</span>
+  </div>
+  ${r.description ? `<p class="ecard-sum">${esc(r.description.length > 220 ? `${r.description.slice(0, 217)}…` : r.description)}</p>` : ''}
+  <div class="ecard-foot">
+    <span title="${count.toLocaleString('en-US')} ${type === 'mcp' ? 'uses' : 'installs'}">⬇ ${compact(count)} ${type === 'mcp' ? 'uses' : 'installs'}</span>
+    ${r.verified ? '<span>verified</span>' : ''}
+    ${r.stars ? `<span title="Stars on the repo it lives in">★ ${compact(r.stars)}</span>` : ''}
+  </div>
+</article>`;
+}
+function popSection(type) {
+  const list = (type === 'mcp' ? eco.mcpTop : eco.skillsTop) || [];
+  if (!list.length) return '';
+  const src = type === 'mcp'
+    ? '<a href="https://smithery.ai" target="_blank" rel="noopener">Smithery</a>, ranked by how many times each server has been used'
+    : '<a href="https://claude-plugins.dev/skills" target="_blank" rel="noopener">claude-plugins.dev</a>, which indexes every SKILL.md on GitHub, ranked by installs';
+  return `<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">Most ${type === 'mcp' ? 'used' : 'installed'}</p><h2>${type === 'mcp' ? 'The MCP servers people actually run' : 'The skills people actually install'}</h2></div></div>
+  <div class="egrid">${list.slice(0, POP_SHOWN).map((r) => popCard(r, type)).join('')}</div>
+  <p class="muted small section-note">From ${src}. Many of these live inside larger repos${type === 'mcp' ? ' or run as hosted services' : ''}, so they don't show up in the trending list below.</p>
+</section>`;
+}
+
 function ecoPage(type) {
   const root = '../';
   const cfg = ECO[type], list = cfg.list;
@@ -1607,6 +1639,7 @@ function ecoPage(type) {
 </section>
 
 ${banner()}
+${popSection(type)}
 <section class="wrap section eco">
   <div class="section-head">
     <div class="echips" role="group" aria-label="Filter by type">

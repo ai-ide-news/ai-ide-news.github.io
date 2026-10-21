@@ -85,6 +85,44 @@ export const PRICING = {
     ],
   },
   aider: { url: 'https://aider.chat', plans: [BYOK] },
+  'factory-droid': {
+    url: 'https://factory.ai/pricing',
+    plans: [
+      { name: 'Pro', price: 20, note: 'Desktop, CLI and SDK · cloud and local agents' },
+      { name: 'Plus', price: 100, note: '~5× Pro usage · managed cloud computers' },
+      { name: 'Max', price: 200, note: '~10× Pro usage' },
+      { name: 'Teams', price: 40, seat: true, note: 'Plus $60/mo team fee · up to 10 seats' },
+      { name: 'Enterprise', price: null },
+    ],
+  },
+  'command-code': {
+    url: 'https://commandcode.ai/pricing',
+    plans: [
+      { name: 'Go', price: 1, note: '$10 credits · open models' },
+      { name: 'GOAT', price: 10, note: '$80 credits, mostly open models' },
+      { name: 'Pro', price: 20, note: '$80 credits incl. premium models' },
+      { name: 'Max', price: 100, from: true, note: '$150 or $300 credits · $100 / $200 tiers' },
+      { name: 'Teams', price: 40, note: 'Pooled credits for one team' },
+      { name: 'Enterprise', price: null },
+    ],
+  },
+  codebuff: {
+    url: 'https://www.codebuff.com/pricing',
+    plans: [
+      { name: 'Pay as you go', price: 0, note: '1¢ per credit, no subscription' },
+      { name: 'Subscription', price: 100, from: true, note: '$100 / $200 / $500 tiers' },
+    ],
+  },
+  qoder: {
+    url: 'https://docs.qoder.com/account/pricing',
+    plans: [
+      { name: 'Free', price: 0, note: 'Basic models with limited messages' },
+      { name: 'Pro', price: 20, note: '2,000 credits/mo' },
+      { name: 'Pro+', price: 60, note: '6,000 credits/mo' },
+      { name: 'Ultra', price: 200, note: '20,000 credits/mo' },
+      { name: 'Teams', price: 40, seat: true, note: '3,000 credits per seat' },
+    ],
+  },
   cursor: {
     url: 'https://cursor.com/pricing',
     plans: [
@@ -199,6 +237,50 @@ export const PRICING = {
     plans: [
       { name: 'Standard', price: 20, note: '$20 usage/mo · up to 50 seats, flat', since: '2026-09' },
       { name: 'Business', price: 100, note: '$100 usage/mo · up to 50 seats, flat' },
+      { name: 'Enterprise', price: null },
+    ],
+  },
+  devin: {
+    url: 'https://devin.ai/pricing',
+    plans: [
+      { name: 'Free', price: 0, note: 'Limited usage', since: '2026-04' },
+      { name: 'Pro', price: 20, since: '2026-04' },
+      { name: 'Max', price: 200, since: '2026-04' },
+      { name: 'Teams', price: 40, seat: true, note: 'Plus $80/mo team fee', since: '2026-04' },
+      { name: 'Enterprise', price: null },
+    ],
+  },
+  jules: {
+    url: 'https://jules.google',
+    plans: [
+      { name: 'Free', price: 0, note: '15 tasks/day · 3 at a time' },
+      { name: 'Google AI Pro', price: 19.99, note: '100 tasks/day · 15 at a time' },
+      { name: 'Google AI Ultra', price: null, note: '300 tasks/day · 60 at a time' },
+    ],
+  },
+  lovable: {
+    url: 'https://lovable.dev/pricing',
+    plans: [
+      { name: 'Free', price: 0, note: '5 daily credits · public projects' },
+      { name: 'Pro', price: 25, from: true, note: '100+ credits/mo · $21/mo billed yearly' },
+      { name: 'Business', price: 50, from: true, note: 'SSO, private projects · $42/mo billed yearly' },
+      { name: 'Enterprise', price: null },
+    ],
+  },
+  replit: {
+    url: 'https://replit.com/pricing',
+    plans: [
+      { name: 'Core', price: 20, note: '$20 usage/mo · $18/mo billed yearly' },
+      { name: 'Pro', price: 100, note: '$100 usage/mo · 10 parallel agents · $90/mo billed yearly' },
+      { name: 'Enterprise', price: null },
+    ],
+  },
+  v0: {
+    url: 'https://v0.app/pricing',
+    plans: [
+      { name: 'Free', price: 0, note: '7 messages/day · deploy to Vercel' },
+      { name: 'Plus', price: 30, seat: true, note: '$30 credits per user' },
+      { name: 'Business', price: 100, seat: true, note: 'Training opt-out by default' },
       { name: 'Enterprise', price: null },
     ],
   },

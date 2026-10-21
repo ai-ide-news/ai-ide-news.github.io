@@ -250,11 +250,17 @@ function parseFeed(xml) {
 
 // For official blogs without RSS: `scrape` is a regex with named groups url, title, date
 // run over the blog's index page; each post's meta description becomes its summary.
+// Single-page changelogs: `anchor: true` treats url as an element id on the page itself, and a pattern without a
+// title group titles each entry "<title> — <date>".
 async function scrapeIndex(f) {
   const html = await get(f.url);
+  // A bare day ("October 19, 2026") is read as noon UTC, so it lands on the same day in every time zone.
+  const day = (d) => (/\d:\d/.test(d) ? d : `${d} 12:00 UTC`);
   const posts = [...html.matchAll(f.scrape)].slice(0, 15).map(({ groups: g }) => ({
-    title: toText(g.title), url: new URL(g.url, f.url).href, date: g.date, categories: [],
+    title: g.title ? toText(g.title) : `${f.title} — ${g.date.trim()}`,
+    url: f.anchor ? `${f.url}#${g.url}` : new URL(g.url, f.url).href, date: day(g.date.trim()), categories: [],
   }));
+  if (f.anchor) return posts.map((p) => ({ ...p, content: '' }));
   await Promise.all(posts.map(async (p) => {
     const page = await get(p.url).catch(() => '');
     const desc = page.match(/<meta (?:name|property)="(?:og:)?description" content="([^"]*)"/)?.[1] || '';
@@ -275,7 +281,8 @@ async function fetchFeeds(tool) {
       const html = e.content ? clipHtml(sanitize(e.content)) : '';
       const kind = f.kind;
       out.push({
-        id: `feed:${e.url}`, toolId: tool.id, kind, title: e.title, url: e.url,
+        // Feeds whose entries are titled only by date ("Oct 20, 2026") get the feed's own name in front.
+        id: `feed:${e.url}`, toolId: tool.id, kind, title: f.title && !f.scrape ? `${f.title} — ${e.title}` : e.title, url: e.url,
         date: d.toISOString(), summary: excerpt(toText(e.content)), html: kind === 'changelog' ? html : '',
         source: new URL(f.url).hostname.replace(/^www\./, ''),
       });
@@ -391,6 +398,17 @@ async function main() {
         if (old) { entry.items.push(...old.items.filter((i) => i.kind === 'release')); entry.meta = old.meta || {}; }
       }
     }
+    // npm-only tools (no public repo): versions straight from the registry.
+    if (tool.npm && !tool.github) {
+      try {
+        const { items, meta } = await fetchNpm(tool, {});
+        entry.items.push(...items); entry.meta = meta;
+      } catch (e) {
+        entry.errors.push(`npm: ${e.message}`);
+        const old = prev.tools?.[tool.id];
+        if (old) { entry.items.push(...old.items.filter((i) => i.kind === 'release')); entry.meta = old.meta || {}; }
+      }
+    }
     if (tool.cask) {
       try {
         const { items, meta } = await fetchCask(tool, prev.tools?.[tool.id]);
@@ -496,10 +514,10 @@ async function main() {
   const extra = [];
   await Promise.all(NEWS_FEEDS.map(async (f) => {
     try {
-      for (const e of await fetchFeed(f.url)) {
+      for (const e of await (f.scrape ? scrapeIndex(f) : fetchFeed(f.url))) {
         const text = toText(e.content);
         if (!f.relevant.test(`${e.title} ${text.slice(0, 300)}`) || Number.isNaN(Date.parse(e.date))) continue;
-        extra.push({ title: e.title, url: e.url, date: new Date(e.date).toISOString(), summary: excerpt(text), source: new URL(f.url).hostname.replace(/^www\./, '') });
+        extra.push({ title: e.title, url: e.url, date: new Date(e.date).toISOString(), summary: excerpt(text), source: new URL(f.url).hostname.replace(/^www\./, ''), press: !!f.press });
       }
     } catch (e) { report.push(`⚠ News feed ${f.url}: ${e.message}`); }
   }));

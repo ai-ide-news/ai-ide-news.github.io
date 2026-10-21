@@ -6,6 +6,8 @@ export const CATEGORIES = {
   cli: { label: 'AI CLIs & agents', short: 'CLI' },
   extension: { label: 'Editor extensions', short: 'Extension' },
   desktop: { label: 'Desktop apps', short: 'Desktop' },
+  cloud: { label: 'Cloud agents', short: 'Cloud agent' },
+  builder: { label: 'App builders', short: 'App builder' },
 };
 
 export const TOOLS = [
@@ -101,8 +103,36 @@ export const TOOLS = [
     blurb: 'AI pair programming in your terminal.',
     github: 'Aider-AI/aider',
   },
+  {
+    id: 'factory-droid', name: 'Factory Droid', vendor: 'Factory', category: 'cli',
+    logo: 'site',
+    site: 'https://factory.ai', domain: 'factory.ai', color: '#EF6A2A',
+    blurb: "Factory's Droid agents in the terminal, the Factory desktop app and CI.",
+    feeds: [{ url: 'https://docs.factory.ai/changelog/rss.xml', kind: 'changelog' }],
+  },
+  {
+    id: 'command-code', name: 'Command Code', vendor: 'Command Code', category: 'cli',
+    logo: 'lobe:commandcode',
+    site: 'https://commandcode.ai', domain: 'commandcode.ai', color: '#E4E4E7',
+    blurb: 'Coding agent that keeps learning your coding taste.',
+    npm: 'command-code',
+  },
+  {
+    id: 'codebuff', name: 'Codebuff', vendor: 'Codebuff', category: 'cli',
+    logo: 'site',
+    site: 'https://www.codebuff.com', domain: 'codebuff.com', color: '#6CE36C',
+    blurb: 'Multi-agent coding assistant for the terminal.',
+    npm: 'codebuff',
+  },
 
   // ── IDEs ────────────────────────────────────────────────
+  {
+    id: 'qoder', name: 'Qoder', vendor: 'Alibaba', category: 'ide',
+    logo: 'lobe:qoder',
+    site: 'https://qoder.com', domain: 'qoder.com', color: '#2ADB5C',
+    blurb: 'Agentic coding platform: the Qoder IDE and the qodercli terminal agent.',
+    npm: '@qoder-ai/qodercli',
+  },
   {
     id: 'cursor', name: 'Cursor', vendor: 'Anysphere', category: 'ide',
     logo: 'lobe:cursor',
@@ -240,6 +270,51 @@ export const TOOLS = [
     blurb: 'Agentic development environment built around a modern terminal.',
     cask: 'warp',
   },
+
+  // ── Cloud agents ────────────────────────────────────────
+  {
+    id: 'devin', name: 'Devin', vendor: 'Cognition', category: 'cloud',
+    logo: 'lobe:devin',
+    site: 'https://devin.ai', domain: 'devin.ai', color: '#3B82F6',
+    blurb: "Cognition's autonomous AI software engineer that works from tickets in the cloud.",
+    feeds: [{
+      url: 'https://docs.devin.ai/release-notes/overview', kind: 'changelog', anchor: true, title: 'Devin release notes',
+      scrape: /href="#(?<url>[a-z]+-\d{1,2}-\d{4})"[^>]*>(?<date>[A-Z][a-z]+ \d{1,2}, \d{4})<\/a>/g,
+    }],
+  },
+  {
+    id: 'jules', name: 'Jules', vendor: 'Google', category: 'cloud',
+    logo: 'site',
+    site: 'https://jules.google', domain: 'jules.google', color: '#715CD7',
+    blurb: "Google's asynchronous coding agent that works on your GitHub repos in the cloud.",
+    feeds: [{
+      url: 'https://jules.google/docs/changelog/', kind: 'changelog', anchor: true,
+      scrape: /<h2 class="title[^"]*"[^>]*id="(?<url>[^"]+)"[^>]*>(?<title>[^<]+)<\/h2>\s*<span class="date[^"]*"[^>]*>(?<date>[^<]+)</g,
+    }],
+  },
+
+  // ── App builders ────────────────────────────────────────
+  {
+    id: 'lovable', name: 'Lovable', vendor: 'Lovable', category: 'builder',
+    logo: 'lobe:lovable',
+    site: 'https://lovable.dev', domain: 'lovable.dev', color: '#FF5A8A',
+    blurb: 'Build full-stack web apps by chatting with AI.',
+    feeds: [{ url: 'https://docs.lovable.dev/changelog/rss.xml', kind: 'changelog', title: 'Lovable changelog' }],
+  },
+  {
+    id: 'replit', name: 'Replit Agent', vendor: 'Replit', category: 'builder',
+    logo: 'lobe:replit',
+    site: 'https://replit.com', domain: 'replit.com', color: '#F26207',
+    blurb: "Replit's agent that builds, deploys and hosts apps from a prompt.",
+    feeds: [{ url: 'https://blog.replit.com/feed.xml', kind: 'blog' }],
+  },
+  {
+    id: 'v0', name: 'v0', vendor: 'Vercel', category: 'builder',
+    logo: 'lobe:v0',
+    site: 'https://v0.app', domain: 'v0.app', color: '#E5E5E5',
+    blurb: "Vercel's AI app builder for full-stack Next.js apps.",
+    feeds: [{ url: 'https://vercel.com/changelog/rss.xml', kind: 'changelog', filter: /\bv0\b/i }],
+  },
 ];
 
 // Auto-discovery of trending open-source tools in the same niche (see discover.mjs).
@@ -263,12 +338,12 @@ export const DISCOVERY = {
 // Agent Skills and MCP servers pages (scripts/ecosystem.mjs): GitHub repos, ranked by star velocity.
 export const ECOSYSTEM = {
   skills: {
-    minStars: 200, maxIdleDays: 90, max: 120,
+    minStars: 200, maxIdleDays: 90, max: 200,
     topics: ['agent-skills', 'claude-skills', 'claude-code-skills', 'agent-skill', 'skills-md', 'codex-skills', 'claude-skill'],
     deny: [],
   },
   mcp: {
-    minStars: 300, maxIdleDays: 90, max: 150, registryDays: 1,
+    minStars: 300, maxIdleDays: 90, max: 200, registryDays: 1,
     topics: ['mcp-server', 'mcp-servers', 'model-context-protocol', 'mcp'],
     deny: [],
   },
@@ -308,6 +383,15 @@ export const HN_MATCH = {
   'codex-app': /codex (app|desktop)/i,
   conductor: /conductor\.build|\bconductor\b.*\b(claude|codex|agents?)\b/i,
   warp: /\bwarp\b.*\b(terminal|agent|ade)\b|warp\.dev/i,
+  'factory-droid': /factory\.ai|factory droid|\bdroids?\b.*\bfactory\b/i,
+  'command-code': /command ?code\b/i,
+  codebuff: /\bcodebuff\b/i,
+  qoder: /\bqoder\b/i,
+  devin: /\bdevin\b/i,
+  jules: /\bjules\b.*\b(google|agent|coding)\b|google'?s jules/i,
+  lovable: /\blovable\b/i,
+  replit: /\breplit\b/i,
+  v0: /\bv0(\.app|\.dev| by vercel)\b|vercel'?s v0/i,
 };
 
 // Community discussion: Hacker News stories mentioning any tool (via the Algolia HN API).
@@ -315,4 +399,5 @@ export const HN_QUERIES = [
   'Claude Code', 'Codex CLI', 'OpenAI Codex', 'Gemini CLI', 'Cursor', 'Windsurf', 'Kiro', 'Zed',
   'Copilot', 'OpenCode', 'Cline', 'Aider', 'Amp', 'Goose', 'Qwen Code', 'Kimi', 'Junie', 'Antigravity',
   'Roo Code', 'Kilo Code', 'Trae', 'Crush', 'Claude Desktop', 'Codex app', 'Conductor', 'Warp', 'AI coding agent', 'AI IDE',
+  'Factory Droid', 'Command Code', 'Codebuff', 'Qoder', 'Devin', 'Jules', 'Lovable', 'Replit', 'v0',
 ];
