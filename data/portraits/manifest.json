@@ -1,0 +1,1013 @@
+{
+ "version": 1,
+ "items": {
+  "Daniela Amodei": {
+   "checked": 1792582119511,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Dario Amodei": {
+   "checked": 1792582119866,
+   "file": "dario-amodei.jpg",
+   "kind": "photo",
+   "credit": "TechCrunch · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Dario_Amodei_at_TechCrunch_Disrupt_2023_02_(cropped).jpg"
+  },
+  "Sam McCandlish": {
+   "checked": 1792582120371,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Jared Kaplan": {
+   "checked": 1792582120932,
+   "file": "jared-kaplan.jpg",
+   "kind": "photo",
+   "credit": "TechCrunch · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Jared_Kaplan_(cropped).jpg"
+  },
+  "Tom Brown": {
+   "checked": 1792582121126,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Jack Clark": {
+   "checked": 1792582122319,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Ben Mann": {
+   "checked": 1792582123248,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Chris Olah": {
+   "checked": 1792582123452,
+   "file": "chris-olah.png",
+   "kind": "photo",
+   "credit": "GitHub · @colah",
+   "src": "https://github.com/colah"
+  },
+  "Menlo Ventures": {
+   "checked": 1792582123452,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Lightspeed": {
+   "checked": 1792582124170,
+   "file": "lightspeed.png",
+   "kind": "logo",
+   "credit": "Lightspeed Venture Partners · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:LSVP_Horizontal_Logo.svg"
+  },
+  "Spark Capital": {
+   "checked": 1792582124222,
+   "file": "spark-capital.png",
+   "kind": "logo",
+   "credit": "Logo · sparkcapital.com",
+   "src": "https://www.sparkcapital.com"
+  },
+  "ICONIQ": {
+   "checked": 1792582125149,
+   "file": "iconiq.png",
+   "kind": "logo",
+   "credit": "Logo · iconiqcapital.com",
+   "src": "https://www.iconiqcapital.com"
+  },
+  "Fidelity": {
+   "checked": 1792582125640,
+   "file": "fidelity.png",
+   "kind": "logo",
+   "credit": "Logo · fidelity.com",
+   "src": "https://www.fidelity.com"
+  },
+  "GIC": {
+   "checked": 1792582125658,
+   "file": "gic.png",
+   "kind": "logo",
+   "credit": "GIC · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Gic-logo.svg"
+  },
+  "Sam Altman": {
+   "checked": 1792582128283,
+   "file": "sam-altman.jpg",
+   "kind": "photo",
+   "credit": "Steve Jurvetson · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Sam_Altman_speaking_at_TED_(cropped).jpg"
+  },
+  "Elon Musk": {
+   "checked": 1792582128483,
+   "file": "elon-musk.jpg",
+   "kind": "photo",
+   "credit": "Gage Skidmore · CC BY-SA 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Elon_Musk_(54816836217)_(cropped_2)_(b).jpg"
+  },
+  "Greg Brockman": {
+   "checked": 1792582129787,
+   "file": "greg-brockman.jpg",
+   "kind": "photo",
+   "credit": "TechCrunch · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Disrupt_SF_TechCrunch_Disrupt_San_Francisco_2019_-_Day_2_(48838200316)_(cropped).jpg"
+  },
+  "Ilya Sutskever": {
+   "checked": 1792582130242,
+   "file": "ilya-sutskever.jpg",
+   "kind": "photo",
+   "credit": "Eladkarmel · CC BY-SA 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Ilya_Sutskever_and_Sam_Altman_in_TAU_(cropped).jpg"
+  },
+  "Wojciech Zaremba": {
+   "checked": 1792582132125,
+   "file": "wojciech-zaremba.png",
+   "kind": "photo",
+   "credit": "GitHub · @wojzaremba",
+   "src": "https://github.com/wojzaremba"
+  },
+  "John Schulman": {
+   "checked": 1792582132127,
+   "file": "john-schulman.jpg",
+   "kind": "photo",
+   "credit": "GitHub · @joschu",
+   "src": "https://github.com/joschu"
+  },
+  "OpenAI Foundation": {
+   "checked": 1792582132788,
+   "file": "openai-foundation.png",
+   "kind": "logo",
+   "credit": "Logo · openai.com",
+   "src": "https://openai.com"
+  },
+  "SoftBank": {
+   "checked": 1792582132893,
+   "file": "softbank.png",
+   "kind": "logo",
+   "credit": "Unknown authorUnknown author · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:SoftBank_Group_logo.svg"
+  },
+  "Khosla Ventures": {
+   "checked": 1792582133385,
+   "file": "khosla-ventures.png",
+   "kind": "logo",
+   "credit": "Logo · khoslaventures.com",
+   "src": "https://www.khoslaventures.com"
+  },
+  "Thrive Capital": {
+   "checked": 1792582134289,
+   "file": "thrive-capital.png",
+   "kind": "logo",
+   "credit": "Logo · thrivecap.com",
+   "src": "https://thrivecap.com"
+  },
+  "MGX": {
+   "checked": 1792582134457,
+   "file": "mgx.png",
+   "kind": "logo",
+   "credit": "Logo · mgx.ae",
+   "src": "https://www.mgx.ae"
+  },
+  "Larry Page": {
+   "checked": 1792582136452,
+   "file": "larry-page.jpg",
+   "kind": "photo",
+   "credit": "Marcin Mycielski, European Parliament (Stansfield) · CC BY-SA 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Larry_Page_in_the_European_Parliament,_17.06.2009.jpg"
+  },
+  "Sergey Brin": {
+   "checked": 1792582137030,
+   "file": "sergey-brin.jpg",
+   "kind": "photo",
+   "credit": "Steve Jurvetson · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Sergey_Brin_Ted_2010_(cropped).jpg"
+  },
+  "Vanguard": {
+   "checked": 1792582137185,
+   "file": "vanguard.png",
+   "kind": "logo",
+   "credit": "The Vanguard Group · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Vanguard.svg"
+  },
+  "Igor Babuschkin": {
+   "checked": 1792582137672,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Jimmy Ba": {
+   "checked": 1792582138209,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "BlackRock": {
+   "checked": 1792582138484,
+   "file": "blackrock.png",
+   "kind": "logo",
+   "credit": "BlackRock · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:BlackRock_wordmark.svg"
+  },
+  "Greg Yang": {
+   "checked": 1792582139586,
+   "file": "greg-yang.jpg",
+   "kind": "photo",
+   "credit": "GitHub · @thegregyang",
+   "src": "https://github.com/thegregyang"
+  },
+  "Valor Equity Partners": {
+   "checked": 1792582140096,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Sequoia": {
+   "checked": 1792582140194,
+   "file": "sequoia.png",
+   "kind": "logo",
+   "credit": "Sequoia Capital · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Sequoia_Capital_logo.svg"
+  },
+  "a16z": {
+   "checked": 1792582140590,
+   "file": "a16z.png",
+   "kind": "logo",
+   "credit": "Unknown designer · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Andreessen_Horowitz_new_logo.svg"
+  },
+  "Kingdom Holding": {
+   "checked": 1792582142893,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Liang Wenfeng": {
+   "checked": 1792582144245,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "High-Flyer": {
+   "checked": 1792582145138,
+   "file": "high-flyer.png",
+   "kind": "logo",
+   "credit": "High-Flyer · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:High-Flyer_logo.svg"
+  },
+  "Jack Ma": {
+   "checked": 1792582146502,
+   "file": "jack-ma.jpg",
+   "kind": "photo",
+   "credit": "Foundations World Economic Forum · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Enabling_eCommerce-_Small_Enterprises,_Global_Players_(39008130265)_(cropped).jpg"
+  },
+  "Joe Tsai": {
+   "checked": 1792582147810,
+   "file": "joe-tsai.jpg",
+   "kind": "photo",
+   "credit": "WOWyerrr · CC BY-SA 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Joseph_Tsai_at_the_2024_New_York_Liberty_Ticker_Tape_Parade_(cropped).jpg"
+  },
+  "Yang Zhilin": {
+   "checked": 1792582149122,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Zhou Xinyu": {
+   "checked": 1792582149641,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Wu Yuxin": {
+   "checked": 1792582150135,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Alibaba": {
+   "checked": 1792582151275,
+   "file": "alibaba.png",
+   "kind": "logo",
+   "credit": "Alibaba Group Holding Limited · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Alibaba_en_logo.svg"
+  },
+  "Qatar Investment Authority": {
+   "checked": 1792582151788,
+   "file": "qatar-investment-authority.png",
+   "kind": "logo",
+   "credit": "Logo · qia.qa",
+   "src": "https://www.qia.qa"
+  },
+  "IDG Capital": {
+   "checked": 1792582152462,
+   "file": "idg-capital.png",
+   "kind": "logo",
+   "credit": "Ipdrgcn18 · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:IDG_LOGO.svg"
+  },
+  "Meituan": {
+   "checked": 1792582153366,
+   "file": "meituan.png",
+   "kind": "logo",
+   "credit": "Meituan · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Meituan_English_Logo.png"
+  },
+  "HongShan": {
+   "checked": 1792582154614,
+   "file": "hongshan.svg",
+   "kind": "logo",
+   "credit": "Logo · hongshan.com",
+   "src": "https://www.hongshan.com"
+  },
+  "Tang Jie": {
+   "checked": 1792582154850,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Li Juanzi": {
+   "checked": 1792582155089,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Prosperity7": {
+   "checked": 1792582158117,
+   "file": "prosperity7.svg",
+   "kind": "logo",
+   "credit": "Logo · prosperity7vc.com",
+   "src": "https://prosperity7vc.com"
+  },
+  "Tsinghua-affiliated entities": {
+   "checked": 1792582158845,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Arthur Mensch": {
+   "checked": 1792582159926,
+   "file": "arthur-mensch.png",
+   "kind": "photo",
+   "credit": "Jan2342342423 · CC0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Arthur_Mensch.png"
+  },
+  "Guillaume Lample": {
+   "checked": 1792582160308,
+   "file": "guillaume-lample.png",
+   "kind": "photo",
+   "credit": "GitHub · @glample",
+   "src": "https://github.com/glample"
+  },
+  "Timothée Lacroix": {
+   "checked": 1792582160454,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "ASML": {
+   "checked": 1792582161101,
+   "file": "asml.png",
+   "kind": "logo",
+   "credit": "ASML Holding · PD (Wikimedia Commons)",
+   "src": "https://en.wikipedia.org/wiki/File:ASML_Holding_N.V._logo.svg"
+  },
+  "General Catalyst": {
+   "checked": 1792582161182,
+   "file": "general-catalyst.png",
+   "kind": "logo",
+   "credit": "Logo · generalcatalyst.com",
+   "src": "https://www.generalcatalyst.com"
+  },
+  "Bpifrance": {
+   "checked": 1792582161687,
+   "file": "bpifrance.png",
+   "kind": "logo",
+   "credit": "Caisse des Dépôts et Consignations · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Bpifrance_logo.svg"
+  },
+  "Mark Zuckerberg": {
+   "checked": 1792582163222,
+   "file": "mark-zuckerberg.jpg",
+   "kind": "photo",
+   "credit": "Anthony Quintano from Westminster, United States · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Mark_Zuckerberg_F8_2019_Keynote_(32830578717)_(cropped).jpg"
+  },
+  "Eduardo Saverin": {
+   "checked": 1792582163835,
+   "file": "eduardo-saverin.jpg",
+   "kind": "photo",
+   "credit": "Gravesv38 · CC BY-SA 3.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Eduardo_Saverin_CHINICT.JPG"
+  },
+  "Andrew McCollum": {
+   "checked": 1792582164650,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Dustin Moskovitz": {
+   "checked": 1792582165417,
+   "file": "dustin-moskovitz.jpg",
+   "kind": "photo",
+   "credit": "Web Summit · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Web_Summit_2017_-_Centre_Stage_Day_2_DF2_5495_(24396886968).jpg"
+  },
+  "Chris Hughes": {
+   "checked": 1792582166423,
+   "file": "chris-hughes.jpg",
+   "kind": "photo",
+   "credit": "USV · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Chris_Hughes_(cropped).jpg"
+  },
+  "Yan Junjie": {
+   "checked": 1792582166766,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Zhou Yucong": {
+   "checked": 1792582166900,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Yang Bin": {
+   "checked": 1792582167441,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Hillhouse": {
+   "checked": 1792582169289,
+   "file": "hillhouse.png",
+   "kind": "logo",
+   "credit": "Logo · hillhouseinvestment.com",
+   "src": "https://www.hillhouseinvestment.com"
+  },
+  "miHoYo": {
+   "checked": 1792582171236,
+   "file": "mihoyo.png",
+   "kind": "logo",
+   "credit": "Logo · mihoyo.com",
+   "src": "https://www.mihoyo.com"
+  },
+  "Jensen Huang": {
+   "checked": 1792582171330,
+   "file": "jensen-huang.jpg",
+   "kind": "photo",
+   "credit": "The White House · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Jen-Hsun_Huang_2025.jpg"
+  },
+  "Chris Malachowsky": {
+   "checked": 1792582172823,
+   "file": "chris-malachowsky.jpg",
+   "kind": "photo",
+   "credit": "Maryland GovPics · CC BY 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Chris_Malachowsky_(54986972670).jpg"
+  },
+  "Curtis Priem": {
+   "checked": 1792582172880,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Jeff Bezos": {
+   "checked": 1792582175803,
+   "file": "jeff-bezos.jpg",
+   "kind": "photo",
+   "credit": "Seattle City Council from Seattle · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Jeff_Bezos_at_Amazon_Spheres_Grand_Opening_in_Seattle_-_2018_(39074799225)_(cropped).jpg"
+  },
+  "Bill Gates": {
+   "checked": 1792582178687,
+   "file": "bill-gates.jpg",
+   "kind": "photo",
+   "credit": "Bogdan Hoyaux / European Union · CC BY 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Bill_Gates_at_the_European_Commission_-_2025_-_P067383-987995_(cropped).jpg"
+  },
+  "Paul Allen": {
+   "checked": 1792582183911,
+   "file": "paul-allen.jpg",
+   "kind": "photo",
+   "credit": "Miles Harris · CC BY-SA 3.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Paul_G._Allen_(cropped).jpg"
+  },
+  "Aidan Gomez": {
+   "checked": 1792582191842,
+   "file": "aidan-gomez.jpg",
+   "kind": "photo",
+   "credit": "Gabriel Hutchinson · CC BY-SA 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Aidan_Gomez_at_%22ALL_IN%22_2025_06.jpg"
+  },
+  "Ivan Zhang": {
+   "checked": 1792582194031,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Steve Ballmer": {
+   "checked": 1792582197563,
+   "file": "steve-ballmer.jpg",
+   "kind": "photo",
+   "credit": "Eric Garcetti · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Steve_Ballmer_2014.jpg"
+  },
+  "Nick Frosst": {
+   "checked": 1792582197670,
+   "file": "nick-frosst.jpg",
+   "kind": "photo",
+   "credit": "Gabriel Hutchinson · CC BY-SA 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Nick_Frosst_at_All_In_2025_12.jpg"
+  },
+  "Radical Ventures": {
+   "checked": 1792582197961,
+   "file": "radical-ventures.png",
+   "kind": "logo",
+   "credit": "Logo · radical.vc",
+   "src": "https://radical.vc"
+  },
+  "Inovia": {
+   "checked": 1792582198986,
+   "file": "inovia.png",
+   "kind": "logo",
+   "credit": "Logo · inovia.vc",
+   "src": "https://www.inovia.vc"
+  },
+  "Oracle": {
+   "checked": 1792582199214,
+   "file": "oracle.png",
+   "kind": "logo",
+   "credit": "Oracle Corporation · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Oracle_logo.svg"
+  },
+  "Salesforce Ventures": {
+   "checked": 1792582199489,
+   "file": "salesforce-ventures.png",
+   "kind": "logo",
+   "credit": "Logo · salesforceventures.com",
+   "src": "https://salesforceventures.com"
+  },
+  "AMD Ventures": {
+   "checked": 1792582200249,
+   "file": "amd-ventures.png",
+   "kind": "logo",
+   "credit": "Advanced Micro Devices, Inc. · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:AMD_Logo.svg"
+  },
+  "Lei Jun": {
+   "checked": 1792582202062,
+   "file": "lei-jun.jpg",
+   "kind": "photo",
+   "credit": "China News Service · CC BY 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:%E9%9B%B7%E5%86%9B_Lei_Jun_20240425_1.jpg"
+  },
+  "Lin Bin": {
+   "checked": 1792582203795,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "PSP Investments": {
+   "checked": 1792582204085,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Liang Rubo": {
+   "checked": 1792582205447,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Zhang Yiming": {
+   "checked": 1792582205749,
+   "file": "zhang-yiming.jpg",
+   "kind": "photo",
+   "credit": "CEO Magazine · CC BY-SA 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:The_CEO_Magazine_Cover.jpg"
+  },
+  "SIG": {
+   "checked": 1792582205947,
+   "file": "sig.png",
+   "kind": "logo",
+   "credit": "Susquehanna International Group · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Susquehanna_International_Group_Logo.png"
+  },
+  "General Atlantic": {
+   "checked": 1792582206096,
+   "file": "general-atlantic.png",
+   "kind": "logo",
+   "credit": "Logo · generalatlantic.com",
+   "src": "https://www.generalatlantic.com"
+  },
+  "KKR": {
+   "checked": 1792582206797,
+   "file": "kkr.png",
+   "kind": "logo",
+   "credit": "Kohlberg Kravis Roberts · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Kohlberg_Kravis_Roberts_(logo).svg"
+  },
+  "Ma Huateng": {
+   "checked": 1792582207365,
+   "file": "ma-huateng.jpg",
+   "kind": "photo",
+   "credit": "中国新闻网 · CC BY 3.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:%E9%A9%AC%E5%8C%96%E8%85%BE_Pony_Ma_2019.jpg"
+  },
+  "Zhang Zhidong": {
+   "checked": 1792582207963,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Xu Chenye": {
+   "checked": 1792582208344,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Chen Yidan": {
+   "checked": 1792582209304,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Zeng Liqing": {
+   "checked": 1792582209370,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Prosus": {
+   "checked": 1792582210892,
+   "file": "prosus.png",
+   "kind": "logo",
+   "credit": "Unknown authorUnknown author · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Prosus_logo.svg"
+  },
+  "Naspers": {
+   "checked": 1792582211281,
+   "file": "naspers.png",
+   "kind": "logo",
+   "credit": "Logo · naspers.com",
+   "src": "https://www.naspers.com"
+  },
+  "Jiang Daxin": {
+   "checked": 1792582211489,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Chris Wanstrath": {
+   "checked": 1792582213260,
+   "file": "chris-wanstrath.jpg",
+   "kind": "photo",
+   "credit": "Idawholou · CC BY-SA 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Chris_Wanstrath_2023.jpg"
+  },
+  "PJ Hyett": {
+   "checked": 1792582214458,
+   "file": "pj-hyett.jpg",
+   "kind": "photo",
+   "credit": "Martin Lee from London, UK · CC BY-SA 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Phillip_Jeffrey_Hyett.jpg"
+  },
+  "Qiming Venture Partners": {
+   "checked": 1792582215151,
+   "file": "qiming-venture-partners.png",
+   "kind": "logo",
+   "credit": "Logo · qimingvc.com",
+   "src": "https://www.qimingvc.com"
+  },
+  "Tom Preston-Werner": {
+   "checked": 1792582216538,
+   "file": "tom-preston-werner.jpg",
+   "kind": "photo",
+   "credit": "TimBray · CC BY-SA 3.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Tom_Preston-Werner.jpg"
+  },
+  "Scott Chacon": {
+   "checked": 1792582216751,
+   "file": "scott-chacon.jpg",
+   "kind": "photo",
+   "credit": "GitHub · @schacon",
+   "src": "https://github.com/schacon"
+  },
+  "Michael Truell": {
+   "checked": 1792582217263,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Sualeh Asif": {
+   "checked": 1792582217530,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Aman Sanger": {
+   "checked": 1792582219160,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Arvid Lunnemark": {
+   "checked": 1792582219384,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Accel": {
+   "checked": 1792582219784,
+   "file": "accel.png",
+   "kind": "logo",
+   "credit": "Accel Partners · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Accel_(Partners)_2015_logo.png"
+  },
+  "OpenAI Startup Fund": {
+   "checked": 1792582220070,
+   "file": "openai-startup-fund.png",
+   "kind": "logo",
+   "credit": "Logo · openai.com",
+   "src": "https://openai.com"
+  },
+  "Nathan Sobo": {
+   "checked": 1792582221058,
+   "file": "nathan-sobo.jpg",
+   "kind": "photo",
+   "credit": "GitHub · @nathansobo",
+   "src": "https://github.com/nathansobo"
+  },
+  "Andy Jassy": {
+   "checked": 1792582221467,
+   "file": "andy-jassy.jpg",
+   "kind": "photo",
+   "credit": "Lisi Mezistrano Wolf · CC BY-SA 4.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Andy_Jassy.jpg"
+  },
+  "Antonio Scandurra": {
+   "checked": 1792582222033,
+   "file": "antonio-scandurra.jpg",
+   "kind": "photo",
+   "credit": "GitHub · @as-cii",
+   "src": "https://github.com/as-cii"
+  },
+  "Max Brunsfeld": {
+   "checked": 1792582222782,
+   "file": "max-brunsfeld.png",
+   "kind": "photo",
+   "credit": "GitHub · @maxbrunsfeld",
+   "src": "https://github.com/maxbrunsfeld"
+  },
+  "Redpoint": {
+   "checked": 1792582223280,
+   "file": "redpoint.png",
+   "kind": "logo",
+   "credit": "Logo · redpoint.com",
+   "src": "https://www.redpoint.com"
+  },
+  "Steven Hao": {
+   "checked": 1792582223800,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Scott Wu": {
+   "checked": 1792582224141,
+   "file": "scott-wu.jpg",
+   "kind": "photo",
+   "credit": "ICPCNews · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Scott_Wu_at_the_2016_ACM-ICPC_World_Finals.jpg"
+  },
+  "Walden Yan": {
+   "checked": 1792582224508,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "8VC": {
+   "checked": 1792582224544,
+   "file": "8vc.png",
+   "kind": "logo",
+   "credit": "Logo · 8vc.com",
+   "src": "https://8vc.com"
+  },
+  "Lux Capital": {
+   "checked": 1792582224876,
+   "file": "lux-capital.png",
+   "kind": "logo",
+   "credit": "Logo · luxcapital.com",
+   "src": "https://www.luxcapital.com"
+  },
+  "Elad Gil": {
+   "checked": 1792582224892,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Valentin Kipiatkov": {
+   "checked": 1792582225433,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Sergey Dmitriev": {
+   "checked": 1792582225762,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Eugene Belyaev": {
+   "checked": 1792582225947,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Jack Dorsey": {
+   "checked": 1792582227490,
+   "file": "jack-dorsey.jpg",
+   "kind": "photo",
+   "credit": "cellanr · CC BY-SA 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Jack_Dorsey_2014.jpg"
+  },
+  "Jim McKelvey": {
+   "checked": 1792582227591,
+   "file": "jim-mckelvey.jpg",
+   "kind": "photo",
+   "credit": "Jessica Kopitske · CC BY-SA 3.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Jim_Studio_Headshow.jpeg"
+  },
+  "Graham Neubig": {
+   "checked": 1792582228951,
+   "file": "graham-neubig.png",
+   "kind": "photo",
+   "credit": "GitHub · @neubig",
+   "src": "https://github.com/neubig"
+  },
+  "Robert Brennan": {
+   "checked": 1792582229234,
+   "file": "robert-brennan.jpg",
+   "kind": "photo",
+   "credit": "GitHub · @rbren",
+   "src": "https://github.com/rbren"
+  },
+  "Igor Ostrovsky": {
+   "checked": 1792582229773,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Xingyao Wang": {
+   "checked": 1792582229848,
+   "file": "xingyao-wang.jpg",
+   "kind": "photo",
+   "credit": "GitHub · @xingyaoww",
+   "src": "https://github.com/xingyaoww"
+  },
+  "Sutter Hill Ventures": {
+   "checked": 1792582229849,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Guy Gur-Ari": {
+   "checked": 1792582230496,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Index Ventures": {
+   "checked": 1792582230692,
+   "file": "index-ventures.svg",
+   "kind": "logo",
+   "credit": "Logo · indexventures.com",
+   "src": "https://www.indexventures.com"
+  },
+  "Innovation Endeavors": {
+   "checked": 1792582231120,
+   "file": "innovation-endeavors.png",
+   "kind": "logo",
+   "credit": "Logo · innovationendeavors.com",
+   "src": "https://www.innovationendeavors.com"
+  },
+  "Nate Sesti": {
+   "checked": 1792582231121,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Ty Dunn": {
+   "checked": 1792582231543,
+   "file": "ty-dunn.jpg",
+   "kind": "photo",
+   "credit": "GitHub · @TyDunn",
+   "src": "https://github.com/TyDunn"
+  },
+  "Y Combinator": {
+   "checked": 1792582232047,
+   "file": "y-combinator.png",
+   "kind": "logo",
+   "credit": "Jessica Livingston http://ycombinator.com/ · Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Y_Combinator_logo.svg"
+  },
+  "Sid Sijbrandij": {
+   "checked": 1792582232924,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Scott Breitenother": {
+   "checked": 1792582233987,
+   "file": null,
+   "kind": null,
+   "credit": null,
+   "src": null
+  },
+  "Heavybit": {
+   "checked": 1792582234574,
+   "file": "heavybit.png",
+   "kind": "logo",
+   "credit": "Logo · heavybit.com",
+   "src": "https://www.heavybit.com"
+  },
+  "Zach Lloyd": {
+   "checked": 1792582235103,
+   "file": "zach-lloyd.png",
+   "kind": "photo",
+   "credit": "GitHub · @zachlloyd",
+   "src": "https://github.com/zachlloyd"
+  },
+  "GV": {
+   "checked": 1792582235329,
+   "file": "gv.png",
+   "kind": "logo",
+   "credit": "Public domain (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:GV_logo.svg"
+  },
+  "Dylan Field": {
+   "checked": 1792582237916,
+   "file": "dylan-field.jpg",
+   "kind": "photo",
+   "credit": "Joi Ito · CC BY 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Dylan_Field_2008_(cropped).jpg"
+  },
+  "Marc Benioff": {
+   "checked": 1792582239747,
+   "file": "marc-benioff.jpg",
+   "kind": "photo",
+   "credit": "Salesforce. · CC BY-SA 2.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Marc_Benioff.jpg"
+  }
+ }
+}

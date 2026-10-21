@@ -44,7 +44,7 @@ function dropDarkMedia(svg) {
 }
 
 // Downloads an image and checks it really is one; returns { buf, ext } or null.
-async function image(url) {
+export async function image(url) {
   try {
     const res = await get(url);
     const type = res.headers.get('content-type') || '';
@@ -147,7 +147,7 @@ async function readmeLogo(repo) {
 }
 
 // The website's own high-res icon: apple-touch-icon, SVG icon, or largest <link rel=icon>.
-async function siteIcon(site) {
+export async function siteIcon(site) {
   let base;
   try { base = new URL(site); } catch { return null; }
   if (GENERIC_HOSTS.test(base.hostname)) return null;

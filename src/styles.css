@@ -209,6 +209,24 @@ h1 em, h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; 
 .stats dd small { font: 12px var(--mono); color: var(--ink-3); }
 .stats dd code { font-size: 20px; font-weight: 500; }
 .stats.stats-5 { grid-template-columns: repeat(5, 1fr); }
+.ownership { display: grid; grid-template-columns: 1.2fr 1fr 1.4fr; margin: 0; border-bottom: 1px solid var(--line-2); }
+.ownership > div { padding: 14px 18px 16px 0; min-width: 0; }
+.ownership > div + div { border-left: 1px solid var(--line); padding-left: 18px; }
+.ownership dt { font: 12px var(--mono); color: var(--ink-3); }
+.ownership dd { margin: 6px 0 0; font-size: 15px; line-height: 1.45; color: var(--ink); text-wrap: pretty; }
+.ownership ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ownership li { display: inline-flex; align-items: center; gap: 7px; padding: 3px 9px 3px 3px; border: 1px solid var(--line-2); border-radius: 999px; font-size: 13px; line-height: 1.2; }
+.ownership li > .av + .av, .ownership li > .ticon + .av, .ownership li > .av + .ticon { margin-left: -14px; }
+.ownership .ticon { border-radius: 50%; }
+.av { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); }
+.av-photo { object-fit: cover; object-position: 50% 15%; background: var(--card-2); }
+.av-logo { object-fit: contain; padding: 4px; background: #fff; }
+.av-none { display: grid; place-items: center; background: var(--card-2); color: var(--ink-2); font: 600 11px var(--font); letter-spacing: .02em; }
+.credits { margin: 8px 0 0; font: 11px var(--mono); color: var(--ink-3); }
+@media (max-width: 640px) {
+  .ownership { grid-template-columns: 1fr; }
+  .ownership > div + div { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+}
 .stats dd a { color: inherit; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 4px; }
 .est { font: 11px var(--mono); color: var(--ink-3); }
 .hero-stats { grid-template-columns: 1fr; border-top: 2px solid var(--rule); }
@@ -349,6 +367,12 @@ h2 { font: 600 clamp(26px, 3vw, 34px)/1.1 var(--font); letter-spacing: -.035em; 
 .tool-head { display: flex; gap: 24px; align-items: flex-start; }
 .tool-head h1 { margin: 4px 0 12px; font-size: clamp(36px, 5.4vw, 60px); max-width: none; }
 .tool-head h1 em { color: var(--ink-2); }
+/* Detail titles: letters are already laid out (just hidden), so only the caret travels. */
+.typed .ch { visibility: hidden; }
+.typed .ch.on { visibility: visible; }
+.typed .caret { display: inline-block; width: 0; height: .82em; margin-right: -.14em; border-right: .14em solid var(--accent); vertical-align: -.06em; }
+.typed .caret.idle { animation: sig-blink 1s steps(1) infinite; }
+.typed .caret.gone { opacity: 0; transition: opacity .4s; animation: none; }
 .tool-links { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
 .tool-stats { margin: 40px 0 0; }
 .tool-spark { padding: 16px 0; border-bottom: 1px solid var(--line-2); display: flex; flex-direction: column; gap: 10px; }
