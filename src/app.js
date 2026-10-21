@@ -133,6 +133,86 @@
     onScroll();
   }
 
+  // Every <select> becomes a dropdown drawn like the masthead menus. The native select stays in the
+  // page (hidden) as the source of truth, so filter code keeps reading and setting .value and
+  // listening for 'change'; the button follows along whenever either side moves.
+  const CHEV = '<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="m3 4.5 3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  let ddOpen = null;
+  const ddClose = (focus) => {
+    if (!ddOpen) return;
+    const d = ddOpen; ddOpen = null;
+    d.classList.remove('open'); $('.dd-btn', d).setAttribute('aria-expanded', 'false');
+    if (focus) $('.dd-btn', d).focus();
+  };
+  let ddN = 0;
+  const dropdown = (sel) => {
+    const d = document.createElement('div');
+    d.className = 'dd';
+    const id = `dd-m${++ddN}`;
+    d.innerHTML = `<button class="dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}"><span></span>${CHEV}</button><div class="dd-menu" id="${id}" role="listbox"></div>`;
+    const btn = $('.dd-btn', d), menu = $('.dd-menu', d), label = $('span', btn);
+    const name = sel.getAttribute('aria-label') || sel.closest('label')?.querySelector('span')?.textContent;
+    if (name) menu.setAttribute('aria-label', name);
+    const opt = (o) => `<button type="button" role="option" data-v="${o.value.replace(/"/g, '&quot;')}">${o.textContent.replace(/</g, '&lt;')}</button>`;
+    const build = () => {
+      menu.innerHTML = [...sel.children].map((c) => (c.tagName === 'OPTGROUP'
+        ? `<p class="nav-hint">${c.label.replace(/</g, '&lt;')}</p>${[...c.children].map(opt).join('')}`
+        : opt(c))).join('');
+      sync();
+    };
+    const sync = () => {
+      const cur = sel.selectedOptions[0];
+      label.textContent = cur?.textContent || '';
+      btn.setAttribute('aria-label', `${name ? `${name}: ` : ''}${label.textContent}`);
+      $$('[role=option]', menu).forEach((b) => b.setAttribute('aria-selected', String(!!cur && b.dataset.v === cur.value)));
+    };
+    // Filter code sets .value without firing 'change'; catch that too.
+    const desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+    Object.defineProperty(sel, 'value', { configurable: true, get() { return desc.get.call(this); }, set(v) { desc.set.call(this, v); sync(); } });
+    sel.addEventListener('change', sync);
+    new MutationObserver(build).observe(sel, { childList: true, subtree: true });
+    const items = () => $$('[role=option]', menu);
+    const open = () => {
+      if (ddOpen && ddOpen !== d) ddClose();
+      ddOpen = d; d.classList.add('open'); btn.setAttribute('aria-expanded', 'true');
+      // Open leftwards / upwards when the menu would run off the right / bottom edge.
+      const r = btn.getBoundingClientRect();
+      d.classList.toggle('dd-end', r.left + menu.offsetWidth > document.documentElement.clientWidth - 12);
+      menu.style.maxHeight = '';
+      const below = innerHeight - r.bottom - 16, above = r.top - (navBar?.getBoundingClientRect().bottom || 0) - 16;
+      const up = menu.offsetHeight > below && above > below;
+      d.classList.toggle('dd-up', up);
+      menu.style.maxHeight = `${Math.max(140, Math.min(menu.offsetHeight, up ? above : below))}px`;
+      const on = $('[aria-selected=true]', menu) || items()[0];
+      on?.focus(); on?.scrollIntoView({ block: 'nearest' });
+    };
+    const pick = (b) => {
+      if (b.dataset.v !== sel.value) { sel.value = b.dataset.v; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+      ddClose(true);
+    };
+    btn.addEventListener('click', () => (ddOpen === d ? ddClose() : open()));
+    btn.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); open(); } });
+    menu.addEventListener('click', (e) => { const b = e.target.closest('[role=option]'); if (b) pick(b); });
+    menu.addEventListener('keydown', (e) => {
+      const all = items(), at = all.indexOf(document.activeElement);
+      const to = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: all.length - 1 }[e.key];
+      if (to != null) { e.preventDefault(); all[(to + all.length) % all.length]?.focus(); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); ddClose(true); }
+      else if (e.key === 'Tab') ddClose();
+      else if (e.key.length === 1) {
+        // Type-ahead: jump to the next option starting with that letter.
+        const k = e.key.toLowerCase(), n = all.length;
+        for (let i = 1; i <= n; i++) { const b = all[(at + i) % n]; if (b.textContent.trim().toLowerCase().startsWith(k)) { b.focus(); break; } }
+      }
+    });
+    d.addEventListener('focusout', (e) => { if (ddOpen === d && !d.contains(e.relatedTarget)) ddClose(); });
+    sel.hidden = true;
+    sel.after(d);
+    build();
+  };
+  $$('select').forEach(dropdown);
+  document.addEventListener('click', (e) => { if (ddOpen && !ddOpen.contains(e.target)) ddClose(); });
+
   // Remote images shimmer until they arrive (or fail).
   $$('img.skel').forEach((img) => {
     const done = () => img.classList.remove('skel');
