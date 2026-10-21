@@ -107,13 +107,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .brand span::after { content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 3px; background: var(--accent); }
 .nav-brand { position: relative; align-items: center; gap: 9px; flex: none; }
 .nav-brand span::after { content: none; }
-.brand-sig { position: relative; width: 9px; height: 9px; background: var(--accent); transition: transform .5s var(--ease); }
-.brand-sig::before, .brand-sig::after {
-  content: ''; position: absolute; inset: 0; border: 1px solid var(--accent); animation: sig 2.8s cubic-bezier(.2,.6,.3,1) infinite;
-}
-.brand-sig::after { animation-delay: 1.4s; }
-@keyframes sig { from { transform: scale(1); opacity: .9; } to { transform: scale(3.4); opacity: 0; } }
-.nav-brand:hover .brand-sig { transform: rotate(135deg); }
+.brand-sig { width: 25px; height: 15px; flex: none; fill: var(--accent); overflow: visible; }
+.sig-chev { transition: transform .35s var(--ease); }
+.sig-tick { clip-path: inset(0); }
+.sig-cur { animation: sig-blink 1.1s steps(1) infinite; }
+@keyframes sig-blink { 50% { opacity: 0; } }
+.nav-brand:hover .sig-chev { transform: translateX(1.5px); }
+.nav-brand:hover .sig-tick { animation: sig-tick .6s var(--ease); }
+@keyframes sig-tick { from { clip-path: inset(0 100% 0 0); } }
 .brand-live { display: none; }
 .nav-links { position: relative; display: flex; align-items: center; gap: 2px; min-width: 0; padding-left: 14px; border-left: 1px solid var(--line); }
 .nav-grp { position: relative; }
@@ -166,13 +167,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .nav.stuck .nav-wire { opacity: 1; }
 @media (max-width: 1100px) and (min-width: 981px) { .nav-in { gap: 12px; } .nav-cat { padding: 7px 8px; font-size: 13.5px; } }
 @media (prefers-reduced-motion: reduce) {
-  .brand-sig::before, .brand-sig::after { animation: none; opacity: 0; }
+  .sig-cur, .nav-brand:hover .sig-tick { animation: none; }
+  .sig-chev { transition: none; }
   .nav-glide, .nav-glide::before, .nav-in, .nav-menu { transition: none; }
   .nav-cat::before { animation: none !important; }
 }
 .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }
 .icon-btn { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-3); }
 .icon-btn:hover { color: var(--ink); }
+#refresh.is-spinning svg { animation: spin .7s linear infinite; }
 [data-theme='dark'] .sun, [data-theme='light'] .moon { display: none; }
 .nav-toggle { display: none; }
 .nav-toggle path { transition: transform .2s, opacity .2s; transform-origin: 12px 12px; }
@@ -859,6 +862,7 @@ body.has-tray .live-toast { bottom: 84px; }
 .vchart .frontier { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; opacity: .7; }
 .pt { fill: var(--ink-3); opacity: .45; stroke: var(--bg); stroke-width: 1.5; transition: opacity .15s, r .15s; }
 .pt.kin { fill: var(--c); opacity: .85; }
+.pt.retired { fill: var(--bg); stroke: var(--c); stroke-width: 1.5; opacity: .7; }
 .pt.me { fill: var(--ink); opacity: 1; stroke: var(--accent); stroke-width: 3; }
 a:hover > .pt { opacity: 1; r: 7; }
 .vchart .me-label { font: 600 12px var(--font); fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }

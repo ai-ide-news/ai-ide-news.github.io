@@ -3,7 +3,6 @@
 // date, context window and per-token API price, so the Models page is real data like the rest.
 
 const API = 'https://openrouter.ai/api/v1/models';
-const MAX_AGE_DAYS = 540;
 
 // OpenRouter author prefix → lab shown on the site, with its lobehub logo (scripts/icons.mjs). Anything not listed (fine-tunes, routers,
 // small studios) is left out so the page stays about the models people actually code with.
@@ -44,7 +43,7 @@ const perM = (v) => {
 
 const clip = (s, n = 240) => (s.length > n ? `${s.slice(0, s.lastIndexOf(' ', n) > 0 ? s.lastIndexOf(' ', n) : n).replace(/[.,;:\s]+$/, '')}…` : s);
 
-export async function fetchModels(get, now) {
+export async function fetchModels(get) {
   const { data } = await get(API, { json: true });
   const freeIds = new Set(data.filter((m) => m.id.endsWith(':free')).map((m) => m.id.replace(/:free$/, '')));
   const baseIds = new Set(data.map((m) => m.id));
@@ -58,7 +57,6 @@ export async function fetchModels(get, now) {
     // Skip variants (:free, :batch, :thinking…) and "~latest" aliases; the base model represents them.
     if (!lab || m.id.includes(':') || !m.created) continue;
     const date = new Date(m.created * 1000);
-    if (now - +date > MAX_AGE_DAYS * 86400e3) continue;
     const input = perM(m.pricing?.prompt), output = perM(m.pricing?.completion);
     if (input == null || output == null) continue;
     out.push({

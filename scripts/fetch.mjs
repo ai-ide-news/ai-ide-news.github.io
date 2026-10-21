@@ -421,7 +421,7 @@ async function main() {
 
   // New models from the major labs (one request, so quick runs check it too).
   let models = prev.models || [];
-  try { models = await fetchModels(get, NOW); report.push(`✓ Models                 ${models.length} models from ${new Set(models.map((m) => m.lab)).size} labs`); } catch (e) {
+  try { models = await fetchModels(get); report.push(`✓ Models                 ${models.length} models from ${new Set(models.map((m) => m.lab)).size} labs`); } catch (e) {
     report.push(`⚠ Models: ${e.message} (kept ${models.length} previous)`);
   }
 

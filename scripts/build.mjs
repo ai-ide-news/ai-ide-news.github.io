@@ -1,9 +1,10 @@
 // Renders data/snapshot.json into a static, SEO-friendly site in dist/.
 import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
+import { Resvg } from '@resvg/resvg-js';
 import { TOOLS, CATEGORIES } from './sources.mjs';
 import { resolveIcons } from './icons.mjs';
 import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
-import { LAB_ICONS } from './models.mjs';
+import { LAB_ICONS, MODEL_LABS, labKey } from './models.mjs';
 import { TOOL_LAUNCH, COMPANIES, fmtLaunch } from './launches.mjs';
 import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
 import { AA_SOURCE } from './aa.mjs';
@@ -177,7 +178,9 @@ function layout({ root, path, title, description, body, jsonld, active = '' }) {
 <meta property="og:image" content="${SITE_URL}/og.png">
 <meta name="twitter:card" content="summary_large_image">
 ${VERIFY.split(',').filter(Boolean).map((v) => `<meta name="google-site-verification" content="${esc(v.trim())}">`).join('')}
+<link rel="icon" href="${root}favicon.ico" sizes="32x32">
 <link rel="icon" href="${root}favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="${root}apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="${SITE_NAME} — all AI IDE & CLI updates" href="${root}feed.xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -191,7 +194,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
 <header class="nav">
   <div class="wrap nav-in">
     <a class="brand nav-brand" href="${root}" aria-label="${SITE_NAME} home">
-      <i class="brand-sig" aria-hidden="true"></i><span>${SITE_NAME}</span><em class="brand-live" aria-hidden="true">on the wire</em>
+      <svg class="brand-sig" viewBox="0 0 32 19.4" aria-hidden="true"><path class="sig-chev" d="M0 0h5l7 7-7 7H0l7-7z"/><path class="sig-tick" d="M4 16.6h4.42l3-3h3.98v2.8h-2.82l-3 3H4zM15.4 16.02l2.42-2.42H26v2.8h-7.02l-3 3h-.58z"/><rect class="sig-cur" x="26" y="11.2" width="6" height="6.8"/></svg><span>${SITE_NAME}</span><em class="brand-live" aria-hidden="true">on the wire</em>
     </a>
     <nav class="nav-links" id="nav-links" aria-label="Primary">
       <span class="nav-glide" aria-hidden="true"></span>
@@ -200,6 +203,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
     <div class="nav-actions">
       <button class="nav-seek" id="seek-open" type="button" aria-label="Search the whole site" aria-haspopup="dialog" data-root="${root}"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Search tools, models, news…</span><kbd data-mod>Ctrl K</kbd></button>
       <button class="icon-btn nav-toggle" id="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="nt-a" d="M4 7h16"/><path class="nt-b" d="M4 12h16"/><path class="nt-c" d="M4 17h16"/></g></svg></button>
+      <button class="icon-btn" id="refresh" type="button" aria-label="Check for new updates" title="Check for new updates"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <button class="icon-btn" id="theme" type="button" aria-label="Toggle color theme"><svg class="sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v2.5M12 20v2.5M1.5 12H4M20 12h2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></g></svg><svg class="moon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1"/></svg></button>
     </div>
     <span class="nav-wire" aria-hidden="true"></span>
@@ -295,8 +299,9 @@ function newsCard(n, root, { lead = false } = {}) {
 </article>`;
 }
 // `limit` keeps the 3-column grid free of orphans: a tall lead fills 4 cells, a short one 2.
-function newsFit(list, limit = Infinity) {
-  if (!list.length) return [];
+// The News page (`feed`) shows every story, newest first, so nothing is dropped or hoisted.
+function newsFit(list, limit = Infinity, { feed = false } = {}) {
+  if (!list.length || feed) return list;
   const lead = list.find((n) => n.major) || list[0];
   const rest = list.filter((n) => n !== lead);
   const cells = lead.summary ? 4 : 2;
@@ -306,7 +311,7 @@ function newsFit(list, limit = Infinity) {
 }
 function newsGrid(list, root, limit = Infinity, { feed = false } = {}) {
   if (!list.length) return '<p class="muted">No major news in the last 30 days.</p>';
-  const [lead, ...rest] = newsFit(list, limit);
+  const [lead, ...rest] = newsFit(list, limit, { feed });
   return `<div class="ngrid${feed ? ' feed' : ''}">${newsCard(lead, root, { lead: true })}${rest.map((x) => newsCard(x, root)).join('')}</div>`;
 }
 
@@ -343,6 +348,18 @@ const modelTags = (m) => [
 const modelPath = (m) => `models/${m.labId}/${m.id.split('/').slice(1).join('/')}/`;
 const labPath = (labId) => `models/${labId}/`;
 const labs = Object.values(Object.groupBy(models, (m) => m.labId)).sort((a, b) => b.length - a.length);
+// Retired releases OpenRouter no longer lists (data/history.json), drawn on lab timelines only.
+const liveKeys = new Set(models.flatMap((m) => [m.id, `${m.labId}:${m.name.toLowerCase()}`]));
+const retiredByLab = Object.groupBy(
+  JSON.parse(await readFile(new URL('data/history.json', ROOT), 'utf8')).models.flatMap((h) => {
+    const lab = MODEL_LABS[h.id.split('/')[0]];
+    if (!lab) return [];
+    const labId = labKey(lab.name);
+    return liveKeys.has(h.id) || liveKeys.has(`${labId}:${h.name.toLowerCase()}`) ? []
+      : [{ ...h, lab: lab.name, labId, color: lab.color, retired: true }];
+  }),
+  (m) => m.labId,
+);
 
 // ── companies ─────────────────────────────────────────────
 // One page per company, derived from whoever makes a tracked tool or model, so a new vendor or lab gets one
@@ -722,11 +739,15 @@ function valueChart(m, root) {
   </figure>`;
 }
 
-// Every release from one lab on an 18-month axis; dots that would overlap stack upward.
+// Every release from one lab, from its first known model to today; retired ones are hollow and unlinked.
+// Dots that would overlap stack upward.
 function labTimeline(list, root, highlight, { w: W = 640 } = {}) {
-  const every = W < 500 ? 6 : 3;
-  const P = 16, start = NOW - 540 * DAY, X = (t) => +(P + ((t - start) / (NOW - start)) * (W - 2 * P)).toFixed(1);
-  const lanes = [], dots = [...list].sort((a, b) => a.date.localeCompare(b.date)).map((m) => {
+  const all = [...list, ...(retiredByLab[list[0].labId] || [])];
+  const P = 16, start = Math.min(...all.map((m) => Date.parse(m.date))) - 30 * DAY;
+  const X = (t) => +(P + ((t - start) / (NOW - start)) * (W - 2 * P)).toFixed(1);
+  // Month tick step that keeps labels about 80px apart.
+  const every = [1, 3, 6, 12, 24].find((n) => (NOW - start) / (n * 30.4 * DAY) <= W / 80) || 48;
+  const lanes = [], dots = all.sort((a, b) => a.date.localeCompare(b.date)).map((m) => {
     const x = X(Date.parse(m.date));
     let lane = lanes.findIndex((last) => x - last >= 12);
     if (lane < 0) lane = lanes.length;
@@ -735,11 +756,18 @@ function labTimeline(list, root, highlight, { w: W = 640 } = {}) {
   });
   const H = 44 + lanes.length * 13, base = H - 26;
   const months = [];
-  for (let d = new Date(start); d <= NOW; d.setUTCMonth(d.getUTCMonth() + 1)) if (d.getUTCMonth() % every === 0) months.push(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
-  return `<svg class="ltl" style="--c:${list[0].color}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${list.length} releases over the last 18 months">
+  for (let d = new Date(start); d <= NOW; d.setUTCMonth(d.getUTCMonth() + 1)) if ((d.getUTCFullYear() * 12 + d.getUTCMonth()) % every === 0) months.push(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+  const tick = every >= 12 ? { year: 'numeric', timeZone: 'UTC' } : { month: 'short', year: 'numeric', timeZone: 'UTC' };
+  const retired = all.length - list.length;
+  return `<svg class="ltl" style="--c:${list[0].color}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${all.length} releases since ${new Date(start + 30 * DAY).getUTCFullYear()}${retired ? `, ${retired} of them retired` : ''}">
     <line class="axis" x1="${P}" x2="${W - P}" y1="${base}" y2="${base}"/>
-    ${months.filter((t) => t >= start).map((t) => `<g class="grid"><line x1="${X(t)}" x2="${X(t)}" y1="${base}" y2="${base + 5}"/><text x="${X(t)}" y="${base + 18}" text-anchor="middle">${new Date(t).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })}</text></g>`).join('')}
-    ${dots.map(({ m, x, lane }) => `<a href="${root}${modelPath(m)}"><circle class="pt kin${m.id === highlight ? ' me' : ''}" cx="${x}" cy="${base - 8 - lane * 13}" r="${m.id === highlight ? 6.5 : 5}"><title>${esc(m.name)} — ${fmtDate(m.date)}</title></circle></a>`).join('')}
+    ${months.filter((t) => t >= start).map((t) => `<g class="grid"><line x1="${X(t)}" x2="${X(t)}" y1="${base}" y2="${base + 5}"/><text x="${X(t)}" y="${base + 18}" text-anchor="middle">${new Date(t).toLocaleDateString('en-US', tick)}</text></g>`).join('')}
+    ${dots.map(({ m, x, lane }) => {
+      const cy = base - 8 - lane * 13;
+      return m.retired
+        ? `<circle class="pt kin retired" cx="${x}" cy="${cy}" r="4.5"><title>${esc(m.name)} — ${fmtDate(m.date)} · retired</title></circle>`
+        : `<a href="${root}${modelPath(m)}"><circle class="pt kin${m.id === highlight ? ' me' : ''}" cx="${x}" cy="${cy}" r="${m.id === highlight ? 6.5 : 5}"><title>${esc(m.name)} — ${fmtDate(m.date)}</title></circle></a>`;
+    }).join('')}
   </svg>`;
 }
 
@@ -807,7 +835,7 @@ ${banner()}
     </div>
     <aside class="side">
       ${ad('side')}
-      ${lab.length > 1 ? `<div class="side-card"><p class="eyebrow">Release history</p><h2>${esc(m.lab)} timeline</h2>${labTimeline(lab, root, m.id, { w: 340 })}</div>` : ''}
+      ${lab.length + (retiredByLab[m.labId]?.length || 0) > 1 ? `<div class="side-card"><p class="eyebrow">Release history</p><h2>${esc(m.lab)} timeline</h2>${labTimeline(lab, root, m.id, { w: 340 })}</div>` : ''}
       ${siblings.length ? `<div class="side-card"><p class="eyebrow">${esc(m.lab)}</p><h2>More from ${esc(m.lab)}</h2>${modelList(siblings, root)}<p class="side-more"><a href="${root}${labPath(m.labId)}">All ${lab.length} ${esc(m.lab)} models →</a></p></div>` : ''}
       ${rivals.length ? `<div class="side-card"><p class="eyebrow">Rivals</p><h2>Other flagships</h2>${modelList(rivals, root)}</div>` : ''}
     </aside>
@@ -853,7 +881,7 @@ function labPage(list) {
     <div>
       <p class="eyebrow">AI lab${co.parent ? ` · ${esc(co.parent)}` : ''}${co.founded ? ` · founded ${co.founded}` : ''} · ${list.length} model${list.length === 1 ? '' : 's'} tracked</p>
       <h1>${esc(lab)} <em>models</em></h1>
-      <p class="lede">Every ${esc(lab)} model released in the last 18 months, with release dates, context windows, API prices and benchmark scores. Newest: <a href="${root}${modelPath(newest)}">${esc(newest.name)}</a>, ${ago(newest.date)}.</p>
+      <p class="lede">Every ${esc(lab)} model on the API today, with release dates, context windows, API prices and benchmark scores. Newest: <a href="${root}${modelPath(newest)}">${esc(newest.name)}</a>, ${ago(newest.date)}.</p>
       <div class="tool-links">
         ${labScored.length ? `<a class="btn" href="${showdownHref(root, labScored.slice(0, 6).map((m) => m.id))}">Compare ${esc(lab)} models →</a>` : ''}
         <a class="btn ghost" href="${root}${coPath(coByLab.get(labId))}">${esc(lab)} profile</a>
@@ -871,7 +899,7 @@ function labPage(list) {
 </section>
 
 <section class="wrap section">
-  <div class="section-head"><div><p class="eyebrow">Release history</p><h2>Timeline</h2></div><p class="muted small section-note">${cadence != null ? `${esc(lab)} ships a new model about every <strong>${cadence < 1.5 ? 'day' : `${Math.round(cadence)} days`}</strong>.` : ''} Each dot is a release; click one to open it.</p></div>
+  <div class="section-head"><div><p class="eyebrow">Release history</p><h2>Timeline</h2></div><p class="muted small section-note">${cadence != null ? `${esc(lab)} ships a new model about every <strong>${cadence < 1.5 ? 'day' : `${Math.round(cadence)} days`}</strong>.` : ''} Each dot is a release; click one to open it.${retiredByLab[labId] ? ' Hollow dots are retired models.' : ''}</p></div>
   ${labTimeline(list, root, null, { w: 1200 })}
 </section>
 
@@ -1268,7 +1296,7 @@ const viewToggle = `<div class="nview" role="group" aria-label="Layout">
     <button type="button" data-view="grid" aria-pressed="false" title="Grid"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Grid</button>
   </div>`;
 function newsFilters() {
-  const shown = newsFit(news);
+  const shown = newsFit(news, Infinity, { feed: true });
   if (shown.length < 2) return '';
   const count = (key) => shown.reduce((m, n) => [].concat(key(n)).reduce((m, k) => m.set(k, (m.get(k) || 0) + 1), m), new Map());
   const tags = [...count((n) => n.tag)].sort((a, b) => b[1] - a[1]);
@@ -1757,11 +1785,26 @@ const out = async (path, content) => {
   await writeFile(url, content);
 };
 
+// Raster favicons for browsers and apps that skip SVG icons (Safari, previews, search results).
+const favicons = async () => {
+  const svg = await readFile(new URL('static/favicon.svg', ROOT));
+  const png = (w) => new Resvg(svg, { fitTo: { mode: 'width', value: w } }).render().asPng();
+  const ico32 = png(32);
+  const head = Buffer.alloc(22);
+  head.writeUInt16LE(1, 2); head.writeUInt16LE(1, 4);
+  head.writeUInt8(32, 6); head.writeUInt8(32, 7);
+  head.writeUInt16LE(1, 10); head.writeUInt16LE(32, 12);
+  head.writeUInt32LE(ico32.length, 14); head.writeUInt32LE(22, 18);
+  await writeFile(new URL('favicon.ico', DIST), Buffer.concat([head, ico32]));
+  await writeFile(new URL('apple-touch-icon.png', DIST), png(180));
+};
+
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 await cp(new URL('src/', ROOT), new URL('assets/', DIST), { recursive: true });
 await cp(new URL('static/', ROOT), DIST, { recursive: true });
 await icons();
+await favicons();
 
 await out('index.html', indexPage());
 await out('tools/index.html', toolsIndexPage());

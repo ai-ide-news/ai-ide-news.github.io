@@ -116,7 +116,7 @@ export async function fetchEcosystem({ get, ghHeaders, prev = {}, now, report })
   for (const type of ['skills', 'mcp']) {
     try {
       // A skill repo that only mentions MCP in passing stays on the Skills page.
-      const skip = new Set(type === 'mcp' ? (out.skills || []).filter((r) => !/mcp server|model context protocol/i.test(r.description)).map((r) => r.id) : []);
+      const skip = new Set(type === 'mcp' ? (out.skills || []).filter((r) => !/\bmcp server|model context protocol/i.test(r.description)).map((r) => r.id) : []);
       out[type] = await searchKind(type, get, ghHeaders, prev[type], now, skip);
       report.push(`✓ ${type === 'mcp' ? 'MCP servers' : 'Agent Skills'}${' '.repeat(type === 'mcp' ? 12 : 11)}${out[type].length} repos`);
     } catch (e) { report.push(`⚠ ${type === 'mcp' ? 'MCP servers' : 'Agent Skills'}: ${e.message} (kept previous)`); }
