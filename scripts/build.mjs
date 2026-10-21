@@ -36,6 +36,7 @@ const PRIVACY_UPDATED = '21 October 2026';
 // to open the site full-screen: the upload key, plus Play's app-signing key once Play Console shows it.
 const ANDROID_APP = { id: 'io.github.aiidenews.aiticker', sha256: [
   '61:DC:7C:17:8F:8A:58:5F:35:AE:BA:3E:87:8C:53:37:89:6E:3A:05:09:63:1A:78:A9:D7:96:93:31:E1:BA:D3', // upload key
+  '0D:DB:C5:50:1C:0B:36:6A:22:13:D4:39:85:EB:FE:2B:DE:F0:55:45:3B:68:46:06:0C:2C:65:B3:83:B6:DD:7B', // Play app-signing key
 ] };
 
 const snap = JSON.parse(await readFile(new URL('data/snapshot.json', ROOT), 'utf8'));
