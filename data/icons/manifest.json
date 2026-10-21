@@ -565,6 +565,78 @@
    "mono": false,
    "src": "https://www.warp.dev/apple-touch-icon-180x180.png",
    "tone": "dark"
+  },
+  "lovable": {
+   "logo": "lobe:lovable",
+   "checked": 1792617590736,
+   "file": "lovable.svg",
+   "mono": false,
+   "src": "lobehub:lovable-color",
+   "tone": null
+  },
+  "replit": {
+   "logo": "lobe:replit",
+   "checked": 1792617591450,
+   "file": "replit.svg",
+   "mono": false,
+   "src": "lobehub:replit-color",
+   "tone": null
+  },
+  "devin": {
+   "logo": "lobe:devin",
+   "checked": 1792617591467,
+   "file": "devin.svg",
+   "mono": false,
+   "src": "lobehub:devin-color",
+   "tone": null
+  },
+  "qoder": {
+   "logo": "lobe:qoder",
+   "checked": 1792617591474,
+   "file": "qoder.svg",
+   "mono": false,
+   "src": "lobehub:qoder-color",
+   "tone": null
+  },
+  "command-code": {
+   "logo": "lobe:commandcode",
+   "checked": 1792617591482,
+   "file": "command-code.svg",
+   "mono": true,
+   "src": "lobehub:commandcode",
+   "tone": null
+  },
+  "jules": {
+   "logo": "site",
+   "checked": 1792617591581,
+   "file": "jules.svg",
+   "mono": true,
+   "src": "https://jules.google/favicon.svg",
+   "tone": null
+  },
+  "v0": {
+   "logo": "lobe:v0",
+   "checked": 1792617591585,
+   "file": "v0.svg",
+   "mono": true,
+   "src": "lobehub:v0",
+   "tone": null
+  },
+  "factory-droid": {
+   "logo": "site",
+   "checked": 1792617591697,
+   "file": "factory-droid.svg",
+   "mono": false,
+   "src": "https://factory.ai/favicon.svg",
+   "tone": null
+  },
+  "codebuff": {
+   "logo": "site",
+   "checked": 1792617591782,
+   "file": "codebuff.webp",
+   "mono": false,
+   "src": "https://www.codebuff.com/favicon/apple-touch-icon.png",
+   "tone": null
   }
  }
 }
