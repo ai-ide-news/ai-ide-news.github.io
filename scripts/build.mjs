@@ -675,11 +675,17 @@ const provCount = (m) => new Set((m.providers || []).map((p) => p.name)).size;
 function providerTable(m) {
   const list = m.providers || [];
   if (!list.length) return `<p class="muted">No provider list for ${esc(m.name)} yet. It appears here after the next data refresh.</p>`;
-  const low = Math.min(...list.map(blended)), high = Math.max(...list.map(blended));
-  const cheapest = list.filter((p) => blended(p) === low);
+  // Free endpoints (often free for a limited time, with tight rate limits) and subscription plans ($0 per token, but you pay
+  // for the plan) are listed first but kept out of the price comparison.
+  const free = list.filter((p) => p.free), plans = list.filter((p) => p.plan), paid = list.filter((p) => !p.free && !p.plan);
+  const nameList = (l) => { const n = [...new Set(l.map((p) => p.name))]; return `<strong>${n.slice(0, 5).map(esc).join(', ')}${n.length > 5 ? ` +${n.length - 5} more` : ''}</strong>`; };
+  const freeLead = (free.length ? `Free to try on ${nameList(free)} — free endpoints are often limited-time and rate-limited. ` : '')
+    + (plans.length ? `Included in ${nameList(plans)}. ` : '');
+  const low = paid.length ? Math.min(...paid.map(blended)) : 0, high = paid.length ? Math.max(...paid.map(blended)) : 0;
+  const cheapest = paid.filter((p) => blended(p) === low);
   const has = (k) => list.some((p) => p[k] != null);
   const cols = [
-    has('cacheRead') && ['Cache read', (p) => (p.cacheRead == null ? '<span class="muted">—</span>' : mprice(p.cacheRead))],
+    has('cacheRead') && ['Cache read', (p) => (p.cacheRead == null ? '<span class="muted">—</span>' : p.plan ? '<span class="muted">Plan</span>' : mprice(p.cacheRead))],
     ['Context', (p) => tokens(p.context)],
     has('maxOutput') && ['Max output', (p) => tokens(p.maxOutput)],
     has('speed') && ['Speed', (p) => (p.speed == null ? '<span class="muted">—</span>' : `${p.speed}<small>tok/s</small>`)],
@@ -687,21 +693,26 @@ function providerTable(m) {
     has('uptime') && ['Uptime', (p) => (p.uptime == null ? '<span class="muted">—</span>' : `${p.uptime}%<small>24h</small>`)],
   ].filter(Boolean);
   const names = [...new Set(cheapest.map((p) => p.name))];
-  const lead = list.length === 1
-    ? `Only <strong>${esc(list[0].name)}</strong> serves ${esc(m.name)} on OpenRouter right now.`
-    : low === high
-      ? `All ${provCount(m)} providers charge the same: ${priceLine(list[0])} per 1M input / output tokens.`
-      : `Cheapest: <strong>${names.slice(0, 3).map(esc).join(', ')}${names.length > 3 ? ` +${names.length - 3} more` : ''}</strong> at ${priceLine(cheapest[0])} per 1M input / output tokens — ${Math.round((1 - low / high) * 100)}% less than the priciest option.`;
-  return `<p class="prov-lead">${lead}</p>
+  const lead = !paid.length
+    ? 'No paid endpoint right now.'
+    : paid.length === 1
+      ? `${free.length || plans.length ? 'Pay per token: only' : 'Only'} <strong>${esc(paid[0].name)}</strong>${free.length || plans.length ? `, at ${priceLine(paid[0])} per 1M input / output tokens.` : ` serves ${esc(m.name)} right now.`}`
+      : low === high
+        ? `All ${new Set(paid.map((p) => p.name)).size} paid providers charge the same: ${priceLine(paid[0])} per 1M input / output tokens.`
+        : `Cheapest: <strong>${names.slice(0, 3).map(esc).join(', ')}${names.length > 3 ? ` +${names.length - 3} more` : ''}</strong> at ${priceLine(cheapest[0])} per 1M input / output tokens — ${Math.round((1 - low / high) * 100)}% less than the priciest option.`;
+  return `<p class="prov-lead">${freeLead}${lead}</p>
   <div class="ptable-wrap"><table class="ptable dtable prov-table">
     <thead><tr><th scope="col">Provider</th><th scope="col">Input</th><th scope="col">Output</th>${cols.map(([h]) => `<th scope="col">${h}</th>`).join('')}<th scope="col">vs. best</th></tr></thead>
-    <tbody>${list.map((p) => {
+    <tbody>${[...free, ...plans, ...paid].map((p) => {
       const d = low > 0 ? Math.round((blended(p) / low - 1) * 100) : (blended(p) > 0 ? null : 0);
-      return `<tr${blended(p) === low ? ' class="prov-best"' : ''}><th scope="row"><strong>${esc(p.name)}</strong><small>${[p.region, p.quant && p.quant.toUpperCase(), !p.tools && 'no tool calling'].filter(Boolean).map(esc).join(' · ')}</small></th>
-        <td class="mnum">${mprice(p.input)}</td>
-        <td class="mnum">${mprice(p.output)}</td>
+      const best = p.free ? '<span class="pbadge free">Free</span>' : p.plan ? '<span class="pbadge">Plan</span>' : blended(p) === low ? '<span class="pbadge free">Cheapest</span>' : d == null ? 'Paid' : `+${d}%`;
+      const name = p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name);
+      const price = (n) => (p.plan ? '<span class="muted">Plan</span>' : mprice(n));
+      return `<tr${p.free || (!p.plan && blended(p) === low) ? ' class="prov-best"' : ''}><th scope="row"><strong>${name}</strong><small>${[p.free && 'free · may be limited-time', p.plan && 'subscription plan', p.region, p.quant && p.quant.toUpperCase(), !p.tools && 'no tool calling'].filter(Boolean).map(esc).join(' · ')}</small></th>
+        <td class="mnum">${price(p.input)}</td>
+        <td class="mnum">${price(p.output)}</td>
         ${cols.map(([, f]) => `<td class="mnum">${f(p)}</td>`).join('')}
-        <td class="mnum">${blended(p) === low ? '<span class="pbadge free">Cheapest</span>' : d == null ? 'Paid' : `+${d}%`}</td></tr>`;
+        <td class="mnum">${best}</td></tr>`;
     }).join('')}</tbody></table></div>`;
 }
 
@@ -807,7 +818,8 @@ function modelPage(m) {
   const siblings = lab.filter((x) => x.id !== m.id).slice(0, 8);
   const rivals = models.filter((x) => showdown.includes(x.id) && x.labId !== m.labId);
   const nScores = Object.keys(m.bench).length;
-  const cheap = m.providers?.length ? { input: Math.min(...m.providers.map((p) => p.input)), output: Math.min(...m.providers.map((p) => p.output)) } : null;
+  const metered = (m.providers || []).filter((p) => !p.plan);
+  const cheap = metered.length ? { input: Math.min(...metered.map((p) => p.input)), output: Math.min(...metered.map((p) => p.output)) } : null;
   const body = `
 <section class="wrap tool-hero" style="--c:${m.color}">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}models/">Models</a><span>/</span><a href="${root}${labPath(m.labId)}">${esc(m.lab)}</a><span>/</span><span>${esc(m.name)}</span></nav>
@@ -859,7 +871,7 @@ ${banner()}
         <div><dt>Open weights</dt><dd>${yesNo(m.openWeights)}</dd></div>
         <div><dt>Free tier</dt><dd>${yesNo(m.free)}</dd></div>
       </dl>
-      <p class="muted small section-note">Release date, prices and providers from OpenRouter's catalog; buying directly from a provider can cost a little differently. Uptime is the share of OpenRouter requests each provider served over the last day. Benchmark scores are the best result per benchmark from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a>, licensed CC BY 4.0. Rank counts every model tracked here with a score.</p>
+      <p class="muted small section-note">Release date and prices from OpenRouter's catalog; providers from OpenRouter and <a href="https://models.dev" target="_blank" rel="noopener">models.dev</a>. Buying directly from a provider can cost a little differently. Speed, latency and uptime are measured on OpenRouter only; uptime is the share of OpenRouter requests each provider served over the last day. Benchmark scores are the best result per benchmark from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a>, licensed CC BY 4.0. Rank counts every model tracked here with a score.</p>
     </div>
     <aside class="side">
       ${ad('side')}

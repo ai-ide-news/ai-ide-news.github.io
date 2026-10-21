@@ -68,6 +68,7 @@ export async function fetchModels(get) {
       maxOutput: m.top_provider?.max_completion_tokens || null,
       input, output,
       free: freeIds.has(m.id) || (input === 0 && output === 0),
+      freeVariant: freeIds.has(m.id),
       modalities: m.architecture?.input_modalities || [],
       reasoning: (m.supported_parameters || []).includes('reasoning'),
       tools: (m.supported_parameters || []).includes('tools'),
@@ -81,7 +82,8 @@ export async function fetchModels(get) {
 
 // Every provider serving each model, from OpenRouter's per-model endpoints list
 // (https://openrouter.ai/api/v1/models/<id>/endpoints — no key needed), so the site can show who is cheapest.
-// One request per model, a few at a time; a model whose request fails keeps the providers it had before.
+// Free endpoints (often free only for a limited time) live under the separate "<id>:free" listing, fetched alongside.
+// One request per model, a few at a time; a model whose requests all fail keeps the providers it had before.
 const pct = (v) => (Number.isFinite(v) ? Math.round(v * 10) / 10 : null);
 
 export async function fetchProviders(get, models, prev = {}, concurrency = 8) {
@@ -91,12 +93,16 @@ export async function fetchProviders(get, models, prev = {}, concurrency = 8) {
   await Promise.all(Array.from({ length: concurrency }, async () => {
     for (let m; (m = queue.shift());) {
       try {
-        const { data } = await get(`${API}/${m.id}/endpoints`, { json: true });
+        const ids = [m.id, ...(m.freeVariant ? [`${m.id}:free`] : [])];
+        const res = await Promise.allSettled(ids.map((id) => get(`${API}/${id}/endpoints`, { json: true })));
+        if (res.every((r) => r.status === 'rejected')) throw res[0].reason;
+        const endpoints = res.flatMap((r, i) => (r.status === 'fulfilled' ? (r.value.data?.endpoints || []).map((e) => ({ ...e, free: i > 0 })) : []));
         const seen = new Set();
-        out[m.id] = (data?.endpoints || []).flatMap((e) => {
+        out[m.id] = endpoints.flatMap((e) => {
           const input = perM(e.pricing?.prompt), output = perM(e.pricing?.completion);
-          if (input == null || output == null || seen.has(e.tag)) return [];
-          seen.add(e.tag);
+          const key = `${e.tag}${e.free ? ':free' : ''}`;
+          if (input == null || output == null || seen.has(key)) return [];
+          seen.add(key);
           const [, ...region] = (e.tag || '').split('/').filter((s) => !/^(fp|bf|int)\d+$|^flex$|^turbo$/.test(s));
           return [{
             name: e.provider_name,
@@ -110,6 +116,7 @@ export async function fetchProviders(get, models, prev = {}, concurrency = 8) {
             latency: Number.isFinite(e.latency_last_30m) ? Math.round(e.latency_last_30m) : null,
             speed: Number.isFinite(e.throughput_last_30m) ? Math.round(e.throughput_last_30m) : null,
             tools: (e.supported_parameters || []).includes('tools'),
+            ...(e.free || (input === 0 && output === 0) ? { free: true } : {}),
           }];
         }).sort((a, b) => a.input * 3 + a.output - (b.input * 3 + b.output) || (b.uptime ?? 0) - (a.uptime ?? 0));
       } catch {
@@ -119,4 +126,61 @@ export async function fetchProviders(get, models, prev = {}, concurrency = 8) {
     }
   }));
   return { providers: out, failed };
+}
+
+// Providers beyond OpenRouter — OpenCode Zen/Go, Kilo, Vercel, Groq, the labs' own APIs, coding plans… — from
+// models.dev (https://models.dev/api.json — no key needed), the open catalog OpenCode reads. A model matches on its
+// id with the vendor prefix, ":free"/"-free" suffix and . / _ vs - differences ignored ("claude-opus-5.5" = "claude-opus-5-5").
+const MODELS_DEV = 'https://models.dev/api.json';
+// $0 on a subscription plan means "included in the plan", not free.
+const PLAN = /coding.?plan|token.?plan|for coding|devpack|\bgo$|gitlab duo/i;
+// Runtimes that run models on your own machine, not hosted providers.
+const LOCAL = new Set(['lmstudio', 'ollama', 'qvac', 'atomic-chat', 'llama.cpp']);
+// OpenRouter is read directly (fetchProviders) with far more detail per endpoint.
+const SKIP = new Set(['openrouter', ...LOCAL]);
+
+const modelKey = (id) => id.toLowerCase().split('/').pop().replace(/[:-]free$/, '').replace(/[._\s]+/g, '-');
+const nameKey = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+export async function fetchModelsDev(get, models) {
+  const catalog = await get(MODELS_DEV, { json: true });
+  const want = new Map(models.map((m) => [modelKey(m.id), m.id]));
+  const out = {};
+  for (const p of Object.values(catalog)) {
+    if (SKIP.has(p.id)) continue;
+    const plan = PLAN.test(`${p.id} ${p.name}`);
+    for (const [key, x] of Object.entries(p.models || {})) {
+      const id = want.get(modelKey(x.canonical_model_id || '')) || want.get(modelKey(key));
+      const input = x.cost?.input, output = x.cost?.output;
+      if (!id || !Number.isFinite(input) || !Number.isFinite(output)) continue;
+      const zero = input === 0 && output === 0;
+      (out[id] ||= []).push({
+        name: p.name,
+        region: null,
+        input: Math.round(input * 1000) / 1000, output: Math.round(output * 1000) / 1000,
+        cacheRead: Number.isFinite(x.cost?.cache_read) ? Math.round(x.cost.cache_read * 1000) / 1000 : null,
+        context: x.limit?.context || null,
+        maxOutput: x.limit?.output || null,
+        quant: null, uptime: null, latency: null, speed: null,
+        tools: x.tool_call !== false,
+        ...(plan ? { plan: true } : zero ? { free: true } : {}),
+        url: p.doc || null,
+        via: 'models.dev',
+      });
+    }
+  }
+  return out;
+}
+
+// Adds models.dev providers to each model's OpenRouter list, skipping any provider OpenRouter already lists
+// (same name and same free / paid kind). Paid providers are sorted cheapest first; free and plan rows lead.
+export function mergeProviders(list = [], extra = []) {
+  const kind = (p) => (p.plan ? 'plan' : p.free ? 'free' : 'paid');
+  const seen = new Set(list.map((p) => `${nameKey(p.name)}|${kind(p)}`));
+  const add = extra.filter((p) => {
+    const k = `${nameKey(p.name)}|${kind(p)}`;
+    return seen.has(k) ? false : (seen.add(k), true);
+  });
+  const rank = { free: 0, plan: 1, paid: 2 };
+  return [...list, ...add].sort((a, b) => rank[kind(a)] - rank[kind(b)] || a.input * 3 + a.output - (b.input * 3 + b.output) || (b.uptime ?? 0) - (a.uptime ?? 0));
 }

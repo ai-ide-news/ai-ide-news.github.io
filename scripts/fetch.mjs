@@ -8,7 +8,7 @@ import { TOOLS, HN_MATCH, HN_QUERIES, DISCOVERY } from './sources.mjs';
 import { searchCandidates, toTool } from './discover.mjs';
 import { NEWS_FEEDS, LAB_ACCOUNTS, fetchX, pickNews, newsImages } from './news.mjs';
 import { resolveHandles, toolsByHandle } from './xaccounts.mjs';
-import { fetchModels, fetchProviders } from './models.mjs';
+import { fetchModels, fetchProviders, fetchModelsDev, mergeProviders } from './models.mjs';
 import { fetchBenchmarks } from './benchmarks.mjs';
 import { fetchAA } from './aa.mjs';
 import { fetchOpenCode } from './opencode.mjs';
@@ -431,10 +431,17 @@ async function main() {
   let providersFresh = providersAt;
   if (!QUICK || !providersAt || NOW - Date.parse(providersAt) > DAY / 4) {
     const { providers, failed } = await fetchProviders(get, models, prevProviders);
-    models = models.map((m) => (providers[m.id] ? { ...m, providers: providers[m.id] } : m));
+    let extra = null;
+    try { extra = await fetchModelsDev(get, models); } catch (e) { report.push(`⚠ models.dev providers: ${e.message} (kept previous)`); }
+    // A failed models.dev pass keeps the merged lists from last time (the merge skips duplicates either way).
+    models = models.map((m) => {
+      const list = mergeProviders(providers[m.id], extra ? extra[m.id] : prevProviders[m.id]);
+      return list.length ? { ...m, providers: list } : m;
+    });
     providersFresh = new Date(NOW).toISOString();
     const n = Object.values(providers).reduce((s, l) => s + l.length, 0);
     report.push(`${failed ? '⚠' : '✓'} Model providers        ${n} endpoints across ${Object.keys(providers).length} models${failed ? ` (${failed} failed)` : ''}`);
+    if (extra) report.push(`✓ models.dev providers   ${Object.values(extra).reduce((s, l) => s + l.length, 0)} listings across ${Object.keys(extra).length} models`);
   } else {
     models = models.map((m) => (prevProviders[m.id] ? { ...m, providers: prevProviders[m.id] } : m));
   }
