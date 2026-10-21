@@ -1584,7 +1584,7 @@ function registryList(reg) {
 }
 
 // Most-installed skills (claude-plugins.dev) and most-used servers (Smithery), shown above the trending repos.
-const POP_SHOWN = 24;
+const POP_SHOWN = 24, POP_OPEN = 6; // the rest folds away so the trending filters stay near the top
 function popCard(r, type) {
   const img = type === 'mcp' ? r.icon : r.owner && `https://github.com/${encodeURIComponent(r.owner)}.png?size=64`;
   const count = type === 'mcp' ? r.uses : r.installs;
@@ -1610,7 +1610,8 @@ function popSection(type) {
     : '<a href="https://claude-plugins.dev/skills" target="_blank" rel="noopener">claude-plugins.dev</a>, which indexes every SKILL.md on GitHub, ranked by installs';
   return `<section class="wrap section">
   <div class="section-head"><div><p class="eyebrow">Most ${type === 'mcp' ? 'used' : 'installed'}</p><h2>${type === 'mcp' ? 'The MCP servers people actually run' : 'The skills people actually install'}</h2></div></div>
-  <div class="egrid">${list.slice(0, POP_SHOWN).map((r) => popCard(r, type)).join('')}</div>
+  <div class="egrid">${list.slice(0, POP_OPEN).map((r) => popCard(r, type)).join('')}</div>
+  ${list.length > POP_OPEN ? `<details class="notes pop-more"><summary>Show ${Math.min(list.length, POP_SHOWN) - POP_OPEN} more</summary><div class="egrid">${list.slice(POP_OPEN, POP_SHOWN).map((r) => popCard(r, type)).join('')}</div></details>` : ''}
   <p class="muted small section-note">From ${src}. Many of these live inside larger repos${type === 'mcp' ? ' or run as hosted services' : ''}, so they don't show up in the trending list below.</p>
 </section>`;
 }

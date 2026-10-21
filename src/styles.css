@@ -1724,3 +1724,5 @@ html.seeking { overflow: hidden; }
   .mf { grid-template-columns: minmax(0, 1fr); }
   .mf-setup { position: static; max-height: none; overflow: visible; padding: 0; }
 }
+.pop-more { margin-top: 14px; }
+.pop-more > .egrid { margin-top: 14px; }
