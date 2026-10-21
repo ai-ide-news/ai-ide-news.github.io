@@ -1,5 +1,6 @@
 // Renders data/snapshot.json into a static, SEO-friendly site in dist/.
 import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
+import { Resvg } from '@resvg/resvg-js';
 import { TOOLS, CATEGORIES } from './sources.mjs';
 import { resolveIcons } from './icons.mjs';
 import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
@@ -177,7 +178,9 @@ function layout({ root, path, title, description, body, jsonld, active = '' }) {
 <meta property="og:image" content="${SITE_URL}/og.png">
 <meta name="twitter:card" content="summary_large_image">
 ${VERIFY.split(',').filter(Boolean).map((v) => `<meta name="google-site-verification" content="${esc(v.trim())}">`).join('')}
+<link rel="icon" href="${root}favicon.ico" sizes="32x32">
 <link rel="icon" href="${root}favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="${root}apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="${SITE_NAME} — all AI IDE & CLI updates" href="${root}feed.xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -1757,11 +1760,26 @@ const out = async (path, content) => {
   await writeFile(url, content);
 };
 
+// Raster favicons for browsers and apps that skip SVG icons (Safari, previews, search results).
+const favicons = async () => {
+  const svg = await readFile(new URL('static/favicon.svg', ROOT));
+  const png = (w) => new Resvg(svg, { fitTo: { mode: 'width', value: w } }).render().asPng();
+  const ico32 = png(32);
+  const head = Buffer.alloc(22);
+  head.writeUInt16LE(1, 2); head.writeUInt16LE(1, 4);
+  head.writeUInt8(32, 6); head.writeUInt8(32, 7);
+  head.writeUInt16LE(1, 10); head.writeUInt16LE(32, 12);
+  head.writeUInt32LE(ico32.length, 14); head.writeUInt32LE(22, 18);
+  await writeFile(new URL('favicon.ico', DIST), Buffer.concat([head, ico32]));
+  await writeFile(new URL('apple-touch-icon.png', DIST), png(180));
+};
+
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 await cp(new URL('src/', ROOT), new URL('assets/', DIST), { recursive: true });
 await cp(new URL('static/', ROOT), DIST, { recursive: true });
 await icons();
+await favicons();
 
 await out('index.html', indexPage());
 await out('tools/index.html', toolsIndexPage());
