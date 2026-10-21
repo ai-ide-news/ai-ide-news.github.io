@@ -6,6 +6,7 @@ import { resolveIcons } from './icons.mjs';
 import { resolvePortraits, subjects } from './portraits.mjs';
 import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
 import { LAB_ICONS, MODEL_LABS, labKey } from './models.mjs';
+import { LOGO_MOTION } from './logo-motion.mjs';
 import { TOOL_LAUNCH, COMPANIES, fmtLaunch } from './launches.mjs';
 import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
 import { AA_SOURCE } from './aa.mjs';
@@ -128,7 +129,10 @@ const icon = (t, root, size = 'md') => {
   const art = !src ? '' : m.mono
     ? `<i class="mono" style="-webkit-mask-image:url('${src}');mask-image:url('${src}')"></i>`
     : `<img${m.src === 'github-org-avatar' ? ' class="fill"' : ''} src="${src}" alt="" loading="lazy" decoding="async" width="40" height="40">`;
-  return `<span class="ticon ticon-${size}${src ? ' has-logo' : ''}${m?.tone ? ` tone-${m.tone}` : ''}" style="--c:${t.color}" aria-hidden="true">${art}<b>${esc(t.name[0])}</b></span>`;
+  const [anim, vars = {}] = (src && LOGO_MOTION[t.id]) || [];
+  const motion = anim ? ` data-anim="${anim}"` : '';
+  const style = `--c:${t.color}${Object.entries(vars).map(([k, v]) => `;--${k}:${v}`).join('')}`;
+  return `<span class="ticon ticon-${size}${src ? ' has-logo' : ''}${m?.tone ? ` tone-${m.tone}` : ''}"${motion} style="${style}" aria-hidden="true">${art}<b>${esc(t.name[0])}</b></span>`;
 };
 
 // Labelled ad unit; renders nothing until AdSense and that slot are configured.

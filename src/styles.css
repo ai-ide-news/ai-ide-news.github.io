@@ -271,6 +271,111 @@ h2 { font: 600 clamp(26px, 3vw, 34px)/1.1 var(--font); letter-spacing: -.035em; 
 .ticon-md { width: 40px; height: 40px; font-size: 18px; }
 .ticon-xl { width: 72px; height: 72px; font-size: 32px; }
 
+/* ── Logo motion ── Each logo maps to a motion in scripts/logo-motion.mjs (data-anim, plus vars such as --turn).
+   Hero (xl) tiles loop it; smaller tiles play it while their row/link is hovered. Every keyframe set ends on
+   the logo's resting pose (or an identical one), so loops are seamless; most build a pause into the cycle. */
+.ticon[data-anim] > :is(.mono, img) { --a-ease: cubic-bezier(.65, 0, .35, 1); }
+.ticon-xl[data-anim] > :is(.mono, img) { animation: var(--a-name) var(--a-xl, 4s) var(--a-ease) .4s infinite; }
+:is(a:hover, .ptool:hover) .ticon[data-anim] > :is(.mono, img), .ticon[data-anim]:hover > :is(.mono, img) { animation: var(--a-name) var(--a-sm, 1.6s) var(--a-ease) infinite; }
+
+/* turn: ratchets by the mark's symmetry angle (--turn) with a small overshoot; the hero tile glows in brand colour. */
+@keyframes logo-turn { 0% { rotate: 0deg; } 20% { rotate: calc(var(--turn) * 1.13); } 30%, 100% { rotate: var(--turn); } }
+@keyframes logo-glow { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 20% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 22%, transparent); } }
+.ticon[data-anim='turn'] > * { --a-name: logo-turn; }
+.ticon-xl[data-anim='turn'] { animation: logo-glow 4s ease-out .4s infinite; }
+/* spin: winds back, does one full turn and settles (Claude's thinking spark). */
+@keyframes logo-spin { 0% { rotate: 0deg; scale: 1; } 12% { rotate: -14deg; scale: .9; } 55% { rotate: 372deg; scale: 1.08; } 68%, 100% { rotate: 360deg; scale: 1; } }
+.ticon[data-anim='spin'] > * { --a-name: logo-spin; --a-ease: cubic-bezier(.55, 0, .3, 1); --a-xl: 4.5s; }
+/* twinkle: a 4-point sparkle shrinks, turns a quarter (--turn) and flares (Gemini). */
+@keyframes logo-twinkle { 0% { rotate: 0deg; scale: 1; } 15% { rotate: -10deg; scale: .72; } 35% { rotate: var(--turn, 90deg); scale: 1.14; } 48%, 100% { rotate: var(--turn, 90deg); scale: 1; } }
+.ticon[data-anim='twinkle'] > * { --a-name: logo-twinkle; }
+/* draw: erased and re-drawn left to right as one stroke. */
+@keyframes logo-draw { 0%, 100% { clip-path: inset(0 0 0 0); } 10% { clip-path: inset(0 0 0 100%); } 11% { clip-path: inset(0 100% 0 0); } 50% { clip-path: inset(0 0 0 0); } }
+.ticon[data-anim='draw'] > * { --a-name: logo-draw; }
+/* quad: four squares come in one at a time, top-left first (Microsoft). Same 6-point polygon throughout. */
+@keyframes logo-quad {
+  0%, 38%, 100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 100%, 50% 100%, 0 100%); }
+  6% { clip-path: polygon(0 0, 0 0, 0 0, 0 0, 0 0, 0 0); }
+  14% { clip-path: polygon(0 0, 50% 0, 50% 50%, 50% 50%, 0 50%, 0 50%); }
+  22% { clip-path: polygon(0 0, 100% 0, 100% 50%, 50% 50%, 50% 50%, 0 50%); }
+  30% { clip-path: polygon(0 0, 100% 0, 100% 50%, 50% 50%, 50% 100%, 0 100%); }
+}
+.ticon[data-anim='quad'] > * { --a-name: logo-quad; --a-ease: steps(1, end); }
+/* glitch: a burst of sliced, offset frames, then still. */
+@keyframes logo-glitch {
+  0%, 30%, 100% { translate: 0 0; clip-path: inset(0); opacity: 1; }
+  4% { translate: -8% 0; clip-path: inset(10% 0 55% 0); }
+  8% { translate: 6% 0; clip-path: inset(55% 0 10% 0); }
+  12% { translate: -3% 0; clip-path: inset(0); opacity: .55; }
+  16% { translate: 0 0; opacity: 1; }
+  21% { translate: 5% 0; clip-path: inset(35% 0 35% 0); }
+  25% { translate: 0 0; clip-path: inset(0); }
+}
+.ticon[data-anim='glitch'] > * { --a-name: logo-glitch; --a-ease: steps(1, end); }
+/* build: pixel marks stack up row by row. */
+@keyframes logo-build { 0%, 100% { clip-path: inset(0); } 6% { clip-path: inset(100% 0 0 0); animation-timing-function: steps(5, end); } 40% { clip-path: inset(0); } }
+.ticon[data-anim='build'] > * { --a-name: logo-build; }
+/* type: a prompt types itself in from the left. */
+@keyframes logo-type { 0%, 100% { clip-path: inset(0); } 5% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(6, end); } 40% { clip-path: inset(0); } }
+.ticon[data-anim='type'] > * { --a-name: logo-type; }
+/* zip: flies out to the right and back in from the left. */
+@keyframes logo-zip { 0% { translate: 0 0; animation-timing-function: cubic-bezier(.6, 0, 1, .4); } 18% { translate: 140% 0; } 18.01% { translate: -140% 0; animation-timing-function: cubic-bezier(0, .6, .3, 1); } 40%, 100% { translate: 0 0; } }
+.ticon[data-anim='zip'] > * { --a-name: logo-zip; }
+/* flip: turns over like a card. */
+@keyframes logo-flip { 0% { rotate: y 0deg; } 35%, 100% { rotate: y 360deg; } }
+.ticon[data-anim='flip'] { perspective: 240px; }
+.ticon[data-anim='flip'] > * { --a-name: logo-flip; }
+/* pulse / beat / breathe / eq: scale-based. */
+@keyframes logo-pulse { 0%, 60%, 100% { scale: 1; opacity: 1; } 30% { scale: 1.14; opacity: .8; } }
+@keyframes logo-beat { 0%, 45%, 100% { scale: 1; } 10% { scale: 1.18; } 20% { scale: .96; } 30% { scale: 1.12; } }
+@keyframes logo-breathe { 0%, 100% { scale: 1 1; } 30% { scale: 1.08 .93; } 65% { scale: .95 1.06; } }
+@keyframes logo-eq { 0%, 60%, 100% { scale: 1 1; } 12% { scale: 1 .6; } 26% { scale: 1 1.15; } 40% { scale: 1 .8; } 50% { scale: 1 1.05; } }
+.ticon[data-anim='pulse'] > * { --a-name: logo-pulse; --a-ease: ease-in-out; }
+.ticon[data-anim='beat'] > * { --a-name: logo-beat; --a-ease: ease-out; }
+.ticon[data-anim='breathe'] > * { --a-name: logo-breathe; --a-ease: ease-in-out; }
+.ticon[data-anim='eq'] > * { --a-name: logo-eq; --a-ease: ease-in-out; transform-origin: 50% 100%; }
+/* float / lift / swim: drift-based. */
+@keyframes logo-float { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: 0 -10%; rotate: -4deg; } }
+@keyframes logo-lift { 0%, 85%, 100% { translate: 0 0; scale: 1; } 8% { translate: 0 4%; scale: 1.04 .96; } 35%, 55% { translate: 0 -18%; scale: 1; } }
+@keyframes logo-swim { 0%, 100% { translate: 0 0; rotate: 0deg; } 25% { translate: 5% -7%; rotate: -7deg; } 50% { translate: 0 0; rotate: 0deg; } 75% { translate: -5% 3%; rotate: 4deg; } }
+.ticon[data-anim='float'] > * { --a-name: logo-float; --a-ease: ease-in-out; }
+.ticon[data-anim='lift'] > * { --a-name: logo-lift; --a-ease: ease-in-out; }
+.ticon[data-anim='swim'] > * { --a-name: logo-swim; --a-ease: ease-in-out; --a-sm: 2.2s; }
+/* mascot acts: hop, climb, peek, wiggle, flap, wave, scuttle. */
+@keyframes logo-hop { 0%, 45%, 100% { translate: 0 0; scale: 1 1; } 8% { translate: 0 0; scale: 1.08 .92; } 22% { translate: 0 -18%; scale: .95 1.05; } 34% { translate: 0 0; scale: 1.06 .94; } }
+@keyframes logo-climb { 0%, 100% { translate: 0 0; } 12% { translate: 6% -10%; } 20% { translate: 8% -8%; } 32% { translate: 14% -18%; } 40% { translate: 16% -16%; } 70% { translate: 0 0; } }
+@keyframes logo-peek { 0%, 60%, 100% { rotate: 0deg; translate: 0 0; } 14% { rotate: -12deg; translate: 0 0; } 28% { rotate: 10deg; translate: 0 0; } 40% { rotate: 0deg; translate: 0 0; } 48% { rotate: 0deg; translate: 0 6%; } }
+@keyframes logo-wiggle { 0%, 55%, 100% { rotate: 0deg; scale: 1 1; } 10% { rotate: -9deg; scale: 1 1; } 20% { rotate: 8deg; scale: 1 1; } 30% { rotate: -6deg; scale: 1 1; } 40% { rotate: 3deg; scale: 1.05 .95; } }
+@keyframes logo-flap { 0%, 45%, 100% { rotate: 0deg; translate: 0 0; } 10% { rotate: -10deg; translate: 0 -7%; } 20% { rotate: 6deg; translate: 0 0; } 30% { rotate: -10deg; translate: 0 -7%; } }
+@keyframes logo-wave { 0%, 55%, 100% { rotate: 0deg; } 10% { rotate: 14deg; } 20% { rotate: -8deg; } 30% { rotate: 14deg; } 40% { rotate: -4deg; } }
+@keyframes logo-scuttle {
+  0%, 60%, 100% { translate: 0 0; scale: 1 1; }
+  8% { translate: -9% -10%; scale: 1 1; } 16% { translate: -16% 0; scale: 1.06 .94; }
+  24% { translate: -7% -10%; scale: 1 1; } 32% { translate: 0 0; scale: 1.06 .94; }
+  40% { translate: 8% -10%; scale: 1 1; } 48% { translate: 14% 0; scale: 1.06 .94; }
+  54% { translate: 6% -6%; scale: 1 1; }
+}
+.ticon[data-anim='hop'] > * { --a-name: logo-hop; --a-ease: ease-in-out; transform-origin: 50% 100%; }
+.ticon[data-anim='climb'] > * { --a-name: logo-climb; --a-ease: ease-in-out; }
+.ticon[data-anim='peek'] > * { --a-name: logo-peek; --a-ease: ease-in-out; transform-origin: 50% 90%; }
+.ticon[data-anim='wiggle'] > * { --a-name: logo-wiggle; --a-ease: ease-in-out; transform-origin: 50% 30%; }
+.ticon[data-anim='flap'] > * { --a-name: logo-flap; --a-ease: ease-in-out; }
+.ticon[data-anim='wave'] > * { --a-name: logo-wave; --a-ease: ease-in-out; transform-origin: 50% 90%; }
+.ticon[data-anim='scuttle'] > * { --a-name: logo-scuttle; --a-ease: ease-in-out; --a-sm: 1.8s; transform-origin: 50% 100%; }
+/* shine: a light sweep crosses the tile (works for full-bleed avatars too). */
+@keyframes logo-shine { 0% { background-position: 160% 0; } 35%, 100% { background-position: -60% 0; } }
+.ticon[data-anim='shine']::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(105deg, transparent 38%, rgb(255 255 255 / .55) 50%, transparent 62%) no-repeat -60% 0 / 250% 100%; }
+.ticon-xl[data-anim='shine']::after { animation: logo-shine 4s ease-in-out .4s infinite; }
+:is(a:hover, .ptool:hover) .ticon[data-anim='shine']::after, .ticon[data-anim='shine']:hover::after { animation: logo-shine 1.6s ease-in-out infinite; }
+/* ink (Anthropic): the A\ is written on behind a clay pen edge, then a clay sweep passes through it.
+   The band sits on an ink base; at background-size 200% its x = width × (1 − position), so 160% → -60% crosses fully. */
+@keyframes logo-ink-write { 0% { clip-path: inset(0 100% 0 0); background-position: 100% 0; } 70% { clip-path: inset(0 0 0 0); background-position: 0% 0; } 100% { clip-path: inset(0 0 0 0); background-position: -60% 0; } }
+@keyframes logo-ink { 0% { background-position: 160% 0; } 35%, 100% { background-position: -60% 0; } }
+.ticon[data-anim='ink'] > .mono { --a-name: logo-ink; --a-ease: ease-in-out; --a-sm: 1.8s; background: var(--ink) linear-gradient(90deg, transparent 38%, var(--c) 50%, transparent 62%) no-repeat -60% 0 / 200% 100%; }
+.ticon-xl[data-anim='ink'] > .mono { animation: logo-ink-write 1.4s cubic-bezier(.45, 0, .25, 1) .2s backwards, logo-ink 5s ease-in-out 3s infinite; }
+
+@media (prefers-reduced-motion: reduce) { .ticon[data-anim], .ticon[data-anim] > *, .ticon[data-anim]::after { animation: none !important; } }
+
 /* ── version board: a ruled two-column table ── */
 .vgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; }
 .vcard { display: grid; grid-template-columns: 28px minmax(0, 1fr) minmax(0, 130px) 64px 88px; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); }
