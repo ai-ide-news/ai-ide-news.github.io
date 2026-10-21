@@ -1,5 +1,6 @@
 // Renders data/snapshot.json into a static, SEO-friendly site in dist/.
-import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rm, cp, readdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { Resvg } from '@resvg/resvg-js';
 import { TOOLS, CATEGORIES } from './sources.mjs';
 import { resolveIcons } from './icons.mjs';
@@ -44,6 +45,15 @@ const ANDROID_APP = { id: 'io.github.aiidenews.aiticker', sha256: [
 
 const snap = JSON.parse(await readFile(new URL('data/snapshot.json', ROOT), 'utf8'));
 const NOW = Date.parse(snap.generatedAt);
+// Cache-busting version for src/ assets: a hash of their contents, so any code change gets a new URL
+// (and a new service worker) even when the data snapshot, and so NOW, hasn't moved.
+const ASSET_V = await (async () => {
+  const dir = new URL('src/', ROOT), h = createHash('sha256');
+  for (const f of (await readdir(dir, { recursive: true })).map((f) => f.replaceAll('\\', '/')).sort()) {
+    h.update(f).update(await readFile(new URL(f, dir)).catch(() => '')); // directories read as ''
+  }
+  return h.digest('hex').slice(0, 10);
+})();
 
 // ── helpers ───────────────────────────────────────────────
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -204,7 +214,7 @@ ${VERIFY.split(',').filter(Boolean).map((v) => `<meta name="google-site-verifica
 <link rel="alternate" type="application/rss+xml" title="${SITE_NAME} — all AI IDE & CLI updates" href="${root}feed.xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="${root}assets/styles.css?v=${NOW}">
+<link rel="stylesheet" href="${root}assets/styles.css?v=${ASSET_V}">
 ${ADS.client ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ADS.client)}" crossorigin="anonymous"></script>` : ''}
 <script>try{const t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;else if(matchMedia('(prefers-color-scheme: light)').matches)document.documentElement.dataset.theme='light'}catch(e){}</script>
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, '\\u003c')}</script>` : ''}
@@ -245,8 +255,8 @@ ${body}
     </div>
   </div>
 </footer>
-<script src="${root}assets/app.js?v=${NOW}" defer></script>
-<script src="${root}assets/seek.js?v=${NOW}" defer></script>
+<script src="${root}assets/app.js?v=${ASSET_V}" defer></script>
+<script src="${root}assets/seek.js?v=${ASSET_V}" defer></script>
 ${CF_BEACON ? `<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='${esc(JSON.stringify({ token: CF_BEACON }))}'></script>` : ''}
 </body>
 </html>`;
@@ -1483,7 +1493,7 @@ function myFeedPage() {
   </div>
   <script type="application/json" id="mf-data">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>
 </section>
-<script src="${root}assets/myfeed.js?v=${NOW}" defer></script>`;
+<script src="${root}assets/myfeed.js?v=${ASSET_V}" defer></script>`;
   return layout({
     root, path: 'my-feed/', active: 'myfeed', title: `My feed — Follow Any Source in One Stream | ${SITE_NAME}`,
     description: 'Build your own news feed: follow AI coding tools plus any RSS feed, website, YouTube channel, subreddit, Bluesky, Mastodon or Instagram account, all in one stream.', body,
@@ -2023,7 +2033,7 @@ const pwa = async () => {
     target: { namespace: 'android_app', package_name: ANDROID_APP.id, sha256_cert_fingerprints: ANDROID_APP.sha256 },
   }], null, 2));
   const sw = await readFile(new URL('scripts/sw.js', ROOT), 'utf8');
-  await out('sw.js', sw.replace('__VERSION__', String(NOW)));
+  await out('sw.js', sw.replace('__VERSION__', `${NOW}-${ASSET_V}`));
 };
 
 await rm(DIST, { recursive: true, force: true });

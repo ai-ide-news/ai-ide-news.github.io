@@ -45,11 +45,13 @@ const networkFirst = async (e, fallback) => {
   }
 };
 
+// Exact URL match, so a new ?v= (a new deploy's assets) misses and comes straight from the network;
+// any cached version only stands in when the network is down.
 const staleWhileRevalidate = async (e) => {
-  const hit = await caches.match(e.request, { ignoreSearch: !FONTS.test(new URL(e.request.url).origin) });
+  const hit = await caches.match(e.request);
   const net = fetch(e.request).then((res) => { e.waitUntil(put(e.request, res.clone())); return res; });
   if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
-  return net;
+  return net.catch(async () => (await caches.match(e.request, { ignoreSearch: true })) || Response.error());
 };
 
 self.addEventListener('fetch', (e) => {
