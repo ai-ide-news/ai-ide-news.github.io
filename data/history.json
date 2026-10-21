@@ -1,0 +1,59 @@
+{
+  "_about": "Hand-curated releases that OpenRouter no longer lists, so lab timelines reach back past the live catalog. The id prefix is the OpenRouter author (scripts/models.mjs MODEL_LABS). date = public release; context in tokens; input/output = USD per 1M tokens at launch, null when there was no public API price. An entry whose id or name matches a live model is skipped.",
+  "models": [
+    { "id": "anthropic/claude-1", "name": "Claude", "date": "2023-03-14", "context": 9000, "input": 11.02, "output": 32.68 },
+    { "id": "anthropic/claude-instant-1", "name": "Claude Instant", "date": "2023-03-14", "context": 9000, "input": 1.63, "output": 5.51 },
+    { "id": "anthropic/claude-2", "name": "Claude 2", "date": "2023-07-11", "context": 100000, "input": 11.02, "output": 32.68 },
+    { "id": "anthropic/claude-instant-1.2", "name": "Claude Instant 1.2", "date": "2023-08-09", "context": 100000, "input": 1.63, "output": 5.51 },
+    { "id": "anthropic/claude-2.1", "name": "Claude 2.1", "date": "2023-11-21", "context": 200000, "input": 8, "output": 24 },
+    { "id": "anthropic/claude-3-opus", "name": "Claude 3 Opus", "date": "2024-03-04", "context": 200000, "input": 15, "output": 75 },
+    { "id": "anthropic/claude-3-sonnet", "name": "Claude 3 Sonnet", "date": "2024-03-04", "context": 200000, "input": 3, "output": 15 },
+    { "id": "anthropic/claude-3-haiku", "name": "Claude 3 Haiku", "date": "2024-03-13", "context": 200000, "input": 0.25, "output": 1.25 },
+    { "id": "anthropic/claude-3.5-sonnet-20240620", "name": "Claude 3.5 Sonnet", "date": "2024-06-20", "context": 200000, "input": 3, "output": 15 },
+    { "id": "anthropic/claude-3.5-sonnet", "name": "Claude 3.5 Sonnet (Oct 2024)", "date": "2024-10-22", "context": 200000, "input": 3, "output": 15 },
+    { "id": "anthropic/claude-3.5-haiku", "name": "Claude 3.5 Haiku", "date": "2024-11-04", "context": 200000, "input": 0.8, "output": 4 },
+    { "id": "anthropic/claude-3.7-sonnet", "name": "Claude 3.7 Sonnet", "date": "2025-02-24", "context": 200000, "input": 3, "output": 15 },
+    { "id": "anthropic/claude-opus-4", "name": "Claude Opus 4", "date": "2025-05-22", "context": 200000, "input": 15, "output": 75 },
+    { "id": "anthropic/claude-sonnet-4", "name": "Claude Sonnet 4", "date": "2025-05-22", "context": 200000, "input": 3, "output": 15 },
+
+    { "id": "openai/gpt-4-1106-preview", "name": "GPT-4 Turbo Preview", "date": "2023-11-06", "context": 128000, "input": 10, "output": 30 },
+    { "id": "openai/o1-preview", "name": "o1-preview", "date": "2024-09-12", "context": 128000, "input": 15, "output": 60 },
+    { "id": "openai/o1-mini", "name": "o1-mini", "date": "2024-09-12", "context": 128000, "input": 3, "output": 12 },
+    { "id": "openai/gpt-4.5-preview", "name": "GPT-4.5 Preview", "date": "2025-02-27", "context": 128000, "input": 75, "output": 150 },
+
+    { "id": "google/gemini-pro", "name": "Gemini 1.0 Pro", "date": "2023-12-13", "context": 32760, "input": 0.5, "output": 1.5 },
+    { "id": "google/gemini-pro-1.5", "name": "Gemini 1.5 Pro", "date": "2024-02-15", "context": 1000000, "input": 3.5, "output": 10.5 },
+    { "id": "google/gemini-flash-1.5", "name": "Gemini 1.5 Flash", "date": "2024-05-14", "context": 1000000, "input": 0.35, "output": 1.05 },
+    { "id": "google/gemini-2.0-flash-001", "name": "Gemini 2.0 Flash", "date": "2024-12-11", "context": 1000000, "input": 0.1, "output": 0.4 },
+
+    { "id": "x-ai/grok-1", "name": "Grok-1", "date": "2023-11-04", "context": 8192, "input": null, "output": null },
+    { "id": "x-ai/grok-2", "name": "Grok 2", "date": "2024-08-13", "context": 131072, "input": 2, "output": 10 },
+    { "id": "x-ai/grok-3", "name": "Grok 3", "date": "2025-02-17", "context": 131072, "input": 3, "output": 15 },
+    { "id": "x-ai/grok-4", "name": "Grok 4", "date": "2025-07-09", "context": 256000, "input": 3, "output": 15 },
+
+    { "id": "deepseek/deepseek-v2", "name": "DeepSeek V2", "date": "2024-05-06", "context": 128000, "input": 0.14, "output": 0.28 },
+    { "id": "deepseek/deepseek-r1", "name": "DeepSeek R1", "date": "2025-01-20", "context": 64000, "input": 0.55, "output": 2.19 },
+
+    { "id": "mistralai/mistral-7b-instruct-v0.1", "name": "Mistral 7B", "date": "2023-09-27", "context": 8192, "input": null, "output": null },
+    { "id": "mistralai/mixtral-8x7b-instruct", "name": "Mixtral 8x7B", "date": "2023-12-11", "context": 32768, "input": 0.7, "output": 0.7 },
+    { "id": "mistralai/codestral-2405", "name": "Codestral", "date": "2024-05-29", "context": 32768, "input": 1, "output": 3 },
+
+    { "id": "meta-llama/llama-2-70b-chat", "name": "Llama 2 70B", "date": "2023-07-18", "context": 4096, "input": null, "output": null },
+    { "id": "meta-llama/llama-3-70b-instruct", "name": "Llama 3 70B", "date": "2024-04-18", "context": 8192, "input": null, "output": null },
+    { "id": "meta-llama/llama-3.1-405b-instruct", "name": "Llama 3.1 405B Instruct", "date": "2024-07-23", "context": 131072, "input": null, "output": null },
+
+    { "id": "qwen/qwen-7b-chat", "name": "Qwen 7B", "date": "2023-08-03", "context": 8192, "input": null, "output": null },
+    { "id": "qwen/qwen-2-72b-instruct", "name": "Qwen2 72B", "date": "2024-06-07", "context": 131072, "input": null, "output": null },
+    { "id": "qwen/qwq-32b", "name": "QwQ 32B", "date": "2025-03-05", "context": 131072, "input": null, "output": null },
+
+    { "id": "z-ai/glm-4", "name": "GLM-4", "date": "2024-01-16", "context": 128000, "input": null, "output": null },
+
+    { "id": "microsoft/phi-2", "name": "Phi-2", "date": "2023-12-12", "context": 2048, "input": null, "output": null },
+    { "id": "microsoft/phi-3-mini-128k-instruct", "name": "Phi-3 Mini", "date": "2024-04-23", "context": 128000, "input": null, "output": null },
+
+    { "id": "cohere/command-r", "name": "Command R", "date": "2024-03-11", "context": 128000, "input": 0.5, "output": 1.5 },
+    { "id": "cohere/command-r-plus", "name": "Command R+", "date": "2024-04-04", "context": 128000, "input": 3, "output": 15 },
+
+    { "id": "nvidia/nemotron-4-340b-instruct", "name": "Nemotron-4 340B", "date": "2024-06-14", "context": 4096, "input": null, "output": null }
+  ]
+}

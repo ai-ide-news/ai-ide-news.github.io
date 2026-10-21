@@ -40,13 +40,13 @@ const SIGNALS = [
   ['Deprecation', 4, /end of life|deprecat|retir(e|es|ing|ement)\b|sunset/i],
   ['Model', 2.5, /\b(claude|opus|sonnet|haiku) ?\d|\bgpt-?\d|\bgemini \d|\bo\d\b|\bqwen ?\d|kimi k\d|\bglm-?\d|deepseek[- ]?(v|r)\d|minimax[- ]?m\d|\bllama ?\d|mistral|devstral|codestral|new (coding )?model|open(-| )weights?/i],
   ['Pricing', 4, /pricing|price (cut|drop|increase)|\bfree (tier|for)|rate limits?|usage limits?|\bplans?\b.*(change|new)|\bcredits?\b|billing|charges/i],
-  ['Policy', 3, /terms of (service|use)|\btos\b|\bban(s|ned)?\b|suspend|telemetry|privacy|licen[cs]e change/i],
+  ['Policy', 3, /terms of (service|use)|\btos\b|\bban(s|ned)?\b|suspend|\btelemetry\b|privacy|licen[cs]e change/i],
   ['Outage', 3, /outage|\bdown\b.*(hours|users)|degraded|incident report/i],
-  ['Launch', 3, /\bintroduc(ing|es)\b|\bannounc(ing|es|ed)\b|\blaunch(es|ed|ing)?\b|now available|generally available|\bga\b|public (beta|preview)|open.sourc(ed|ing)|\bis here\b|\bmeet\b|\b\d+\.0\b|\bv\d+\b(?!\.)/i],
+  ['Launch', 3, /\bintroduc(ing|es)\b|\bannounc(ing|es|ed)\b|\blaunch(es|ed|ing)?\b|now available|generally available|\bga\b|public (beta|preview)|open.sourc(ed|ing)\b|\bis here\b|\bmeet\b|\b\d+\.0\b|\bv\d+\b(?!\.)/i],
 ];
 
 // Routine or marketing posts that are never "news", whatever keywords they contain.
-const NOISE = /\b(how|why) (\w+ ){0,4}(uses?|cuts?|turns?|halves|boosts?|made|built|increases?|saves?|answers?|moves?|completed|became)\b|case study|customer story|webinar|for beginners|\btips?\b|tutorial|\bhiring\b|podcast|meetup|recap|field notes|challenge|hackathon|giveaway|contest|swag|giving d+ (people|devs)|this week'?s|this week in|weekly|newsletter|roundup|developer diary|what is |are you a|^visual studio code \d|^show hn|^ask hn|workflows with|learn and teach|\bguide to\b|best practices|deep dive|govcloud|^(?!introducing|announcing).*\b(with|using) (chatgpt|codex|gpt-?[\d.]*|claude|gemini|copilot)\b/i;
+const NOISE = /\b(how|why) (\w+ ){0,4}(uses?|cuts?|turns?|halves|boosts?|made|built|increases?|saves?|answers?|moves?|completed|became)\b|case study|customer story|webinar|for beginners|\btips?\b|tutorial|\bhiring\b|podcast|meetup|recap|field notes|challenge|hackathon|giveaway|contest|swag|\bgiving \d+ (people|devs)|getting the most out of|this week'?s|this week in|weekly|newsletter|roundup|developer diary|what is |are you a|^visual studio code \d|^show hn|^ask hn|workflows with|learn and teach|\bguide to\b|best practices|deep dive|govcloud|^(?!introducing|announcing).*\b(with|using) (chatgpt|codex|gpt-?[\d.]*|claude|gemini|copilot)\b/i;
 
 export function scoreNews({ title, text = '', points = 0, likes = 0, official = false, routine = false }) {
   if (NOISE.test(title)) return { score: 0, tag: null };
@@ -199,6 +199,11 @@ const similar = (a, b) => {
   const inter = [...A].filter((w) => B.has(w)).length;
   return inter / Math.max(1, Math.min(A.size, B.size)) >= 0.6 && inter >= 3;
 };
+// Breaches and acquisitions get retold under very different headlines ("X hacked" / "X security breach
+// impacted 1.4%"): the same tag about the same single tool within 3 days is one story.
+const sameIncident = (a, b) => (a.tag === 'Security' || a.tag === 'Business') && a.tag === b.tag
+  && a.toolIds.length === 1 && b.toolIds.length === 1 && a.toolIds[0] === b.toolIds[0]
+  && Math.abs(Date.parse(a.date) - Date.parse(b.date)) < 3 * 86400e3;
 // Headline = the post's first line or sentence, without links, leading emoji or a trailing colon.
 const tweetTitle = (text) => {
   const lines = text.replace(/https?:\/\/\S+/g, '').split(/\n+/).map((l) => l.replace(/^[^\p{L}\p{N}"'“]+/u, '').replace(/\s+/g, ' ').trim()).filter(Boolean);
@@ -241,7 +246,7 @@ export function pickNews({ items, extra, discussions, posts, matchTools, handleT
   // Merge the same story told by several sources: coverage in more places makes it more important.
   const merged = [];
   for (const c of cands.sort((a, b) => b.score - a.score)) {
-    const twin = merged.find((m) => m.url === c.url || similar(m.title, c.title));
+    const twin = merged.find((m) => m.url === c.url || similar(m.title, c.title) || sameIncident(m, c));
     if (!twin) { merged.push({ ...c }); continue; }
     twin.sources.push(...c.sources.filter((s) => !twin.sources.some((t) => t.url === s.url)));
     twin.toolIds = [...new Set([...twin.toolIds, ...c.toolIds])];

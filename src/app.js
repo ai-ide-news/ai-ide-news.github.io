@@ -930,11 +930,13 @@
   let built = $('meta[name="pw-generated"]')?.content;
   const versionUrl = new URL('../version.json', document.currentScript?.src || location.href);
   let seen = null, toast = null;
-  async function checkForUpdates() {
-    if (document.hidden || !built) return;
+  // manual: the header refresh button, which reports "up to date" and reloads when cards can't be inserted.
+  async function checkForUpdates(manual = false) {
+    if ((document.hidden && !manual) || !built) return;
     try {
       const v = await (await fetch(`${versionUrl}?t=${Date.now()}`, { cache: 'no-store' })).json();
-      if (!(v.generatedAt > built) || v.generatedAt === seen) return;
+      if (!(v.generatedAt > built)) { if (manual) showToast('You’re up to date. No new updates yet.', null); return; }
+      if (v.generatedAt === seen && !manual) return;
       seen = v.generatedAt;
       const added = feed && v.cards ? insertCards(v.cards) : [];
       if (added.length) {
@@ -946,12 +948,20 @@
           'View', () => { added[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); toast.remove(); });
         return;
       }
+      if (manual) { location.reload(); return; }
       const fresh = v.latest.filter((i) => i.date > built);
       showToast(fresh.length
         ? `${fresh.length} new update${fresh.length === 1 ? '' : 's'}: ${fresh.slice(0, 2).map((i) => i.title).join(' · ')}${fresh.length > 2 ? ' …' : ''}`
         : 'The site was just refreshed with new data.');
-    } catch {}
+    } catch { if (manual) showToast('Couldn’t check for updates. Try again in a moment.', null); }
   }
+  $('#refresh')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    if (btn.classList.contains('is-spinning')) return;
+    btn.classList.add('is-spinning');
+    await Promise.all([checkForUpdates(true), new Promise((r) => setTimeout(r, 500))]);
+    btn.classList.remove('is-spinning');
+  });
   // Places each unseen card under its day header (creating it if needed), newest first.
   function insertCards(list) {
     const known = new Set(cards.map((c) => c.dataset.id));
@@ -999,8 +1009,13 @@
     toast.setAttribute('role', 'status');
     toast.innerHTML = '<span class="dot"></span><p></p><button type="button" class="btn"></button><button type="button" class="x" aria-label="Dismiss">×</button>';
     $('p', toast).textContent = text;
-    $('.btn', toast).textContent = label;
-    $('.btn', toast).addEventListener('click', onClick);
+    if (label) {
+      $('.btn', toast).textContent = label;
+      $('.btn', toast).addEventListener('click', onClick);
+    } else {
+      $('.btn', toast).remove();
+      const t = toast; setTimeout(() => t.remove(), 4000);
+    }
     $('.x', toast).addEventListener('click', () => toast.remove());
     document.body.append(toast);
   }

@@ -175,6 +175,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }
 .icon-btn { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-3); }
 .icon-btn:hover { color: var(--ink); }
+#refresh.is-spinning svg { animation: spin .7s linear infinite; }
 [data-theme='dark'] .sun, [data-theme='light'] .moon { display: none; }
 .nav-toggle { display: none; }
 .nav-toggle path { transition: transform .2s, opacity .2s; transform-origin: 12px 12px; }
@@ -861,6 +862,7 @@ body.has-tray .live-toast { bottom: 84px; }
 .vchart .frontier { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; opacity: .7; }
 .pt { fill: var(--ink-3); opacity: .45; stroke: var(--bg); stroke-width: 1.5; transition: opacity .15s, r .15s; }
 .pt.kin { fill: var(--c); opacity: .85; }
+.pt.retired { fill: var(--bg); stroke: var(--c); stroke-width: 1.5; opacity: .7; }
 .pt.me { fill: var(--ink); opacity: 1; stroke: var(--accent); stroke-width: 3; }
 a:hover > .pt { opacity: 1; r: 7; }
 .vchart .me-label { font: 600 12px var(--font); fill: var(--ink); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
