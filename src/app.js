@@ -1044,4 +1044,35 @@
       });
     });
   });
+
+  // Detail titles type themselves out. Each letter keeps its slot (visibility only), so nothing shifts.
+  document.querySelectorAll('.typed').forEach((el) => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const text = el.textContent;
+    el.textContent = '';
+    const chars = [...text].map((c) => {
+      const s = document.createElement('span');
+      s.className = 'ch';
+      s.textContent = c;
+      el.append(s);
+      return s;
+    });
+    const caret = document.createElement('i');
+    caret.className = 'caret';
+    caret.setAttribute('aria-hidden', 'true');
+    el.prepend(caret);
+    let n = 0;
+    const tick = () => {
+      if (n >= chars.length) {
+        caret.classList.add('idle');
+        setTimeout(() => caret.classList.add('gone'), 2400);
+        return;
+      }
+      chars[n].classList.add('on');
+      chars[n].after(caret);
+      n++;
+      setTimeout(tick, 55 + Math.random() * 70);
+    };
+    setTimeout(tick, 350);
+  });
 })();

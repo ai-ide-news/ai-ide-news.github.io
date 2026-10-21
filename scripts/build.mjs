@@ -3,6 +3,7 @@ import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
 import { Resvg } from '@resvg/resvg-js';
 import { TOOLS, CATEGORIES } from './sources.mjs';
 import { resolveIcons } from './icons.mjs';
+import { resolvePortraits, subjects } from './portraits.mjs';
 import { pricingFor, PRICING_CHECKED } from './pricing.mjs';
 import { LAB_ICONS, MODEL_LABS, labKey } from './models.mjs';
 import { TOOL_LAUNCH, COMPANIES, fmtLaunch } from './launches.mjs';
@@ -36,6 +37,8 @@ const NOW = Date.parse(snap.generatedAt);
 
 // ── helpers ───────────────────────────────────────────────
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Detail-page title: the name types itself out behind a moving caret (src/app.js); the text never reflows.
+const scrawl = (s) => `<span class="typed">${esc(s)}</span>`;
 const ago = (iso) => {
   const s = Math.max(0, (NOW - Date.parse(iso)) / 1000);
   if (s < 3600) return `${Math.max(1, Math.round(s / 60))}m ago`;
@@ -396,6 +399,18 @@ const coByVendor = new Map(companies.flatMap((c) => c.tools.map((t) => [t.vendor
 const coByLab = new Map(companies.filter((c) => c.labId).map((c) => [c.labId, c]));
 const coByName = (name) => companies.find((c) => coKey(c.name) === coKey(name));
 const coTile = (c, root, size = 'sm') => icon({ id: c.iconId, name: c.name, color: c.color }, root, size);
+
+// Founder photo / shareholder logo (scripts/portraits.mjs); tracked companies use their own tile, else initials.
+let PORTRAITS = {};
+const ownerAvatar = (name, root) => {
+  const co = coByName(name);
+  if (co && ICONS[co.iconId]?.file) return coTile(co, root);
+  const p = PORTRAITS[name];
+  if (p?.file) return `<img class="av av-${p.kind}" src="${root}portraits/${p.file}" alt="" title="${esc(p.credit || '')}" loading="lazy" decoding="async" width="28" height="28">`;
+  return `<span class="av av-none" aria-hidden="true">${esc(name.split(/[\s-]+/).filter((w) => /^\p{Lu}/u.test(w)).slice(0, 2).map((w) => w[0]).join('') || name[0])}</span>`;
+};
+// "Larry Page & Sergey Brin (…)" → one chip, an avatar per name.
+const ownerChip = (label, root) => `<li>${subjects(label).map((n) => ownerAvatar(n, root)).join('')}<span>${esc(label)}</span></li>`;
 const coCounts = (c) => [c.tools.length && `${c.tools.length} tool${c.tools.length === 1 ? '' : 's'}`, c.models.length && `${c.models.length} model${c.models.length === 1 ? '' : 's'}`].filter(Boolean).join(' · ');
 const vendorLink = (name, root) => `<a class="lab-link" href="${root}${coPath(coByVendor.get(name))}">${esc(name)}</a>`;
 const coGrid = (list, root) => `<ul class="lab-grid co-grid">${list.map((c) => `<li><a href="${root}${coPath(c)}" style="--c:${c.color}">${coTile(c, root)}<span>${esc(c.name)}</span><small>${coCounts(c)}</small></a></li>`).join('')}</ul>`;
@@ -787,7 +802,7 @@ function modelPage(m) {
     ${icon({ id: `lab-${m.labId}`, name: m.lab, color: m.color }, root, 'xl')}
     <div>
       <p class="eyebrow"><a class="lab-link" href="${root}${labPath(m.labId)}">${esc(m.lab)}</a> · Released ${fmtDate(m.date)}</p>
-      <h1>${esc(m.name)}</h1>
+      <h1>${scrawl(m.name)}</h1>
       ${m.summary ? `<p class="lede">${esc(m.summary)}</p>` : ''}
       <div class="mtags mtags-hero">${modelTags(m)}</div>
       ${strengths(m)}
@@ -880,7 +895,7 @@ function labPage(list) {
     ${icon({ id: `lab-${labId}`, name: lab, color }, root, 'xl')}
     <div>
       <p class="eyebrow">AI lab${co.parent ? ` · ${esc(co.parent)}` : ''}${co.founded ? ` · founded ${co.founded}` : ''} · ${list.length} model${list.length === 1 ? '' : 's'} tracked</p>
-      <h1>${esc(lab)} <em>models</em></h1>
+      <h1>${scrawl(lab)} <em>models</em></h1>
       <p class="lede">Every ${esc(lab)} model on the API today, with release dates, context windows, API prices and benchmark scores. Newest: <a href="${root}${modelPath(newest)}">${esc(newest.name)}</a>, ${ago(newest.date)}.</p>
       <div class="tool-links">
         ${labScored.length ? `<a class="btn" href="${showdownHref(root, labScored.slice(0, 6).map((m) => m.id))}">Compare ${esc(lab)} models →</a>` : ''}
@@ -968,7 +983,7 @@ function companyPage(c) {
     ${coTile(c, root, 'xl')}
     <div>
       <p class="eyebrow">${c.models.length ? 'AI lab' : 'Company'}${info.parent ? ` · part of ${parent ? `<a class="lab-link" href="${root}${coPath(parent)}">${esc(info.parent)}</a>` : esc(info.parent)}` : ''}${info.founded ? ` · founded ${info.founded}` : ''}</p>
-      <h1>${esc(c.name)} <em>profile</em></h1>
+      <h1>${scrawl(c.name)} <em>profile</em></h1>
       <p class="lede">Everything ${esc(c.name)} ships that we track: ${what}. Last shipped ${ago(c.last)}.</p>
       <div class="tool-links">
         ${c.models.length ? `<a class="btn" href="${root}${labPath(c.labId)}">All ${esc(c.name)} models →</a>` : ''}
@@ -984,6 +999,12 @@ function companyPage(c) {
     <div><dt>Last shipped</dt><dd>${ago(c.last)}</dd></div>
     ${stars ? `<div><dt>GitHub stars</dt><dd>${compact(stars)}</dd></div>` : c.models.length ? `<div><dt>Ships · 90 days</dt><dd>${rel90}</dd></div>` : `<div><dt>Updates tracked</dt><dd>${c.tools.reduce((n, t) => n + t.items.length, 0)}</dd></div>`}
   </dl>
+  ${info.founders || info.owner || info.holders ? `<dl class="ownership">
+    ${info.founders ? `<div><dt>Founded by</dt><dd><ul>${info.founders.map((f) => ownerChip(f, root)).join('')}</ul></dd></div>` : ''}
+    ${info.owner ? `<div><dt>Owner</dt><dd>${esc(info.owner)}</dd></div>` : ''}
+    ${info.holders ? `<div><dt>Notable shareholders</dt><dd><ul>${info.holders.map((h) => ownerChip(h, root)).join('')}</ul></dd></div>` : ''}
+  </dl>
+  <p class="credits">Photos and logos via Wikimedia Commons, GitHub and company websites; hover one for its credit.</p>` : ''}
 </section>
 
 ${c.tools.length ? `<section class="wrap section">
@@ -1029,6 +1050,7 @@ ${coNews.length ? `<section class="wrap section">
     jsonld: {
       '@context': 'https://schema.org', '@type': 'Organization', name: c.name, url: `${SITE_URL}/${coPath(c)}`,
       ...(info.founded ? { foundingDate: info.founded } : {}), ...(info.parent ? { parentOrganization: { '@type': 'Organization', name: info.parent } } : {}),
+      ...(info.founders ? { founder: info.founders.filter((n) => !n.startsWith('and ')).map((n) => ({ '@type': 'Person', name: n.replace(/ \(.*\)$/, '') })) } : {}),
       makesOffer: c.tools.map((t) => ({ '@type': 'Offer', itemOffered: { '@type': 'SoftwareApplication', name: t.name, url: `${SITE_URL}/tools/${t.id}/` } })),
     },
     body,
@@ -1210,7 +1232,7 @@ function toolPage(t) {
     ${icon(t, root, 'xl')}
     <div>
       <p class="eyebrow">${CATEGORIES[t.category].label} · ${vendorLink(t.vendor, root)}${est(t.vendor)}${t.discovered ? ` · <span class="trend">↗ Trending on GitHub</span>` : ''}</p>
-      <h1>${esc(t.name)} <em>changelog</em></h1>
+      <h1>${scrawl(t.name)} <em>changelog</em></h1>
       <p class="lede">${esc(t.blurb)}</p>
       <div class="tool-links">
         <a class="btn" href="${esc(t.site)}" target="_blank" rel="noopener">Official site ↗</a>
@@ -1779,6 +1801,17 @@ async function icons() {
   await Promise.all(Object.values(ICONS).filter((m) => m.file).map((m) => cp(new URL(m.file, cacheDir), new URL(`icons/${m.file}`, DIST))));
 }
 
+async function portraits() {
+  await mkdir(new URL('portraits/', DIST), { recursive: true });
+  const cacheDir = new URL('data/portraits/', ROOT);
+  const wanted = Object.entries(COMPANIES).flatMap(([co, i]) => [
+    ...(i.founders || []).flatMap((f) => subjects(f).map((name) => ({ name, kind: 'person', ctx: co }))),
+    ...(i.holders || []).flatMap((h) => subjects(h).filter((n) => !coByName(n)).map((name) => ({ name, kind: 'any', ctx: co }))),
+  ]);
+  PORTRAITS = await resolvePortraits(wanted, cacheDir);
+  await Promise.all(Object.values(PORTRAITS).filter((m) => m.file).map((m) => cp(new URL(m.file, cacheDir), new URL(`portraits/${m.file}`, DIST))));
+}
+
 const out = async (path, content) => {
   const url = new URL(path, DIST);
   await mkdir(new URL('./', url), { recursive: true });
@@ -1804,6 +1837,7 @@ await mkdir(DIST, { recursive: true });
 await cp(new URL('src/', ROOT), new URL('assets/', DIST), { recursive: true });
 await cp(new URL('static/', ROOT), DIST, { recursive: true });
 await icons();
+await portraits();
 await favicons();
 
 await out('index.html', indexPage());
