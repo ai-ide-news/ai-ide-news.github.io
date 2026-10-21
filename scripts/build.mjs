@@ -191,7 +191,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
 <header class="nav">
   <div class="wrap nav-in">
     <a class="brand nav-brand" href="${root}" aria-label="${SITE_NAME} home">
-      <i class="brand-sig" aria-hidden="true"></i><span>${SITE_NAME}</span><em class="brand-live" aria-hidden="true">on the wire</em>
+      <svg class="brand-sig" viewBox="0 0 32 19.4" aria-hidden="true"><path class="sig-chev" d="M0 0h5l7 7-7 7H0l7-7z"/><path class="sig-tick" d="M4 16.6h4.42l3-3h3.98v2.8h-2.82l-3 3H4zM15.4 16.02l2.42-2.42H26v2.8h-7.02l-3 3h-.58z"/><rect class="sig-cur" x="26" y="11.2" width="6" height="6.8"/></svg><span>${SITE_NAME}</span><em class="brand-live" aria-hidden="true">on the wire</em>
     </a>
     <nav class="nav-links" id="nav-links" aria-label="Primary">
       <span class="nav-glide" aria-hidden="true"></span>
