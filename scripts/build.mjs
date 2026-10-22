@@ -16,7 +16,7 @@ import { learnBody, LEARN_SECTIONS } from './learn.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
-const SITE_URL = (process.env.SITE_URL || 'https://ai-ide-news.github.io').replace(/\/$/, '');
+const SITE_URL = (process.env.SITE_URL || 'https://aiticker.site').replace(/\/$/, '');
 const SITE_NAME = 'aiticker';
 const AUTHOR = { name: 'Abdullah ElTiby', url: 'https://github.com/AbdullahElTiby' };
 const REPO_URL = 'https://github.com/ai-ide-news/ai-ide-news.github.io';

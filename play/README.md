@@ -1,6 +1,6 @@
 # aiticker on Google Play
 
-The Android app is a Trusted Web Activity (TWA): a small wrapper that opens https://ai-ide-news.github.io/ full-screen in Chrome. Site deploys update the app instantly. Rebuild and re-upload only if the app shell changes (name, icon, colours, package version).
+The Android app is a Trusted Web Activity (TWA): a small wrapper that opens https://aiticker.site/ full-screen in Chrome. Site deploys update the app instantly. Rebuild and re-upload only if the app shell changes (name, icon, colours, package version).
 
 | | |
 |---|---|
@@ -25,10 +25,10 @@ Personal accounts created after November 2023 must run a **closed test with at l
 Play re-signs the app with its own key, so the site must trust that key too, or the app shows a browser address bar.
 1. Play Console → Test and release → App integrity → App signing → copy **App signing key certificate, SHA-256**.
 2. Add it to `ANDROID_APP.sha256` in `scripts/build.mjs` (next to the upload key) and push.
-3. Check https://ai-ide-news.github.io/.well-known/assetlinks.json lists both fingerprints.
+3. Check https://aiticker.site/.well-known/assetlinks.json lists both fingerprints.
 
 ## 4. App content forms (Policy → App content)
-- **Privacy policy:** https://ai-ide-news.github.io/privacy/
+- **Privacy policy:** https://aiticker.site/privacy/
 - **Ads:** Yes, contains ads (Google AdSense on the web content).
 - **App access:** All functionality available without special access.
 - **Content rating:** questionnaire → category "Reference, News, or Educational"; answer No to violence, sexual content, profanity, drugs, gambling, user interaction/sharing, and location sharing. Expected rating: Everyone / PEGI 3.

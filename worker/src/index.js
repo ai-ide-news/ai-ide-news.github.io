@@ -9,7 +9,7 @@ import { XMLParser } from 'fast-xml-parser';
 const CACHE_TTL = 900;
 const MAX_BYTES = 3 * 1024 * 1024;
 const MAX_ITEMS = 40;
-const UA = 'Mozilla/5.0 (compatible; aiticker-feeds/1.0; +https://ai-ide-news.github.io/my-feed/)';
+const UA = 'Mozilla/5.0 (compatible; aiticker-feeds/1.0; +https://aiticker.site/my-feed/)';
 const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@', processEntities: true, htmlEntities: true });
 
 class UserError extends Error {}
@@ -17,7 +17,7 @@ class UserError extends Error {}
 export default {
   async fetch(req, env, ctx) {
     const origin = req.headers.get('origin') || '';
-    const allowed = (env.ALLOWED_ORIGINS || 'https://ai-ide-news.github.io').split(',').map((s) => s.trim()).filter(Boolean);
+    const allowed = (env.ALLOWED_ORIGINS || 'https://aiticker.site').split(',').map((s) => s.trim()).filter(Boolean);
     const okOrigin = allowed.includes('*') || allowed.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     const cors = { 'access-control-allow-origin': okOrigin ? origin || '*' : allowed[0], 'access-control-allow-methods': 'GET, OPTIONS', vary: 'origin' };
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...cors, 'access-control-max-age': '86400' } });

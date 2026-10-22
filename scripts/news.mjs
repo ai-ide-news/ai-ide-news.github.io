@@ -280,7 +280,7 @@ export function pickNews({ items, extra, discussions, posts, matchTools, handleT
 // ── Images ────────────────────────────────────────────────
 // Each story's picture: the X post's photo / video poster / link-card image, or the article's
 // og:image. Looked up once per story and carried over between runs (null = it has none).
-const IMG_UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
+const IMG_UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://aiticker.site)';
 const STATUS = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/\w+\/status\/(\d+)/;
 const httpsUrl = (u, base) => { try { const v = new URL(u.replace(/&amp;/g, '&'), base); return v.protocol === 'https:' ? v.href : null; } catch { return null; } };
 

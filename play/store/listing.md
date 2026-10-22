@@ -31,9 +31,9 @@ aiticker is independent and not affiliated with any company listed. All trademar
 News & Magazines
 
 ## Contact details
-- Website: https://ai-ide-news.github.io/
+- Website: https://aiticker.site/
 - Email: (your developer email, required and shown publicly)
-- Privacy policy: https://ai-ide-news.github.io/privacy/
+- Privacy policy: https://aiticker.site/privacy/
 
 ## Graphics in this folder
 | Play Console field | File |

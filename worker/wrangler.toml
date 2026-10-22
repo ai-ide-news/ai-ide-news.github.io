@@ -6,7 +6,7 @@ compatibility_date = "2026-10-01"
 
 [vars]
 # Pages allowed to call the proxy (comma-separated). localhost is always allowed for development.
-ALLOWED_ORIGINS = "https://ai-ide-news.github.io"
+ALLOWED_ORIGINS = "https://aiticker.site,https://www.aiticker.site,https://ai-ide-news.github.io"
 # Optional: bridges that turn Instagram / X profiles into feeds. {user} is replaced with the handle.
 # e.g. a self-hosted RSSHub: "https://rsshub.example.com/instagram/user/{user}" and ".../twitter/user/{user}"
 INSTAGRAM_BRIDGE = ""

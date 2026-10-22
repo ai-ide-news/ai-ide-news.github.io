@@ -1,6 +1,6 @@
 # aiticker — AI IDE & CLI News
 
-**Live site:** https://ai-ide-news.github.io/
+**Live site:** https://aiticker.site/
 
 A live tracker of the latest releases, patches, changelogs and community discussion for AI IDEs and AI coding CLIs — Cursor, Claude Code, Codex CLI, Gemini CLI, GitHub Copilot (+ CLI), Kiro, Google Antigravity, Zed, VS Code, Windsurf, Trae, JetBrains AI/Junie, OpenCode, Amp, Qwen Code, Kimi CLI, Goose, Crush, OpenHands, Aider, Cline, Roo Code, Kilo Code, Continue and Augment Code.
 

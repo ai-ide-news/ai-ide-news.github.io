@@ -15,7 +15,7 @@ import { fetchOpenCode } from './opencode.mjs';
 import { fetchEcosystem } from './ecosystem.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
-const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://ai-ide-news.github.io)';
+const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://aiticker.site)';
 const GH_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
 const DAY = 86400e3;
 const NOW = Date.now();
