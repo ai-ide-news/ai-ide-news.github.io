@@ -637,6 +637,14 @@
    "mono": false,
    "src": "https://www.codebuff.com/favicon/apple-touch-icon.png",
    "tone": null
+  },
+  "gh-codewhale-hq-codewhale": {
+   "logo": null,
+   "checked": 1792664488948,
+   "file": "gh-codewhale-hq-codewhale.svg",
+   "mono": false,
+   "src": "https://codewhale.net/icon.svg?icon.3z-t26ioahp3-.svg",
+   "tone": null
   }
  }
 }
