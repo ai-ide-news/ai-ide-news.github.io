@@ -18,8 +18,8 @@
   "maskableIconUrl": "https://aiticker.site/icons/pwa-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": { "path": "../keystore/upload.jks", "alias": "upload" },
-  "appVersionName": "1.0.0",
-  "appVersionCode": 1,
+  "appVersionName": "1.0.1",
+  "appVersionCode": 2,
   "shortcuts": [
     { "name": "News", "shortName": "News", "url": "https://aiticker.site/news/?source=twa", "chosenIconUrl": "https://aiticker.site/icons/pwa-192.png" },
     { "name": "Models", "shortName": "Models", "url": "https://aiticker.site/models/?source=twa", "chosenIconUrl": "https://aiticker.site/icons/pwa-192.png" },
@@ -38,5 +38,5 @@
   "fingerprints": [],
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
-  "appVersion": "1.0.0"
+  "appVersion": "1.0.1"
 }
