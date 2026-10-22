@@ -1,5 +1,6 @@
 // Renders data/snapshot.json into a static, SEO-friendly site in dist/.
 import { readFile, writeFile, mkdir, rm, cp, readdir } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { Resvg } from '@resvg/resvg-js';
 import { TOOLS, CATEGORIES } from './sources.mjs';
@@ -13,6 +14,7 @@ import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs
 import { AA_SOURCE } from './aa.mjs';
 import { OPENCODE_SOURCE } from './opencode.mjs';
 import { learnBody, LEARN_SECTIONS } from './learn.mjs';
+import { ogSvg, ogPng } from './og.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -35,7 +37,7 @@ const CF_BEACON = (process.env.CF_ANALYTICS_TOKEN || '').trim();
 const FEED_PROXY = (process.env.FEED_PROXY || '').trim().replace(/\/$/, '');
 // Block the site for visitors running an ad blocker. On whenever AdSense is; ADWALL=1 forces it locally.
 const ADWALL = !!ADS.client || process.env.ADWALL === '1';
-const PRIVACY_UPDATED = '21 October 2026';
+const PRIVACY_UPDATED = '22 October 2026';
 // Android app (Trusted Web Activity, see play/). sha256 lists the signing-key fingerprints allowed
 // to open the site full-screen: the upload key, plus Play's app-signing key once Play Console shows it.
 const ANDROID_APP = { id: 'io.github.aiidenews.aiticker', sha256: [
@@ -57,6 +59,15 @@ const ASSET_V = await (async () => {
 
 // ── helpers ───────────────────────────────────────────────
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Search snippets cut off around 160 characters; end on a whole word instead of mid-word.
+const clampDesc = (s, max = 158) => {
+  s = String(s).replace(/\s+/g, ' ').trim();
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max - 1).replace(/[\s,;:·—-]+\S*$/, '');
+  return `${cut}…`;
+};
+// Release-note images come from vendor markdown: no alt/size, so make them lazy and give them an alt.
+const lazyImgs = (html) => html.replace(/<img\b(?![^>]*\bloading=)/g, '<img loading="lazy" decoding="async"').replace(/<img\b(?![^>]*\balt=)/g, '<img alt=""');
 // Detail-page title: the name types itself out behind a moving caret (src/app.js); the text never reflows.
 const scrawl = (s) => `<span class="typed">${esc(s)}</span>`;
 const ago = (iso) => {
@@ -184,8 +195,42 @@ function navGroups(root, active) {
   });
 }
 
-function layout({ root, path, title, description, body, jsonld, active = '' }) {
+// Breadcrumb trail for search results: Home › section › … › page. crumbs: [[name, path], …].
+const SECTIONS = { tools: 'Tools', models: 'Models', companies: 'Companies', news: 'News', compare: 'Compare', learn: 'Learn', skills: 'Skills', mcp: 'MCP', 'my-feed': 'My feed', privacy: 'Privacy' };
+function breadcrumbs(path, crumbs) {
+  const top = path.split('/')[0];
+  const trail = crumbs || (SECTIONS[top] && path === `${top}/` ? [[SECTIONS[top], path]] : null);
+  if (!trail) return null;
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: [['Home', ''], ...trail].map(([name, p], i) => ({ '@type': 'ListItem', position: i + 1, name, item: `${SITE_URL}/${p}` })),
+  };
+}
+
+// Per-page share images (scripts/og.mjs): layout() queues a card, the write step renders them all.
+const OG_JOBS = [];
+const ogIcon = (id) => {
+  const m = ICONS[id];
+  if (!m?.file) return undefined;
+  const type = m.file.endsWith('.svg') ? 'image/svg+xml' : m.file.endsWith('.png') ? 'image/png' : 'image/jpeg';
+  return { mono: !!m.mono, href: `data:${type};base64,${readFileSync(new URL(`data/icons/${m.file}`, ROOT)).toString('base64')}` };
+};
+
+function layout({ root, path, title, description, body, jsonld, crumbs, og, active = '' }) {
   const canonical = `${SITE_URL}/${path}`;
+  let ogImage = `${SITE_URL}/og.png`, ogAlt = `${SITE_NAME}: live AI IDE &amp; coding CLI updates`;
+  if (og) {
+    const file = `og/${path.replace(/\/$/, '').replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'home'}.png`;
+    OG_JOBS.push({ file, card: { foot: `${SITE_URL.replace(/^https?:\/\//, '')}/${path}`, ...og } });
+    ogImage = `${SITE_URL}/${file}`;
+    ogAlt = esc(`${og.title}${og.sub ? ` — ${og.sub}` : ''}`);
+  }
+  description = clampDesc(description);
+  // Google shows ~60 characters of a title; the brand suffix goes first when a title runs long.
+  if (title.length > 60) title = title.replace(` | ${SITE_NAME}`, '');
+  const graph = [...(jsonld ? (jsonld['@graph'] || [jsonld]) : []), breadcrumbs(path, crumbs)]
+    .filter(Boolean).map(({ '@context': _, ...node }) => node);
+  jsonld = graph.length ? { '@context': 'https://schema.org', '@graph': graph } : null;
   return `<!doctype html>
 <html lang="en" data-theme="dark"${ADWALL ? ' data-adwall' : ''}>
 <head>
@@ -194,6 +239,7 @@ function layout({ root, path, title, description, body, jsonld, active = '' }) {
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta name="author" content="${AUTHOR.name}">
+<meta name="robots" content="max-image-preview:large, max-snippet:-1">
 <meta name="pw-generated" content="${snap.generatedAt}">
 <link rel="canonical" href="${canonical}">
 <meta name="theme-color" content="#121211">
@@ -202,8 +248,15 @@ function layout({ root, path, title, description, body, jsonld, active = '' }) {
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:image" content="${SITE_URL}/og.png">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="${ogImage}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${ogAlt}">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(description)}">
+<meta name="twitter:image" content="${ogImage}">
 ${VERIFY.split(',').filter(Boolean).map((v) => `<meta name="google-site-verification" content="${esc(v.trim())}">`).join('')}
 <link rel="icon" href="${root}favicon.ico" sizes="32x32">
 <link rel="icon" href="${root}favicon.svg" type="image/svg+xml">
@@ -212,8 +265,7 @@ ${VERIFY.split(',').filter(Boolean).map((v) => `<meta name="google-site-verifica
 <meta name="apple-mobile-web-app-title" content="${SITE_NAME}">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="alternate" type="application/rss+xml" title="${SITE_NAME} — all AI IDE & CLI updates" href="${root}feed.xml">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="preload" href="${root}fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${root}assets/styles.css?v=${ASSET_V}">
 ${ADS.client ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(ADS.client)}" crossorigin="anonymous"></script>` : ''}
 <script>try{const t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;else if(matchMedia('(prefers-color-scheme: light)').matches)document.documentElement.dataset.theme='light'}catch(e){}</script>
@@ -267,7 +319,7 @@ function feedCard(item, root, { full = false } = {}) {
   const t = byId[item.toolId];
   const cat = t.category;
   const text = `${t.name} ${item.title} ${item.version || ''} ${t.vendor}`.toLowerCase();
-  const notes = full && item.html ? `<details class="notes"><summary>Read full notes</summary><div class="prose">${item.html}</div></details>` : '';
+  const notes = full && item.html ? `<details class="notes"><summary>Read full notes</summary><div class="prose">${lazyImgs(item.html)}</div></details>` : '';
   return `<article class="fcard" data-id="${esc(item.id)}" data-kind="${item.kind}" data-cat="${cat}" data-trend="${t.discovered ? 1 : 0}" data-tool="${t.id}" data-text="${esc(text)}" style="--c:${t.color}">
   <div class="fcard-rail">${icon(t, root, 'sm')}</div>
   <div class="fcard-body">
@@ -655,6 +707,7 @@ ${showdown.length ? `<section id="showdown" class="wrap section sd-section" data
 </section>`;
   return layout({
     root, path: 'models/', active: 'models',
+    og: { kicker: 'Models', title: 'New AI models', sub: 'Benchmarks, context & API pricing', stats: [['Models', String(models.length)], ['Labs', String(labs.length)], ['Newest', models[0].name]] },
     title: `New AI Models — Benchmarks, Context & API Pricing Compared | ${SITE_NAME}`,
     description: `The newest AI models from ${labs.slice(0, 6).map((l) => l[0].lab).join(', ')} and more: ${models.slice(0, 5).map((m) => m.name).join(', ')}. Release dates, context windows and API prices, updated automatically.`,
     jsonld: {
@@ -899,7 +952,9 @@ ${banner()}
 ${banner()}`;
   return layout({
     root, path: modelPath(m), active: 'models',
-    title: `${m.name} — Benchmarks, Context Window & API Pricing | ${SITE_NAME}`,
+    og: { kicker: `Model · ${m.lab}`, title: m.name, sub: 'Benchmarks & API pricing', stats: [['Context', tokens(m.context)], ['Input / 1M', mprice(m.input)], ['Output / 1M', mprice(m.output)]], icon: ogIcon(`lab-${m.labId}`) },
+    crumbs: [['Models', 'models/'], [m.lab, labPath(m.labId)], [m.name, modelPath(m)]],
+    title: m.name.length > 24 ? `${m.name}: Benchmarks & Pricing` : `${m.name}: Benchmarks, Context & API Pricing | ${SITE_NAME}`,
     description: `${m.name} by ${m.lab}, released ${fmtDate(m.date)}: ${tokens(m.context)} context, ${priceLine(m)} per 1M input/output tokens${nScores ? `, ${nScores} benchmark scores` : ''}. ${m.summary || ''}`.slice(0, 300),
     jsonld: {
       '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: m.name, applicationCategory: 'AI model',
@@ -994,7 +1049,9 @@ ${bests.length ? `<section class="wrap section">
 </section>`;
   return layout({
     root, path: labPath(labId), active: 'models',
-    title: `${lab} AI Models — Every Release, Benchmarks & API Pricing | ${SITE_NAME}`,
+    og: { kicker: 'AI lab', title: `${lab} AI models`, sub: 'Every release & API price', stats: [['Models', String(list.length)], ['Newest', newest.name], ['Released', fmtDate(newest.date)]], icon: ogIcon(`lab-${labId}`) },
+    crumbs: [['Models', 'models/'], [lab, labPath(labId)]],
+    title: `${lab} AI Models: Releases, Benchmarks & Pricing | ${SITE_NAME}`,
     description: `All ${list.length} ${lab} models tracked: ${list.slice(0, 5).map((m) => m.name).join(', ')}. Release dates, context windows, API prices and benchmark scores, updated automatically.`,
     jsonld: {
       '@context': 'https://schema.org', '@type': 'ItemList', name: `${lab} AI models`,
@@ -1084,7 +1141,9 @@ ${coNews.length ? `<section class="wrap section">
 </section>`;
   return layout({
     root, path: coPath(c), active: 'companies',
-    title: `${c.name} — AI Tools, Models & Latest Releases | ${SITE_NAME}`,
+    og: { kicker: 'Company', title: c.name, sub: 'AI tools, models & latest releases', stats: [c.tools.length && ['Tools', String(c.tools.length)], c.models.length && ['Models', String(c.models.length)], info.founded && ['Founded', String(info.founded)]].filter(Boolean), icon: ogIcon(c.iconId) },
+    crumbs: [['Companies', 'companies/'], [c.name, coPath(c)]],
+    title: `${c.name}: AI Tools, Models & Releases | ${SITE_NAME}`,
     description: `${c.name}${info.founded ? ` (founded ${info.founded})` : ''}: ${what} tracked — ${[...c.tools, ...c.models].slice(0, 5).map((x) => x.name).join(', ')}. Latest releases, versions and news, updated automatically.`,
     jsonld: {
       '@context': 'https://schema.org', '@type': 'Organization', name: c.name, url: `${SITE_URL}/${coPath(c)}`,
@@ -1113,6 +1172,8 @@ ${banner()}
 </section>`;
   return layout({
     root, path: 'companies/', active: 'companies', title: `AI Companies — Labs & Coding Tool Makers | ${SITE_NAME}`,
+    og: { kicker: 'Directory', title: 'AI companies', sub: 'Labs & coding tool makers', stats: [['Companies', String(companies.length)]] },
+    jsonld: { '@type': 'ItemList', name: 'AI companies', itemListElement: companies.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, url: `${SITE_URL}/${coPath(c)}` })) },
     description: `${companies.length} companies behind AI coding tools and models: ${companies.slice(0, 12).map((c) => c.name).join(', ')}.`, body,
   });
 }
@@ -1136,7 +1197,7 @@ function privacyPage() {
   <h2>Advertising</h2>
   <p>Ads are served by Google AdSense. Google and its partners may use cookies and device identifiers to show ads, including ads based on your previous visits to this and other sites, and to measure them. You can turn off personalised ads in <a href="https://adssettings.google.com/" rel="noopener">Google's Ad Settings</a>, and read <a href="https://policies.google.com/technologies/ads" rel="noopener">how Google uses data from sites that use its services</a>.</p>
   <h2>Third-party content</h2>
-  <p>Fonts load from Google Fonts, and links lead to GitHub, vendor sites, Hacker News and other sources with their own privacy policies.</p>
+  <p>Fonts are served from this site, not Google Fonts. Links lead to GitHub, vendor sites, Hacker News and other sources with their own privacy policies.</p>
   <h2>Children</h2>
   <p>${SITE_NAME} is a developer news site and isn't directed at children under 13.</p>
   <h2>Contact</h2>
@@ -1265,11 +1326,12 @@ ${banner()}
 
   return layout({
     root, path: '', active: 'home',
-    title: `AI IDE & CLI News — Latest Updates for Cursor, Claude Code, Codex, Gemini CLI | ${SITE_NAME}`,
+    title: `AI IDE & CLI News — Cursor, Claude Code, Codex | ${SITE_NAME}`,
     description: `Live tracker of the latest releases, patches and changelogs for AI IDEs and coding CLIs: Cursor, Claude Code, Codex CLI, Gemini CLI, GitHub Copilot, Kiro, Zed, Windsurf, OpenCode, Cline and more. Real data, updated automatically.`,
     jsonld: {
       '@context': 'https://schema.org', '@graph': [
-        { '@type': 'WebSite', name: SITE_NAME, url: `${SITE_URL}/`, description: 'Latest news, releases and changelogs for AI IDEs and AI coding CLIs.', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url } },
+        { '@type': 'WebSite', '@id': `${SITE_URL}/#website`, name: SITE_NAME, url: `${SITE_URL}/`, inLanguage: 'en', description: 'Latest news, releases and changelogs for AI IDEs and AI coding CLIs.', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url }, publisher: { '@id': `${SITE_URL}/#org` } },
+        { '@type': 'Organization', '@id': `${SITE_URL}/#org`, name: SITE_NAME, url: `${SITE_URL}/`, logo: `${SITE_URL}/icons/pwa-512.png`, sameAs: [REPO_URL] },
         { '@type': 'ItemList', name: 'AI coding tools tracked', itemListElement: tools.map((t, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}/tools/${t.id}/`, name: t.name })) },
       ],
     },
@@ -1289,6 +1351,8 @@ function toolPage(t) {
   const since = Number.isFinite(firstSeen) ? new Date(firstSeen).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : null;
   const sparkSpan = { weeks: Math.max(4, historyWeeks) };
   const ver = t.latestRelease?.version;
+  const prices = (pricing(t)?.plans || []).map((p) => p.price).filter((p) => typeof p === 'number');
+  const offers = prices.length ? { '@type': 'AggregateOffer', priceCurrency: 'USD', lowPrice: Math.min(...prices), highPrice: Math.max(...prices), offerCount: prices.length } : null;
   const similar = tools.filter((x) => x.category === t.category && x.id !== t.id).slice(0, 6);
   const first = firstRelease(t);
 
@@ -1346,13 +1410,18 @@ ${banner()}`;
 
   return layout({
     root, path: `tools/${t.id}/`, active: 'tools',
-    title: `${t.name} Changelog & Latest Version${ver ? ` (${ver})` : ''} — Release Notes | ${SITE_NAME}`,
+    og: { kicker: `${CATEGORIES[t.category]?.short || 'AI coding tool'} · ${t.vendor}`, title: t.name, sub: 'Changelog & latest version', stats: [ver && ['Latest', ver], t.latest && ['Updated', fmtDate(t.latest.date)], ['Updates · 90d', String(rel90.length)]].filter(Boolean), icon: ogIcon(t.id) },
+    crumbs: [['Tools', 'tools/'], [t.name, `tools/${t.id}/`]],
+    title: `${t.name} Changelog & Latest Version${ver ? ` (${ver})` : ''} | ${SITE_NAME}`,
     description: `${t.name} release notes, latest version${ver ? ` ${ver}` : ''}, patches and news from ${t.vendor}. ${t.blurb} Updated automatically from official sources.`,
     jsonld: {
       '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: t.name, applicationCategory: 'DeveloperApplication',
       operatingSystem: 'Windows, macOS, Linux', url: t.site, publisher: { '@type': 'Organization', name: t.vendor },
       ...(ver ? { softwareVersion: ver } : {}), ...(t.latest ? { dateModified: t.latest.date } : {}),
       ...(first?.date.length === 10 ? { datePublished: first.date } : {}),
+      ...(t.description || t.blurb ? { description: t.description || t.blurb } : {}),
+      mainEntityOfPage: `${SITE_URL}/tools/${t.id}/`,
+      ...(offers ? { offers } : {}),
     },
     body,
   });
@@ -1375,6 +1444,8 @@ ${banner()}
 </section>`;
   return layout({
     root, path: 'tools/', active: 'tools', title: `All AI IDEs & Coding CLIs — Latest Versions | ${SITE_NAME}`,
+    og: { kicker: 'Directory', title: 'AI IDEs & coding CLIs', sub: 'Latest versions, all in one place', stats: [['Tools tracked', String(tools.length)], ['Checked every', '10 min']] },
+    jsonld: { '@type': 'ItemList', name: 'AI IDEs and coding CLIs', itemListElement: tools.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.name, url: `${SITE_URL}/tools/${t.id}/` })) },
     description: `Latest versions of ${tools.length} AI coding tools: ${tools.map((t) => t.name).join(', ')}.`, body,
   });
 }
@@ -1432,6 +1503,8 @@ ${banner()}
 <section class="wrap section">${newsFilters()}${newsGrid(news, root, Infinity, { feed: true })}<p class="muted nempty" hidden>No stories match these filters.</p>${ad('inline')}</section>`;
   return layout({
     root, path: 'news/', active: 'news', title: `AI Coding News — Launches, Models, Security & Pricing | ${SITE_NAME}`,
+    og: { kicker: 'News', title: 'AI coding news', sub: 'Launches, models, security & pricing' },
+    jsonld: { '@type': 'ItemList', name: 'AI coding news', itemListElement: news.slice(0, 30).map((n, i) => ({ '@type': 'ListItem', position: i + 1, name: n.title, url: n.url })) },
     description: `The important AI IDE and coding-agent news: ${news.slice(0, 4).map((n) => n.title).join(' · ')}`, body,
   });
 }
@@ -1496,6 +1569,7 @@ function myFeedPage() {
 <script src="${root}assets/myfeed.js?v=${ASSET_V}" defer></script>`;
   return layout({
     root, path: 'my-feed/', active: 'myfeed', title: `My feed — Follow Any Source in One Stream | ${SITE_NAME}`,
+    og: { kicker: 'My feed', title: 'Follow any source in one stream', sub: 'RSS, YouTube, Reddit, Bluesky & more' },
     description: 'Build your own news feed: follow AI coding tools plus any RSS feed, website, YouTube channel, subreddit, Bluesky, Mastodon or Instagram account, all in one stream.', body,
   });
 }
@@ -1504,7 +1578,8 @@ function myFeedPage() {
 function learnPage() {
   const root = '../';
   return layout({
-    root, path: 'learn/', active: 'learn', title: `How AI Works — Tokens, Context, Agents, MCP, RAG & Mixture of Experts | ${SITE_NAME}`,
+    root, path: 'learn/', active: 'learn', title: `How AI Works: Tokens, Context, Agents, MCP & RAG | ${SITE_NAME}`,
+    og: { kicker: 'Learn', title: 'How AI actually works', sub: 'Tokens, context, agents, MCP & more' },
     description: 'A plain-language, interactive guide to how AI models work: tokens, context windows, system prompts, cache hits, agents and tool calling, MCP, embeddings and RAG, hallucinations, training, mixture of experts, quantization and more — with real prices, hands-on demos and narrated audio.',
     body: learnBody({ models, root, esc, modelPath, generatedAt: snap.generatedAt, bench: snap.benchmarks?.scores ? { scores: snap.benchmarks.scores, list: BENCHMARKS, key: benchKey, source: BENCH_SOURCE } : null }),
     jsonld: { '@context': 'https://schema.org', '@type': 'Article', headline: 'How AI actually works', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url }, dateModified: snap.generatedAt, url: `${SITE_URL}/learn/` },
@@ -1682,6 +1757,7 @@ ${popSection(type)}
 </section>`;
   return layout({
     root, path: cfg.path, active: type, title: cfg.title,
+    og: { kicker: cfg.eyebrow, title: `Trending ${cfg.eyebrow}`, sub: 'Ranked by GitHub star velocity', stats: [['Repos', String(list.length)]] },
     description: `${cfg.eyebrow}: ${list.slice(0, 6).map((r) => r.name).join(', ')} and ${Math.max(0, list.length - 6)} more trending open-source repos.`,
     jsonld: { '@context': 'https://schema.org', '@type': 'ItemList', name: cfg.eyebrow, itemListElement: list.slice(0, 50).map((r, i) => ({ '@type': 'ListItem', position: i + 1, name: r.name, url: r.url })) },
     body,
@@ -1940,6 +2016,7 @@ ${oss.length ? `<section class="wrap section">
 </section>` : ''}`;
   return layout({
     root, path: 'compare/', active: 'compare',
+    og: { kicker: 'Compare', title: 'AI coding tools pricing', sub: 'Free vs paid plans, side by side', stats: [['Tools compared', String(rows.length)]] },
     title: `AI Coding Tools Pricing Compared — Free vs Paid Plans | ${SITE_NAME}`,
     description: `Compare free and paid plans for ${rows.map((r) => r.t.name).slice(0, 10).join(', ')} and more AI IDEs and coding CLIs. Monthly prices, free tiers and what each plan includes.`,
     body,
@@ -2062,6 +2139,8 @@ for (const c of companies) await out(`${coPath(c)}index.html`, companyPage(c));
 
 const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date));
 await out('feed.xml', rss(allItems.slice(0, 120)));
+await mkdir(new URL('og/', DIST), { recursive: true });
+for (const { file, card } of OG_JOBS) await writeFile(new URL(file, DIST), ogPng(ogSvg(card)));
 await out('data.json', JSON.stringify({
   generatedAt: snap.generatedAt, source: SITE_URL,
   tools: tools.map((t) => ({ id: t.id, name: t.name, vendor: t.vendor, category: t.category, trending: !!t.discovered, site: t.site, latestVersion: t.latestRelease?.version || null, lastUpdate: t.latest?.date || null, stars: t.meta.stars ?? null, url: `${SITE_URL}/tools/${t.id}/` })),
@@ -2112,6 +2191,7 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
+<url><loc>${SITE_URL}/privacy/</loc><lastmod>${new Date(PRIVACY_UPDATED + ' UTC').toISOString()}</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
 <url><loc>${SITE_URL}/my-feed/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
 ${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${models.length ? `<url><loc>${SITE_URL}/learn/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 ` : ''}${Object.values(ECO).filter((c) => c.list.length).map((c) => `<url><loc>${SITE_URL}/${c.path}</loc><lastmod>${eco.fetchedAt || snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>

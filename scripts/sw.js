@@ -5,7 +5,6 @@ const VERSION = '__VERSION__';
 const CACHE = `aiticker-${VERSION}`;
 const OFFLINE = '/offline.html';
 const PRECACHE = ['/', OFFLINE, '/assets/styles.css', '/assets/app.js', '/assets/seek.js', '/favicon.svg', '/icons/pwa-192.png'];
-const FONTS = /^https:\/\/fonts\.(googleapis|gstatic)\.com$/;
 const MAX_PAGES = 80;
 
 self.addEventListener('install', (e) => {
@@ -58,7 +57,6 @@ self.addEventListener('fetch', (e) => {
   const { request: req } = e;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (FONTS.test(url.origin)) return e.respondWith(staleWhileRevalidate(e));
   if (url.origin !== location.origin) return;
   if (req.mode === 'navigate') return e.respondWith(networkFirst(e, OFFLINE));
   if (/\.(json|xml)$/.test(url.pathname)) return e.respondWith(networkFirst(e));
