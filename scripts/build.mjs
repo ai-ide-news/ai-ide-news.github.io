@@ -2246,5 +2246,8 @@ ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastA
 await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
 `);
+// IndexNow ownership proof: search engines fetch /<key>.txt before accepting pings (scripts/announce.mjs).
+const INDEXNOW_KEY = process.env.INDEXNOW_KEY || '';
+if (/^[a-zA-Z0-9-]{8,128}$/.test(INDEXNOW_KEY)) await out(`${INDEXNOW_KEY}.txt`, INDEXNOW_KEY);
 await out('.nojekyll', '');
 console.log(`Built ${tools.length + 5 + companies.length + Object.values(ECO).filter((c) => c.list.length).length + (models.length ? 2 + labs.length + models.length : 0)} pages → dist/`);

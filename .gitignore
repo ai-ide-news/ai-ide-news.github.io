@@ -7,3 +7,4 @@ play/twa/*
 !play/twa/twa-manifest.json
 play/release/
 .wrangler/
+.announce/

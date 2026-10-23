@@ -24,6 +24,19 @@ On every refresh, `scripts/discover.mjs` searches GitHub for repos in the niche 
 
 A GitHub Actions workflow checks every source for new releases every 10 minutes (using conditional requests, so unchanged repos cost nothing) and rebuilds + deploys only when something shipped; a full refresh (trending discovery, stars, HN) runs every 3 hours. An always-on watcher job (`.github/workflows/watch.yml`) also checks every source once a minute and triggers a deploy the moment something ships (~2–3 min from release to live). Open pages poll a tiny `version.json` and show a "new updates" prompt as soon as a new build lands. If a source fails, the previous snapshot for that source is kept.
 
+## Announcements & IndexNow
+
+After each deploy, `scripts/announce.mjs` posts new releases (one post per tool, best 5 per run, the rest in an "Also shipped" roundup; prereleases skipped) and pings IndexNow with the tool pages that changed. What's been announced is tracked in `data/announced.json`. Each channel turns on when its settings exist (repo **Settings → Secrets and variables → Actions**):
+
+| Channel | Variables | Secrets |
+|---|---|---|
+| Bluesky | `BLUESKY_HANDLE` | `BLUESKY_APP_PASSWORD` (an app password) |
+| Telegram | `TELEGRAM_CHAT_ID` (e.g. `@aiticker`) | `TELEGRAM_BOT_TOKEN` (bot must be a channel admin) |
+| Discord | | `DISCORD_WEBHOOK_URL` |
+| IndexNow (Bing, Yandex, Seznam…) | `INDEXNOW_KEY` (any 8–128 letters/digits; served at `/<key>.txt`) | |
+
+Preview locally without posting: `node scripts/announce.mjs plan && DRY_RUN=1 node scripts/announce.mjs send`.
+
 ## My feed
 
 `/my-feed/` lets each reader build their own stream: pick tools from the catalog (releases & changelogs), toggle the curated news / Hacker News, and add any outside source — an RSS/Atom/JSON feed, a website (its feed is auto-discovered), a YouTube channel (`yt:@handle` or URL), a subreddit (`r/name`), a Bluesky profile, a Mastodon account (`@user@host`), or an Instagram / X profile. Picks are stored in the browser (localStorage) and can be shared with a link; there are no accounts.

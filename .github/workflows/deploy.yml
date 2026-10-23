@@ -53,6 +53,19 @@ jobs:
           CF_ANALYTICS_TOKEN: ${{ vars.CF_ANALYTICS_TOKEN }}
           FEED_PROXY: ${{ vars.FEED_PROXY }}   # optional: My feed outside sources (worker/)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # README lookups when resolving new logos
+          INDEXNOW_KEY: ${{ vars.INDEXNOW_KEY }}   # optional: publishes the IndexNow key file
+      - name: Pick new releases to announce
+        if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
+        run: |
+          git fetch --depth=1 origin main || true
+          node scripts/announce.mjs plan
+      - uses: actions/upload-artifact@v4
+        if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
+        with:
+          name: announce
+          path: .announce/plan.json
+          include-hidden-files: true
+          retention-days: 3
       - name: Commit data snapshot (keeps history + keeps the schedule alive)
         if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
         run: |
@@ -78,3 +91,27 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Posts new releases to Bluesky / Telegram / Discord and pings IndexNow, once the pages are live.
+  # Every channel is optional: unset secrets are skipped, and a failing channel never fails the deploy.
+  announce:
+    needs: deploy
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: announce
+          path: .announce
+      - run: node scripts/announce.mjs send
+        env:
+          BLUESKY_HANDLE: ${{ vars.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          INDEXNOW_KEY: ${{ vars.INDEXNOW_KEY }}
