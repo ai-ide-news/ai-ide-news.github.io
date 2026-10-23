@@ -21,6 +21,7 @@ const DIST = new URL('dist/', ROOT);
 const SITE_URL = (process.env.SITE_URL || 'https://aiticker.site').replace(/\/$/, '');
 const SITE_NAME = 'aiticker';
 const AUTHOR = { name: 'Abdullah ElTiby', url: 'https://github.com/AbdullahElTiby' };
+const CONTACT_EMAIL = 'abdullaheltiby@gmail.com';
 const REPO_URL = 'https://github.com/ai-ide-news/ai-ide-news.github.io';
 const VERIFY = process.env.GOOGLE_SITE_VERIFICATION || '';
 const DAY = 86400e3;
@@ -196,7 +197,7 @@ function navGroups(root, active) {
 }
 
 // Breadcrumb trail for search results: Home › section › … › page. crumbs: [[name, path], …].
-const SECTIONS = { tools: 'Tools', models: 'Models', companies: 'Companies', news: 'News', compare: 'Compare', learn: 'Learn', skills: 'Skills', mcp: 'MCP', 'my-feed': 'My feed', privacy: 'Privacy' };
+const SECTIONS = { tools: 'Tools', models: 'Models', companies: 'Companies', news: 'News', compare: 'Compare', learn: 'Learn', skills: 'Skills', mcp: 'MCP', 'my-feed': 'My feed', privacy: 'Privacy', contact: 'Contact' };
 function breadcrumbs(path, crumbs) {
   const top = path.split('/')[0];
   const trail = crumbs || (SECTIONS[top] && path === `${top}/` ? [[SECTIONS[top], path]] : null);
@@ -303,7 +304,7 @@ ${body}
     <div class="foot-meta">
       <p>Last refreshed ${time(snap.generatedAt, 'live-ago')}</p>
       <p class="credit">Made by <a href="${AUTHOR.url}" rel="author noopener">${AUTHOR.name}</a> · <a href="${AUTHOR.url}" rel="noopener">github.com/AbdullahElTiby</a></p>
-      <p class="muted">Not affiliated with any of the tools listed. All trademarks belong to their owners. <a href="${root}privacy/">Privacy</a></p>
+      <p class="muted">Not affiliated with any of the tools listed. All trademarks belong to their owners. <a href="${root}contact/">Contact us</a> · <a href="${root}privacy/">Privacy</a></p>
     </div>
   </div>
 </footer>
@@ -1201,9 +1202,31 @@ function privacyPage() {
   <h2>Children</h2>
   <p>${SITE_NAME} is a developer news site and isn't directed at children under 13.</p>
   <h2>Contact</h2>
-  <p>Questions or requests: open an issue at <a href="${REPO_URL}/issues" rel="noopener">${REPO_URL.replace('https://', '')}</a>, or reach <a href="${AUTHOR.url}" rel="author noopener">${AUTHOR.name}</a>.</p>
+  <p>Questions or requests: email <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>, or see the <a href="${root}contact/">contact page</a>.</p>
 </section>`;
   return layout({ root, path: 'privacy/', title: `Privacy Policy | ${SITE_NAME}`, description: `How ${SITE_NAME} and its Android app handle data: no accounts, cookieless analytics, Google AdSense.`, body });
+}
+
+// Play's News and Magazines policy needs a findable contact page with an email, on the site and in the app.
+function contactPage() {
+  const root = '../';
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">About</p>
+  <h1>Contact us</h1>
+  <p class="lede">${SITE_NAME} is built and run by ${AUTHOR.name}. Questions, corrections, source suggestions or takedown requests are all welcome.</p>
+</section>
+<section class="wrap section privacy" style="max-width:720px">
+  <h2>Email</h2>
+  <p><a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>. I usually reply within a few days.</p>
+  <h2>Publisher</h2>
+  <p>${SITE_NAME} is an independent news aggregator published by ${AUTHOR.name}. It isn't affiliated with any of the tools, models or companies it covers.</p>
+  <h2>Sources</h2>
+  <p>Every update and article links to its original publisher: official GitHub releases, vendor changelogs, blogs and RSS feeds, and Hacker News. Content is refreshed automatically every few hours. If something is wrong or attributed to the wrong source, email me and I'll fix it.</p>
+  <h2>Bugs and feature requests</h2>
+  <p>You can also open an issue at <a href="${REPO_URL}/issues" rel="noopener">${REPO_URL.replace('https://', '')}</a>.</p>
+</section>`;
+  return layout({ root, path: 'contact/', title: `Contact | ${SITE_NAME}`, description: `How to reach the publisher of ${SITE_NAME}: email ${CONTACT_EMAIL}.`, body });
 }
 
 function versionCard(t, root) {
@@ -2135,6 +2158,7 @@ for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
 await out('companies/index.html', companiesIndexPage());
 await out('privacy/index.html', privacyPage());
+await out('contact/index.html', contactPage());
 for (const c of companies) await out(`${coPath(c)}index.html`, companyPage(c));
 
 const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date));
@@ -2192,6 +2216,7 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
 <url><loc>${SITE_URL}/privacy/</loc><lastmod>${new Date(PRIVACY_UPDATED + ' UTC').toISOString()}</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+<url><loc>${SITE_URL}/contact/</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 <url><loc>${SITE_URL}/my-feed/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
 ${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${models.length ? `<url><loc>${SITE_URL}/learn/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 ` : ''}${Object.values(ECO).filter((c) => c.list.length).map((c) => `<url><loc>${SITE_URL}/${c.path}</loc><lastmod>${eco.fetchedAt || snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
