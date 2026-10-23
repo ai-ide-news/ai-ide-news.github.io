@@ -196,6 +196,24 @@ function navGroups(root, active) {
   });
 }
 
+// Phone tab bar: the four places people go most, plus More for the full menu (the same #nav-links, as a sheet).
+const TAB_ICONS = {
+  home: '<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
+  tools: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
+  models: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9.5 2.5v3.5M14.5 2.5v3.5M9.5 18v3.5M14.5 18v3.5M2.5 9.5H6M2.5 14.5H6M18 9.5h3.5M18 14.5h3.5"/>',
+  news: '<path d="M5 4h11a1 1 0 0 1 1 1v14a1.5 1.5 0 0 0 3 0V9h-3"/><path d="M8 8h6M8 12h6M8 16h4"/><path d="M18.5 20.5H6a2 2 0 0 1-2-2V4"/>',
+};
+function tabBar(root, active) {
+  const tabs = [
+    ['Home', root, 'home', ['home', 'versions', 'myfeed']],
+    ['Tools', `${root}tools/`, 'tools', ['tools', 'compare', 'companies']],
+    models.length && ['Models', `${root}models/`, 'models', ['models', 'learn']],
+    news.length && ['News', `${root}news/`, 'news', ['news']],
+  ].filter(Boolean);
+  const ico = (k) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${TAB_ICONS[k]}</svg>`;
+  return `<nav class="tabbar" aria-label="Sections">${tabs.map(([n, u, k, keys]) => `<a class="tab" href="${u}"${keys.includes(active) ? ' aria-current="page"' : ''}>${ico(k)}<span>${n}</span></a>`).join('')}<button class="tab nav-toggle" id="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path class="nt-a" d="M5 7h14"/><path class="nt-b" d="M5 12h14"/><path class="nt-c" d="M5 17h14"/></g></svg><span>More</span></button></nav>`;
+}
+
 // Breadcrumb trail for search results: Home › section › … › page. crumbs: [[name, path], …].
 const SECTIONS = { tools: 'Tools', models: 'Models', companies: 'Companies', news: 'News', compare: 'Compare', learn: 'Learn', skills: 'Skills', mcp: 'MCP', 'my-feed': 'My feed', privacy: 'Privacy', contact: 'Contact' };
 function breadcrumbs(path, crumbs) {
@@ -236,7 +254,7 @@ function layout({ root, path, title, description, body, jsonld, crumbs, og, acti
 <html lang="en" data-theme="dark"${ADWALL ? ' data-adwall' : ''}>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta name="author" content="${AUTHOR.name}">
@@ -285,12 +303,12 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
     </nav>
     <div class="nav-actions">
       <button class="nav-seek" id="seek-open" type="button" aria-label="Search the whole site" aria-haspopup="dialog" data-root="${root}"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Search tools, models, news…</span><kbd data-mod>Ctrl K</kbd></button>
-      <button class="icon-btn nav-toggle" id="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="nt-a" d="M4 7h16"/><path class="nt-b" d="M4 12h16"/><path class="nt-c" d="M4 17h16"/></g></svg></button>
       <button class="icon-btn" id="refresh" type="button" aria-label="Check for new updates" title="Check for new updates"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <button class="icon-btn" id="theme" type="button" aria-label="Toggle color theme"><svg class="sun" viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v2.5M12 20v2.5M1.5 12H4M20 12h2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></g></svg><svg class="moon" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1"/></svg></button>
     </div>
     <span class="nav-wire" aria-hidden="true"></span>
   </div>
+  ${tabBar(root, active)}
 </header>
 <main id="main">
 ${body}

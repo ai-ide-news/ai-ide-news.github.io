@@ -98,7 +98,8 @@
     navToggle?.addEventListener('click', () => setNav(!navBar.classList.contains('open')));
     $$('a', links).forEach((a) => a.addEventListener('click', () => { setNav(false); setGrp(null); }));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && navBar.classList.contains('open')) { setNav(false); navToggle?.focus(); } });
-    document.addEventListener('click', (e) => { if (!navBar.contains(e.target)) { setNav(false); setGrp(null); } });
+    // A tap outside the bar, or on the sheet's scrim (the header's own ::before), closes it.
+    document.addEventListener('click', (e) => { if (!navBar.contains(e.target) || e.target === navBar) { setNav(false); setGrp(null); } });
     wide.addEventListener('change', () => { setNav(false); setGrp(null); });
 
     // Ink slug follows the pointer across the group buttons.

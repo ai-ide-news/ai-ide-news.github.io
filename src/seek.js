@@ -166,15 +166,15 @@
 
   const bounds = () => {
     const navB = nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0;
-    // Stay clear of bars pinned to the bottom (Learn player, compare tray, live toast).
-    const lift = Math.max(0, ...$$('.lplayer, .ctray, .live-toast').filter((el) => !el.hidden && el.offsetParent !== null).map((el) => VH() - el.getBoundingClientRect().top));
+    // Stay clear of bars pinned to the bottom (phone tab bar, Learn player, compare tray, live toast).
+    const lift = Math.max(0, ...$$('.tabbar, .lplayer, .ctray, .live-toast').filter((el) => !el.hidden && el.offsetParent !== null).map((el) => VH() - el.getBoundingClientRect().top));
     return { l: EDGE + R, r: VW() - EDGE - R, t: navB + EDGE + R, b: VH() - lift - EDGE - R - (VW() <= 980 ? 0 : 4) };
   };
   const clamp = (p, b = bounds()) => ({ x: Math.min(Math.max(p.x, b.l), Math.max(b.l, b.r)), y: Math.min(Math.max(p.y, b.t), Math.max(b.t, b.b)) });
 
   // Is there something worth reading (or pressing) under this point?
   const rng = document.createRange();
-  const SOLID = 'img, svg, video, canvas, iframe, button, input, select, textarea, label, .ticon, .lplayer, .ctray, .live-toast, .nav-in, .sk-flash';
+  const SOLID = 'img, svg, video, canvas, iframe, button, input, select, textarea, label, .ticon, .lplayer, .ctray, .live-toast, .nav-in, .tabbar, .sk-flash';
   const busyAt = (x, y) => {
     if (x < 0 || y < 0 || x > VW() || y > VH()) return 1;
     const el = document.elementsFromPoint(x, y).find((e) => e !== dock && !dock.contains(e));
