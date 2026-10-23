@@ -1517,6 +1517,8 @@ function releasePage(t, r, i, list) {
   const similar = tools.filter((x) => x.category === t.category && x.id !== t.id).slice(0, 5);
   const notes = r.html ? `<div class="prose rel-notes">${lazyImgs(r.html)}</div>` : r.summary ? `<p class="rel-sum">${esc(r.summary)}</p>` : '<p class="muted">No release notes were published for this version.</p>';
   const plain = (r.summary || '').replace(/\s+/g, ' ').trim();
+  // Feeds like Codex app title every entry the same; dated titles keep each page unique for search.
+  const titleRepeats = !isRelease && list.some((x) => x !== r && x.title === r.title);
   const body = `
 <section class="wrap tool-hero" style="--c:${t.color}">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}tools/">Tools</a><span>/</span><a href="${root}tools/${t.id}/">${esc(t.name)}</a><span>/</span><span>${esc(isRelease ? label : 'Changelog')}</span></nav>
@@ -1566,7 +1568,7 @@ ${banner()}`;
   return layout({
     root, path, active: 'tools', ogFile: `og/tools-${t.id}.png`, noindex: thinRelease(r),
     crumbs: [['Tools', 'tools/'], [t.name, `tools/${t.id}/`], [isRelease ? label : r.title, path]],
-    title: isRelease ? `${t.name} ${label} Release Notes — What's New | ${SITE_NAME}` : `${r.title} — ${t.name} Changelog | ${SITE_NAME}`,
+    title: isRelease ? `${t.name} ${label} Release Notes — What's New | ${SITE_NAME}` : `${r.title}${titleRepeats ? ` (${fmtDate(r.date)})` : ''} — ${t.name} Changelog | ${SITE_NAME}`,
     description: `${isRelease ? `What's new in ${t.name} ${label}` : `${t.name}: ${r.title}`}, released ${fmtDate(r.date)}. ${plain}`,
     jsonld: {
       '@context': 'https://schema.org', '@type': 'TechArticle', headline: isRelease ? `${t.name} ${label} release notes` : r.title,
