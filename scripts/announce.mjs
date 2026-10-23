@@ -38,6 +38,9 @@ async function plan() {
   const now = Date.now();
   const fresh = prev ? items.filter((i) => !seen.has(i.id) && now - Date.parse(i.date) < MAX_AGE) : []; // first run: seed only
 
+  // Release pages (built just before this runs) are the best link: the exact version people search for.
+  const archive = await readJson(new URL('../data/releases.json', import.meta.url), {});
+  const pageOf = (i) => { const r = (archive[i.toolId] || []).find((x) => x.id === i.id); return r && `${SITE_URL}/tools/${i.toolId}/${r.slug}/`; };
   const names = new Map([...TOOLS, ...(snap.discovered || [])].map((t) => [t.id, t.name]));
   const byTool = new Map();
   for (const i of fresh.sort((a, b) => Date.parse(b.date) - Date.parse(a.date))) {
@@ -55,12 +58,12 @@ async function plan() {
       : `${name}: ${pick.title}`;
     const summary = (pick.summary || '').replace(/\s+/g, ' ').trim();
     entries.push({ toolId, name, headline, kind: pick.kind, summary: BOILERPLATE.test(summary) ? '' : summary,
-      url: `${SITE_URL}/tools/${toolId}/`, source: pick.url, date: pick.date });
+      url: pageOf(pick) || `${SITE_URL}/tools/${toolId}/`, source: pick.url, date: pick.date });
   }
   // Best first: curated tools over auto-discovered ones, then posts with real release notes.
   const rank = (e) => (CURATED.has(e.toolId) ? 2 : 0) + (e.summary ? 1 : 0);
   entries.sort((a, b) => rank(b) - rank(a) || Date.parse(b.date) - Date.parse(a.date));
-  const urls = byTool.size ? [`${SITE_URL}/`, `${SITE_URL}/news/`, `${SITE_URL}/tools/`, ...[...byTool.keys()].map((id) => `${SITE_URL}/tools/${id}/`)] : [];
+  const urls = byTool.size ? [`${SITE_URL}/`, `${SITE_URL}/news/`, `${SITE_URL}/tools/`, ...[...byTool.keys()].map((id) => `${SITE_URL}/tools/${id}/`), ...fresh.map(pageOf).filter(Boolean)] : [];
 
   const ids = [...new Set([...items.map((i) => i.id), ...seen])].slice(0, KEEP_IDS);
   await writeFile(ANNOUNCED, JSON.stringify({ updatedAt: new Date(now).toISOString(), ids }, null, 0) + '\n');
@@ -127,7 +130,7 @@ async function telegram(posts, roundup) {
   if (!token || !chat) return 'skipped (no TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)';
   const send = (text, url) => http(`https://api.telegram.org/bot${token}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ chat_id: chat, text, parse_mode: 'HTML', link_preview_options: url ? { url, prefer_large_media: true } : { is_disabled: true } }) });
-  for (const e of posts) await send(`🚀 <b>${esc(e.headline)}</b>${e.summary ? `\n\n${esc(clip(e.summary, 500))}` : ''}\n\n<a href="${e.url}">Changelog on aiticker</a> · <a href="${esc(e.source)}">Source</a>`, e.url);
+  for (const e of posts) await send(`🚀 <b>${esc(e.headline)}</b>${e.summary ? `\n\n${esc(clip(e.summary, 500))}` : ''}\n\n<a href="${e.url}">Release notes on aiticker</a> · <a href="${esc(e.source)}">Source</a>`, e.url);
   if (roundup.length) await send(`📦 <b>Also shipped</b>\n${roundup.map((e) => `• <a href="${e.url}">${esc(e.headline.replace(/ is out$/, ''))}</a>`).join('\n')}`);
   return `${posts.length + (roundup.length ? 1 : 0)} message(s)`;
 }

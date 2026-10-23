@@ -99,6 +99,38 @@ const tools = [...TOOLS, ...discovered].map((t) => {
 }).sort((a, b) => b.lastActive.localeCompare(a.lastActive));
 const byId = Object.fromEntries(tools.map((t) => [t.id, t]));
 
+// ── release pages ─────────────────────────────────────────
+// Every release and changelog entry gets its own page (tools/<id>/<slug>/), which is what people search
+// for ("claude code 2.1.309"). Fetches only keep each tool's latest items, so data/releases.json archives
+// everything seen: once a page is indexed it never 404s, and its slug never changes.
+const ARCHIVE = new URL('data/releases.json', ROOT);
+const archive = JSON.parse(await readFile(ARCHIVE, 'utf8').catch(() => '{}'));
+const ARCHIVE_CAP = 1000;   // per tool
+const NOTES_CAP = 60000;    // characters of release-note HTML kept per entry
+const slugify = (s) => s.toLowerCase().replace(/^v(?=\d)/, '').replace(/[^a-z0-9.]+/g, '-').replace(/^[-.]+|[-.]+$/g, '').slice(0, 80);
+for (const t of tools) {
+  const list = archive[t.id] ||= [];
+  const known = new Map(list.map((r) => [r.id, r]));
+  const taken = new Set(['releases', ...list.map((r) => r.slug)]);
+  for (const i of t.items) {
+    if (i.kind !== 'release' && i.kind !== 'changelog') continue;
+    const rec = { id: i.id, kind: i.kind, version: i.version || '', title: i.title, url: i.url, date: i.date, summary: i.summary || '', html: (i.html || '').length > NOTES_CAP ? '' : i.html || '' };
+    if (known.has(i.id)) { Object.assign(known.get(i.id), rec); continue; } // notes can be edited upstream; the slug stays
+    const base = slugify(i.version || i.title) || 'update';
+    let slug = taken.has(base) ? `${base}-${i.date.slice(0, 10)}` : base;
+    for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
+    taken.add(slug);
+    list.push({ slug, ...rec });
+  }
+  list.sort((a, b) => b.date.localeCompare(a.date));
+  list.length = Math.min(list.length, ARCHIVE_CAP);
+}
+const relPath = (toolId, r) => `tools/${toolId}/${r.slug}/`;
+const relPathById = new Map(tools.flatMap((t) => archive[t.id].map((r) => [r.id, relPath(t.id, r)])));
+// Entries with next to no notes ("Published to npm") stay reachable but out of search results.
+const noteLength = (r) => (r.html ? r.html.replace(/<[^>]+>/g, '').length : r.summary.length);
+const thinRelease = (r) => noteLength(r) < 200;
+
 // ── first releases ────────────────────────────────────────
 // A tool's launch: hand-checked for curated tools, otherwise its earliest fetched release when that
 // history is complete (not cut off by the fetch cap or a cadenceFrom gap).
@@ -235,10 +267,11 @@ const ogIcon = (id) => {
   return { mono: !!m.mono, href: `data:${type};base64,${readFileSync(new URL(`data/icons/${m.file}`, ROOT)).toString('base64')}` };
 };
 
-function layout({ root, path, title, description, body, jsonld, crumbs, og, active = '' }) {
+function layout({ root, path, title, description, body, jsonld, crumbs, og, ogFile, noindex = false, active = '' }) {
   const canonical = `${SITE_URL}/${path}`;
   let ogImage = `${SITE_URL}/og.png`, ogAlt = `${SITE_NAME}: live AI IDE &amp; coding CLI updates`;
-  if (og) {
+  if (ogFile) { ogImage = `${SITE_URL}/${ogFile}`; ogAlt = esc(title); } // reuse another page's card
+  else if (og) {
     const file = `og/${path.replace(/\/$/, '').replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'home'}.png`;
     OG_JOBS.push({ file, card: { foot: `${SITE_URL.replace(/^https?:\/\//, '')}/${path}`, ...og } });
     ogImage = `${SITE_URL}/${file}`;
@@ -258,7 +291,7 @@ function layout({ root, path, title, description, body, jsonld, crumbs, og, acti
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta name="author" content="${AUTHOR.name}">
-<meta name="robots" content="max-image-preview:large, max-snippet:-1">
+<meta name="robots" content="${noindex ? 'noindex, follow' : 'max-image-preview:large, max-snippet:-1'}">
 <meta name="pw-generated" content="${snap.generatedAt}">
 <link rel="canonical" href="${canonical}">
 <meta name="theme-color" content="#121211">
@@ -339,6 +372,7 @@ function feedCard(item, root, { full = false } = {}) {
   const cat = t.category;
   const text = `${t.name} ${item.title} ${item.version || ''} ${t.vendor}`.toLowerCase();
   const notes = full && item.html ? `<details class="notes"><summary>Read full notes</summary><div class="prose">${lazyImgs(item.html)}</div></details>` : '';
+  const page = relPathById.get(item.id);
   return `<article class="fcard" data-id="${esc(item.id)}" data-kind="${item.kind}" data-cat="${cat}" data-trend="${t.discovered ? 1 : 0}" data-tool="${t.id}" data-text="${esc(text)}" style="--c:${t.color}">
   <div class="fcard-rail">${icon(t, root, 'sm')}</div>
   <div class="fcard-body">
@@ -346,9 +380,10 @@ function feedCard(item, root, { full = false } = {}) {
       ${full ? '' : `<a class="fcard-tool" href="${root}tools/${t.id}/">${esc(t.name)}</a>`}
       <span class="kind kind-${item.kind}">${KIND[item.kind]}</span>
       ${item.version ? `<code class="ver">${esc(item.version)}</code>` : ''}
+      ${page ? `<a class="fcard-src" href="${esc(item.url)}" target="_blank" rel="noopener" title="Official source">source ↗</a>` : ''}
       ${time(item.date, 'fcard-time')}
     </div>
-    <h3 class="fcard-title"><a href="${esc(item.url)}" target="_blank" rel="noopener">${esc(item.title)}</a></h3>
+    <h3 class="fcard-title">${page ? `<a href="${root}${page}">${esc(item.title)}</a>` : `<a href="${esc(item.url)}" target="_blank" rel="noopener">${esc(item.title)}</a>`}</h3>
     ${item.summary ? `<p class="fcard-sum">${esc(item.summary)}</p>` : ''}
     ${notes}
   </div>
@@ -1429,7 +1464,7 @@ ${banner()}
 <section class="wrap section">
   <div class="feed-layout">
     <div class="feed tool-feed">
-      <div class="section-head"><div><p class="eyebrow">Release history</p><h2>Recent updates</h2></div></div>
+      <div class="section-head"><div><p class="eyebrow">Release history</p><h2>Recent updates</h2></div>${archive[t.id].length ? `<a class="btn ghost" href="${root}tools/${t.id}/releases/">All ${archive[t.id].length} versions →</a>` : ''}</div>
       ${t.items.length ? timeline(t.items, root, { full: true }) : '<p class="muted">No updates found yet.</p>'}
     </div>
     <aside class="side">
@@ -1464,6 +1499,113 @@ ${banner()}`;
       mainEntityOfPage: `${SITE_URL}/tools/${t.id}/`,
       ...(offers ? { offers } : {}),
     },
+    body,
+  });
+}
+
+const relLabel = (r) => (r.kind === 'release' && r.version ? r.version : r.title);
+const relList = (t, list, root, current) => `<ul class="rel-list">${list.map((r) => `<li${r === current ? ' aria-current="page"' : ''}><a href="${root}${relPath(t.id, r)}">${r.kind === 'release' && r.version ? `<code>${esc(r.version)}</code><span>${r.title.endsWith(r.version) ? '' : esc(r.title)}</span>` : `<span>${esc(r.title)}</span>`}<small class="rel-date">${fmtDate(r.date)}</small></a></li>`).join('')}</ul>`;
+
+function releasePage(t, r, i, list) {
+  const root = '../../../';
+  const path = relPath(t.id, r);
+  const isRelease = r.kind === 'release' && r.version;
+  const label = relLabel(r);
+  const newer = list[i - 1], older = list[i + 1];
+  const latest = list.find((x) => x.kind === r.kind);
+  const nearby = list.slice(Math.max(0, i - 5), i + 6);
+  const similar = tools.filter((x) => x.category === t.category && x.id !== t.id).slice(0, 5);
+  const notes = r.html ? `<div class="prose rel-notes">${lazyImgs(r.html)}</div>` : r.summary ? `<p class="rel-sum">${esc(r.summary)}</p>` : '<p class="muted">No release notes were published for this version.</p>';
+  const plain = (r.summary || '').replace(/\s+/g, ' ').trim();
+  const body = `
+<section class="wrap tool-hero" style="--c:${t.color}">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}tools/">Tools</a><span>/</span><a href="${root}tools/${t.id}/">${esc(t.name)}</a><span>/</span><span>${esc(isRelease ? label : 'Changelog')}</span></nav>
+  <div class="tool-head">
+    ${icon(t, root, 'xl')}
+    <div>
+      <p class="eyebrow">${KIND[r.kind]} · <a href="${root}tools/${t.id}/">${esc(t.name)}</a> · ${vendorLink(t.vendor, root)}</p>
+      <h1>${isRelease ? `${scrawl(t.name)} <em>${esc(label)}</em>` : esc(r.title)}</h1>
+      <p class="lede">${isRelease ? `What's new in ${esc(t.name)} ${esc(label)}, released` : 'Published'} ${fmtDate(r.date)} (${time(r.date)}).
+        ${r === latest ? `<strong class="rel-latest">${isRelease ? 'This is the latest version.' : 'Latest update.'}</strong>` : latest ? `<span class="rel-newer">Newer: <a href="${root}${relPath(t.id, latest)}">${esc(relLabel(latest))}</a> (${fmtDate(latest.date)})</span>` : ''}</p>
+      <div class="tool-links">
+        <a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener">Official ${isRelease ? 'release notes' : 'post'} ↗</a>
+        <a class="btn ghost" href="${root}tools/${t.id}/">${esc(t.name)} changelog</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+${banner()}
+
+<section class="wrap section">
+  <div class="feed-layout">
+    <article class="rel-body">
+      <div class="section-head"><div><p class="eyebrow">${isRelease ? 'Release notes' : 'Changelog'}</p><h2>${isRelease ? `${esc(t.name)} ${esc(label)}` : esc(r.title)}</h2></div></div>
+      ${notes}
+      <nav class="rel-nav" aria-label="Other versions">
+        ${older ? `<a href="${root}${relPath(t.id, older)}" rel="prev"><small>← Previous</small><b>${esc(relLabel(older))}</b></a>` : '<span></span>'}
+        ${newer ? `<a href="${root}${relPath(t.id, newer)}" rel="next" class="next"><small>Next →</small><b>${esc(relLabel(newer))}</b></a>` : '<span></span>'}
+      </nav>
+    </article>
+    <aside class="side">
+      ${ad('side')}
+      <div class="side-card">
+        <p class="eyebrow">Version history</p><h2>${esc(t.name)} releases</h2>
+        ${relList(t, nearby, root, r)}
+        <p><a class="btn ghost" href="${root}tools/${t.id}/releases/">All ${list.length} versions →</a></p>
+      </div>
+      <div class="side-card">
+        <p class="eyebrow">Compare</p><h2>Similar tools</h2>
+        <ul class="similar">${similar.map((s) => `<li><a href="${root}tools/${s.id}/" style="--c:${s.color}">${icon(s, root, 'sm')}<span>${esc(s.name)}</span><code>${esc(s.latestRelease?.version || '')}</code></a></li>`).join('')}</ul>
+      </div>
+    </aside>
+  </div>
+</section>
+${banner()}`;
+
+  return layout({
+    root, path, active: 'tools', ogFile: `og/tools-${t.id}.png`, noindex: thinRelease(r),
+    crumbs: [['Tools', 'tools/'], [t.name, `tools/${t.id}/`], [isRelease ? label : r.title, path]],
+    title: isRelease ? `${t.name} ${label} Release Notes — What's New | ${SITE_NAME}` : `${r.title} — ${t.name} Changelog | ${SITE_NAME}`,
+    description: `${isRelease ? `What's new in ${t.name} ${label}` : `${t.name}: ${r.title}`}, released ${fmtDate(r.date)}. ${plain}`,
+    jsonld: {
+      '@context': 'https://schema.org', '@type': 'TechArticle', headline: isRelease ? `${t.name} ${label} release notes` : r.title,
+      datePublished: r.date, dateModified: r.date, url: `${SITE_URL}/${path}`, isBasedOn: r.url,
+      author: { '@type': 'Organization', name: t.vendor }, publisher: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+      about: { '@type': 'SoftwareApplication', name: t.name, applicationCategory: 'DeveloperApplication', ...(isRelease ? { softwareVersion: label } : {}), url: `${SITE_URL}/tools/${t.id}/` },
+      ...(plain ? { description: plain.slice(0, 300) } : {}),
+    },
+    body,
+  });
+}
+
+function releasesIndexPage(t) {
+  const root = '../../../';
+  const path = `tools/${t.id}/releases/`;
+  const list = archive[t.id];
+  const byYear = Map.groupBy(list, (r) => r.date.slice(0, 4));
+  const body = `
+<section class="wrap tool-hero" style="--c:${t.color}">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}tools/">Tools</a><span>/</span><a href="${root}tools/${t.id}/">${esc(t.name)}</a><span>/</span><span>All versions</span></nav>
+  <div class="tool-head">
+    ${icon(t, root, 'xl')}
+    <div>
+      <p class="eyebrow">Release history · ${vendorLink(t.vendor, root)}</p>
+      <h1>${scrawl(t.name)} <em>versions</em></h1>
+      <p class="lede">Every ${esc(t.name)} release and changelog entry tracked by ${SITE_NAME}: ${list.length} so far${list.length ? `, latest <a href="${root}${relPath(t.id, list[0])}">${esc(relLabel(list[0]))}</a> on ${fmtDate(list[0].date)}` : ''}.</p>
+    </div>
+  </div>
+</section>
+<section class="wrap section">
+  ${[...byYear].map(([y, rs]) => `<div class="section-head"><div><h2>${y}</h2></div><span class="muted small">${rs.length} update${rs.length === 1 ? '' : 's'}</span></div>${relList(t, rs, root)}`).join('')}
+</section>
+${banner()}`;
+  return layout({
+    root, path, active: 'tools', ogFile: `og/tools-${t.id}.png`,
+    crumbs: [['Tools', 'tools/'], [t.name, `tools/${t.id}/`], ['All versions', path]],
+    title: `${t.name} Version History — All Releases | ${SITE_NAME}`,
+    description: `Complete ${t.name} version history: all ${list.length} releases and changelog entries with dates and release notes${list[0] ? `, latest ${relLabel(list[0])} (${fmtDate(list[0].date)})` : ''}.`,
+    jsonld: { '@context': 'https://schema.org', '@type': 'ItemList', name: `${t.name} releases`, itemListElement: list.slice(0, 100).map((r, i) => ({ '@type': 'ListItem', position: i + 1, name: relLabel(r), url: `${SITE_URL}/${relPath(t.id, r)}` })) },
     body,
   });
 }
@@ -2174,6 +2316,14 @@ if (models.length) await out('learn/index.html', learnPage());
 for (const l of labs) await out(`${labPath(l[0].labId)}index.html`, labPage(l));
 for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
+for (const t of tools) {
+  const list = archive[t.id];
+  if (!list.length) continue;
+  await out(`tools/${t.id}/releases/index.html`, releasesIndexPage(t));
+  for (const [i, r] of list.entries()) await out(`${relPath(t.id, r)}index.html`, releasePage(t, r, i, list));
+}
+// One entry per line keeps the committed archive's diffs small.
+await writeFile(ARCHIVE, `{\n${Object.entries(archive).filter(([, l]) => l.length).map(([id, l]) => `${JSON.stringify(id)}: [\n${l.map((r) => JSON.stringify(r)).join(',\n')}\n]`).join(',\n')}\n}\n`);
 await out('companies/index.html', companiesIndexPage());
 await out('privacy/index.html', privacyPage());
 await out('contact/index.html', contactPage());
@@ -2242,6 +2392,8 @@ ${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}
 <url><loc>${SITE_URL}/companies/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 ${companies.map((c) => `<url><loc>${SITE_URL}/${coPath(c)}</loc><lastmod>${c.last}</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>`).join('\n')}
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
+${tools.filter((t) => archive[t.id].length).map((t) => [`<url><loc>${SITE_URL}/tools/${t.id}/releases/</loc><lastmod>${archive[t.id][0].date}</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>`,
+  ...archive[t.id].filter((r) => !thinRelease(r)).map((r) => `<url><loc>${SITE_URL}/${relPath(t.id, r)}</loc><lastmod>${r.date}</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>`)].join('\n')).join('\n')}
 </urlset>`);
 await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
