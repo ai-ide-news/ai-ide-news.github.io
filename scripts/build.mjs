@@ -639,10 +639,14 @@ function leaderboard(root) {
   const epoch = (ix) => ({ ...ix, fmt: (v) => String(v), rows: top(models.map((m) => ({ m, v: lbIndex(m, ix) }))) });
   const aaView = (id, name, tone, desc, f, fmt = (v) => String(Math.round(v))) => ({ id, name, tone, desc, fmt, rows: top(models.map((m) => ({ m, v: aaFor[m.id]?.[f] ?? null }))) });
   const [intel, code, ...rest] = LB_INDEXES;
+  // AA stopped scoring its Coding Index for newer models; when it misses most of today's
+  // top models, the Epoch coding index stands in so the newest releases still show.
+  const aaIntel = hasAA && aaView('intel', 'Intelligence', 'accent', 'Artificial Analysis Intelligence Index', 'intel');
+  const aaCode = hasAA && aaIntel.rows.filter((r) => aaFor[r.m.id]?.code != null).length >= aaIntel.rows.length / 2;
   const views = (hasAA ? [
-    aaView('intel', 'Intelligence', 'accent', 'Artificial Analysis Intelligence Index', 'intel'),
+    aaIntel,
     aaView('speed', 'Speed', 'hn', 'Median output tokens per second on the first-party API', 'speed'),
-    aaView('code', 'Coding', 'release', 'Artificial Analysis Coding Index', 'code'),
+    aaCode ? aaView('code', 'Coding', 'release', 'Artificial Analysis Coding Index', 'code') : epoch(code),
   ] : [epoch(intel), epoch(code)]).concat(rest.map(epoch)).filter((v) => v.rows.length >= 5);
   if (!views.length) return '';
   // Price and context for the same smartest models, so the trade-off is visible.
@@ -655,7 +659,7 @@ function leaderboard(root) {
   return `<section id="leaderboard" class="wrap section lb">
   <div class="section-head">
     <div><p class="eyebrow">At a glance</p><h2>Leaderboard</h2></div>
-    <p class="muted small section-note">The top models on each measure${hasAA ? `, with intelligence, coding, speed and price from <a href="${AA_SOURCE.url}" target="_blank" rel="noopener">${AA_SOURCE.name}</a>` : ''}. Our own index scores (from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a> results) average each benchmark as a share of the best score any model has reached on it, so 100 would mean best on everything. Click a bar for the model's page.</p>
+    <p class="muted small section-note">The top models on each measure${hasAA ? `, with intelligence, ${aaCode ? 'coding, ' : ''}speed and price from <a href="${AA_SOURCE.url}" target="_blank" rel="noopener">${AA_SOURCE.name}</a>` : ''}. Our own index scores (from <a href="${BENCH_SOURCE.url}" target="_blank" rel="noopener">${BENCH_SOURCE.name}</a> results) average each benchmark as a share of the best score any model has reached on it, so 100 would mean best on everything. Click a bar for the model's page.</p>
   </div>
   <div class="lb-body">
     <div class="lb-nav" role="tablist" aria-label="Leaderboard metric" aria-orientation="vertical">
