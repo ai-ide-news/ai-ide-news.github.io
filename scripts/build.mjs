@@ -69,6 +69,12 @@ const clampDesc = (s, max = 158) => {
 };
 // Release-note images come from vendor markdown: no alt/size, so make them lazy and give them an alt.
 const lazyImgs = (html) => html.replace(/<img\b(?![^>]*\bloading=)/g, '<img loading="lazy" decoding="async"').replace(/<img\b(?![^>]*\balt=)/g, '<img alt=""');
+// Release notes copied from a vendor keep their relative links ("/docs/x"), which would point at
+// this site and 404; resolve them against the item's own URL instead.
+const absLinks = (html, base) => html.replace(/(<(?:a|img)\b[^>]*?\s(?:href|src)=")(?![a-z][a-z0-9+.-]*:|#)([^"]+)"/gi, (m, pre, u) => {
+  try { return `${pre}${new URL(u.replace(/&amp;/g, '&'), base).href.replace(/&/g, '&amp;')}"`; } catch { return m; }
+});
+const notesHtml = (item) => lazyImgs(item.url ? absLinks(item.html, item.url) : item.html);
 // Detail-page title: the name types itself out behind a moving caret (src/app.js); the text never reflows.
 const scrawl = (s) => `<span class="typed">${esc(s)}</span>`;
 const ago = (iso) => {
@@ -371,7 +377,7 @@ function feedCard(item, root, { full = false } = {}) {
   const t = byId[item.toolId];
   const cat = t.category;
   const text = `${t.name} ${item.title} ${item.version || ''} ${t.vendor}`.toLowerCase();
-  const notes = full && item.html ? `<details class="notes"><summary>Read full notes</summary><div class="prose">${lazyImgs(item.html)}</div></details>` : '';
+  const notes = full && item.html ? `<details class="notes"><summary>Read full notes</summary><div class="prose">${notesHtml(item)}</div></details>` : '';
   const page = relPathById.get(item.id);
   return `<article class="fcard" data-id="${esc(item.id)}" data-kind="${item.kind}" data-cat="${cat}" data-trend="${t.discovered ? 1 : 0}" data-tool="${t.id}" data-text="${esc(text)}" style="--c:${t.color}">
   <div class="fcard-rail">${icon(t, root, 'sm')}</div>
@@ -1519,7 +1525,7 @@ function releasePage(t, r, i, list) {
   const latest = list.find((x) => x.kind === r.kind);
   const nearby = list.slice(Math.max(0, i - 5), i + 6);
   const similar = tools.filter((x) => x.category === t.category && x.id !== t.id).slice(0, 5);
-  const notes = r.html ? `<div class="prose rel-notes">${lazyImgs(r.html)}</div>` : r.summary ? `<p class="rel-sum">${esc(r.summary)}</p>` : '<p class="muted">No release notes were published for this version.</p>';
+  const notes = r.html ? `<div class="prose rel-notes">${notesHtml(r)}</div>` : r.summary ? `<p class="rel-sum">${esc(r.summary)}</p>` : '<p class="muted">No release notes were published for this version.</p>';
   const plain = (r.summary || '').replace(/\s+/g, ' ').trim();
   // Feeds like Codex app title every entry the same; dated titles keep each page unique for search.
   const titleRepeats = !isRelease && list.some((x) => x !== r && x.title === r.title);
