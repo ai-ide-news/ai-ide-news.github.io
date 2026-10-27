@@ -653,6 +653,14 @@
    "mono": false,
    "src": "https://paradev.com/apple-touch-icon.png",
    "tone": null
+  },
+  "gh-rlaope-oh-my-hermes": {
+   "logo": null,
+   "checked": 1793114788478,
+   "file": "gh-rlaope-oh-my-hermes.png",
+   "mono": false,
+   "src": "https://raw.githubusercontent.com/rlaope/oh-my-hermes/main/assets/omh-logo.png",
+   "tone": "light"
   }
  }
 }
