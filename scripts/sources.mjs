@@ -124,6 +124,42 @@ export const TOOLS = [
     blurb: 'Multi-agent coding assistant for the terminal.',
     npm: 'codebuff',
   },
+  {
+    id: 'auggie', name: 'Auggie CLI', vendor: 'Augment', category: 'cli',
+    site: 'https://www.augmentcode.com/product/CLI', domain: 'augmentcode.com', color: '#5EE5A0',
+    blurb: "Augment Code's context-aware coding agent for the terminal.",
+    npm: '@augmentcode/auggie',
+  },
+  {
+    id: 'claude-squad', name: 'Claude Squad', vendor: 'smtg-ai', category: 'cli',
+    site: 'https://smtg-ai.github.io/claude-squad/', domain: 'smtg-ai.github.io', color: '#F2A65A',
+    blurb: 'Terminal app for running multiple agents like Claude Code, Codex, OpenCode and Amp side by side.',
+    github: 'smtg-ai/claude-squad',
+  },
+  {
+    id: 'vibe-kanban', name: 'Vibe Kanban', vendor: 'Bloop AI', category: 'cli',
+    site: 'https://www.vibekanban.com', domain: 'vibekanban.com', color: '#FFC233',
+    blurb: 'Kanban board for planning and running Claude Code, Codex and other coding agents.',
+    npm: 'vibe-kanban',
+  },
+  {
+    id: 'letta-code', name: 'Letta Code', vendor: 'Letta', category: 'cli',
+    site: 'https://www.letta.com', domain: 'letta.com', color: '#E8E8E8',
+    blurb: "Letta's memory-first coding agent that improves with experience.",
+    github: 'letta-ai/letta-code',
+  },
+  {
+    id: 'gptme', name: 'gptme', vendor: 'gptme', category: 'cli',
+    site: 'https://gptme.org', domain: 'gptme.org', color: '#6C9EFF',
+    blurb: 'Open-source agent in your terminal with local tools: writes code, runs commands, browses the web.',
+    github: 'gptme/gptme',
+  },
+  {
+    id: 'mini-swe-agent', name: 'mini-SWE-agent', vendor: 'SWE-agent', category: 'cli',
+    site: 'https://mini-swe-agent.com', domain: 'mini-swe-agent.com', color: '#4F8EF7',
+    blurb: 'The 100-line agent from the SWE-bench team that solves GitHub issues or helps in your terminal.',
+    github: 'SWE-agent/mini-swe-agent',
+  },
 
   // ── IDEs ────────────────────────────────────────────────
   {
@@ -270,6 +306,31 @@ export const TOOLS = [
     blurb: 'Agentic development environment built around a modern terminal.',
     cask: 'warp',
   },
+  // Agent GUIs and orchestrators: discovery skips these (they describe themselves as "for" other agents), so they're curated.
+  {
+    id: 't3code', name: 'T3 Code', vendor: 'Ping Labs', category: 'desktop',
+    site: 'https://t3.codes', domain: 't3.codes', color: '#E5508F',
+    blurb: 'Minimal desktop and web GUI for coding agents like Codex and Claude Code.',
+    github: 'pingdotgg/t3code', tagFilter: /^v\d+\.\d+\.\d+$/,
+  },
+  {
+    id: 'emdash', name: 'Emdash', vendor: 'General Action', category: 'desktop',
+    site: 'https://emdash.com', domain: 'emdash.com', color: '#FF8A3D',
+    blurb: 'Open-source agentic development environment for running many coding agents in parallel.',
+    github: 'generalaction/emdash',
+  },
+  {
+    id: 'cmux', name: 'cmux', vendor: 'Manaflow', category: 'desktop',
+    site: 'https://cmux.com', domain: 'cmux.com', color: '#9AA5FF',
+    blurb: 'Ghostty-based macOS terminal with vertical tabs and notifications for AI coding agents.',
+    github: 'manaflow-ai/cmux',
+  },
+  {
+    id: 'openwork', name: 'OpenWork', vendor: 'Different AI', category: 'desktop',
+    site: 'https://openworklabs.com', domain: 'openworklabs.com', color: '#7DD3A8',
+    blurb: 'Open-source alternative to Claude Cowork, powered by OpenCode.',
+    github: 'different-ai/openwork',
+  },
 
   // ── Cloud agents ────────────────────────────────────────
   {
@@ -338,13 +399,14 @@ export const DISCOVERY = {
 // Agent Skills and MCP servers pages (scripts/ecosystem.mjs): GitHub repos, ranked by star velocity.
 export const ECOSYSTEM = {
   skills: {
-    minStars: 200, maxIdleDays: 90, max: 200,
-    topics: ['agent-skills', 'claude-skills', 'claude-code-skills', 'agent-skill', 'skills-md', 'codex-skills', 'claude-skill'],
+    minStars: 100, maxIdleDays: 90, max: 300,
+    topics: ['agent-skills', 'claude-skills', 'claude-code-skills', 'agent-skill', 'skills-md', 'codex-skills', 'claude-skill',
+      'agentskills', 'claude-code-plugin', 'claude-code-plugins', 'opencode-skills', 'cursor-skills', 'gemini-skills'],
     deny: [],
   },
   mcp: {
-    minStars: 300, maxIdleDays: 90, max: 200, registryDays: 1,
-    topics: ['mcp-server', 'mcp-servers', 'model-context-protocol', 'mcp'],
+    minStars: 150, maxIdleDays: 90, max: 300, registryDays: 1,
+    topics: ['mcp-server', 'mcp-servers', 'model-context-protocol', 'mcp', 'mcp-tools', 'mcp-tool', 'mcp-client', 'fastmcp', 'remote-mcp-server', 'mcp-gateway'],
     deny: [],
   },
   // Display names where the repo name doesn't read well.
@@ -392,6 +454,16 @@ export const HN_MATCH = {
   lovable: /\blovable\b/i,
   replit: /\breplit\b/i,
   v0: /\bv0(\.app|\.dev| by vercel)\b|vercel'?s v0/i,
+  auggie: /\bauggie\b/i,
+  'claude-squad': /claude ?squad/i,
+  'vibe-kanban': /vibe ?kanban/i,
+  'letta-code': /letta code/i,
+  gptme: /\bgptme\b/i,
+  'mini-swe-agent': /mini-swe-agent/i,
+  t3code: /\bt3 ?code\b|t3\.codes/i,
+  emdash: /\bemdash\b.*\b(agents?|coding|ade|yc)\b|emdash\.com/i,
+  cmux: /\bcmux\b/i,
+  openwork: /\bopenwork\b/i,
 };
 
 // Community discussion: Hacker News stories mentioning any tool (via the Algolia HN API).
@@ -400,4 +472,5 @@ export const HN_QUERIES = [
   'Copilot', 'OpenCode', 'Cline', 'Aider', 'Amp', 'Goose', 'Qwen Code', 'Kimi', 'Junie', 'Antigravity',
   'Roo Code', 'Kilo Code', 'Trae', 'Crush', 'Claude Desktop', 'Codex app', 'Conductor', 'Warp', 'AI coding agent', 'AI IDE',
   'Factory Droid', 'Command Code', 'Codebuff', 'Qoder', 'Devin', 'Jules', 'Lovable', 'Replit', 'v0',
+  'Auggie', 'Claude Squad', 'Vibe Kanban', 'Letta Code', 'gptme', 'mini-swe-agent', 'T3 Code', 'Emdash', 'cmux', 'OpenWork',
 ];
