@@ -15,6 +15,7 @@ import { AA_SOURCE } from './aa.mjs';
 import { OPENCODE_SOURCE } from './opencode.mjs';
 import { learnBody, LEARN_SECTIONS } from './learn.mjs';
 import { ogSvg, ogPng } from './og.mjs';
+import { readDetails, detailKey } from './eco-details.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -1805,6 +1806,10 @@ const ECO = {
 const avatar = (url, size = 64) => (url ? `${url}${url.includes('?') ? '&' : '?'}s=${size}` : '');
 // Field of work, guessed from the name, description and topics; a repo can sit in several. Order is the menu order.
 const FIELDS = [
+  ['adobe', 'Adobe apps', /\b(adobe|photoshop|illustrator|premiere( pro)?|after ?effects|lightroom|indesign|acrobat|firefly|substance (painter|designer)|extendscript|uxp)\b/],
+  ['office', 'Microsoft Office & docs', /\b(microsoft (office|365|word|excel|powerpoint)|ms ?(office|365)|office (365|suite|documents?|files?|add ?ins?)|word documents?|excel|powerpoint|outlook|onenote|sharepoint|docx|xlsx|pptx|libre ?office|only ?office|wps|google (docs|sheets|slides))\b/],
+  ['blender', 'Blender & 3D', /\b(blender|3d|maya|cinema ?4d|houdini|zbrush|3ds ?max|meshes|gaussian splat(s|ting)?|three\.?js|unity|unreal|godot)\b/],
+  ['artcraft', 'ArtCraft suite', /\b(art ?craft|storytold|(photo|film|word|light|vector|effect|grid|deck|design|fig|sound|cad|pdf|ani)craft)\b/],
   ['frontend', 'Frontend & UI', /\b(front ?end|full ?stack|react|vue|svelte|angular|next\.?js|nuxt|tailwind|css|html|ui|ux|interfaces?|components?|shadcn|web ?apps?)\b/],
   ['backend', 'Backend & APIs', /\b(back ?end|full ?stack|apis?|rest|graphql|server side|node\.?js|django|fastapi|flask|rails|laravel|php|spring|express|microservices?|grpc|openapi)\b/],
   ['data', 'Data & databases', /\b(databases?|sql|postgres(ql)?|mysql|sqlite|mongo(db)?|redis|supabase|neon|snowflake|bigquery|clickhouse|duckdb|data|analytics|etl|spreadsheets?|excel|csv|vector|elasticsearch)\b/],
@@ -1818,7 +1823,7 @@ const FIELDS = [
   ['docs', 'Docs & writing', /\b(docs|documentation|writing|writer|humanizer|markdown|notion|obsidian|notes?|knowledge ?base|wiki|pdf|docx|word|blog|content)\b/],
   ['design', 'Design', /\b(design(er|s)?|figma|canva|stitch|typography|icons?|diagrams?|excalidraw|slides?|presentations?|pptx?)\b/],
   ['mobile', 'Mobile & desktop', /\b(mobile|ios|android|swift(ui)?|kotlin|flutter|react native|expo|xcode|desktop|electron|tauri|macos|windows|esp32)\b/],
-  ['media', 'Media & games', /\b(images?|video|audio|music|speech|voice|tts|youtube|photos?|3d|blender|unity|unreal|games?|godot|animation|drama)\b/],
+  ['media', 'Media & games', /\b(images?|video|audio|music|speech|voice|tts|youtube|photos?|3d|blender|unity|unreal|games?|godot|animation|drama|davinci( resolve)?|comfy ?ui|gimp|krita|inkscape|capcut|final cut)\b/],
   ['productivity', 'Productivity & PM', /\b(slack|discord|telegram|whatsapp|email|gmail|calendar|jira|linear|asana|trello|todoist|productivity|office|google workspace|teams|crm|hubspot|salesforce|product manag(er|ement)|chatbot)\b/],
   ['marketing', 'Marketing & SEO', /\b(marketing|seo|ads|advertising|social media|twitter|linkedin|xiaohongshu|growth|copywriting|brand(ing)?)\b/],
   ['finance', 'Finance & business', /\b(finance|financial|trading|stocks?|crypto|blockchain|web3|ethereum|solana|payments?|stripe|accounting|invoic(e|ing)|business|legal|sales|enterprise)\b/],
@@ -1838,7 +1843,7 @@ function ecoCard(r, type, i) {
   return `<article class="ecard" data-kind="${r.kind}" data-fields="${fields.join(' ')}" data-lang="${esc(r.language || '')}" data-text="${ecoText(r)}" data-trend="${i}" data-stars="${r.count}" data-new="${Date.parse(r.createdAt)}" data-upd="${Date.parse(r.pushedAt)}">
   <div class="ecard-head">
     <img class="ecard-av skel" src="${esc(avatar(r.avatar))}" alt="" width="32" height="32" loading="lazy" decoding="async">
-    <div class="ecard-who"><h3><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a></h3><small>${esc(r.owner)}</small></div>
+    <div class="ecard-who"><h3><a href="${esc(ecoPath(type, r).slice(ECO[type].path.length))}">${esc(r.name)}</a></h3><small>${esc(r.owner)}</small></div>
     <span class="ecard-kind ek-${r.kind}">${ECO[type].tag[r.kind]}</span>
   </div>
   ${r.description ? `<p class="ecard-sum">${esc(r.description)}</p>` : ''}
@@ -1859,7 +1864,7 @@ function registryList(reg) {
     <h2>Just published</h2>
     <p class="muted small">${reg.total.toLocaleString('en-US')}${reg.capped ? '+' : ''} servers published or updated on <a href="https://registry.modelcontextprotocol.io" target="_blank" rel="noopener">the official registry</a> in the last ${reg.days === 1 ? '24 hours' : `${reg.days} days`}. Newest first.</p>
     <ol class="reg">${reg.servers.slice(0, 30).map((s) => `<li data-fields="${fieldsOf(s.title, s.description || '').join(' ')}" data-text="${esc(`${s.title} ${s.name} ${s.description || ''}`.toLowerCase())}">
-      <div class="reg-top">${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener nofollow">${esc(s.title)}</a>` : `<strong>${esc(s.title)}</strong>`}<code>${esc(s.version)}</code></div>
+      <div class="reg-top"><a href="${esc(registryPath(s).slice('mcp/'.length))}">${esc(s.title)}</a><code>${esc(s.version)}</code></div>
       ${s.description ? `<p>${esc(s.description.length > 120 ? `${s.description.slice(0, 117)}…` : s.description)}</p>` : ''}
       <div class="reg-meta"><span>${esc(s.name)}</span>${s.remote ? '<span>remote</span>' : ''}${s.packages.map((p) => `<span>${esc(p)}</span>`).join('')}${time(s.publishedAt)}</div>
     </li>`).join('')}</ol>
@@ -1875,7 +1880,7 @@ function popCard(r, type) {
   return `<article class="ecard">
   <div class="ecard-head">
     <img class="ecard-av skel" src="${esc(img || '')}" alt="" width="32" height="32" loading="lazy" decoding="async">
-    <div class="ecard-who"><h3><a href="${esc(r.url)}" target="_blank" rel="noopener nofollow">${esc(r.name)}</a></h3><small>${esc(r.repo || r.owner)}</small></div>
+    <div class="ecard-who"><h3><a href="${esc((type === 'mcp' ? smitheryPath(r) : skillPath(r)).slice(ECO[type].path.length))}">${esc(r.name)}</a></h3><small>${esc(r.repo || r.owner)}</small></div>
     <span class="ecard-kind ek-${type === 'mcp' ? 'server' : 'skill'}">${type === 'mcp' ? (r.remote ? 'Hosted' : 'Server') : 'Skill'}</span>
   </div>
   ${r.description ? `<p class="ecard-sum">${esc(r.description.length > 220 ? `${r.description.slice(0, 217)}…` : r.description)}</p>` : ''}
@@ -1958,6 +1963,378 @@ ${popSection(type)}
     body,
   });
 }
+
+// ── skill & MCP detail pages ─────────────────────────────
+// One page per trending repo, most-installed skill, Smithery server and freshly published registry server:
+// install commands for each agent, the README or SKILL.md, the skills a pack ships, a hosted server's tools,
+// star trend, health signals and related picks. Detail data comes from data/details/ (scripts/eco-details.mjs).
+const DETAILS = await readDetails();
+const seg = (s) => s.toLowerCase().replace(/^@/, '').replace(/[^a-z0-9._-]+/g, '-').replace(/^[-.]+|[-.]+$/g, '') || '-';
+const ecoPath = (type, r) => `${ECO[type].path}${r.repo.split('/').map(seg).join('/')}/`;
+const skillPath = (s) => `skills/${s.id.split('/').map(seg).join('/')}/`;
+const smitheryPath = (s) => `mcp/smithery/${s.id.split('/').map(seg).join('/')}/`;
+const registryPath = (s) => `mcp/registry/${s.name.split('/').map(seg).join('/')}/`;
+const rootOf = (path) => '../'.repeat(path.split('/').filter(Boolean).length);
+const hueOf = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 360;
+const tintOf = (s) => `hsl(${hueOf(s)} 68% 62%)`;
+const ecoByRepo = new Map(Object.entries(ECO).flatMap(([type, c]) => c.list.map((r) => [r.repo.toLowerCase(), { type, r }])));
+const num = (n, label = '') => `<span data-count="${n}">${compact(n)}</span>${label}`;
+const freshness = (iso) => {
+  const d = (NOW - Date.parse(iso)) / DAY;
+  return d < 7 ? ['hot', 'Very active', 'Pushed to this week'] : d < 30 ? ['ok', 'Active', 'Pushed to this month'] : d < 90 ? ['meh', 'Maintained', 'Pushed to in the last 90 days'] : ['cold', 'Quiet', 'No pushes in 90 days'];
+};
+const shellArg = (a) => (/^[\w@%+=:,./^~-]+$/.test(a) ? a : `'${a.replace(/'/g, `'\\''`)}'`);
+const serverSlug = (s) => s.toLowerCase().replace(/^@[^/]+\//, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').replace(/(^|-)mcp(-server)?$|^mcp-/, '').slice(0, 32) || 'server';
+
+// Install tabs for an MCP server: a stdio command ({ command, args }) and/or a hosted URL, plus any
+// ready-made commands the README itself gives.
+function mcpTabs(name, { run, remote, claude, codex, gemini, env = [] } = {}) {
+  const id = serverSlug(name);
+  const tabs = [];
+  const envFlags = env.filter((e) => e.required).map((e) => ` -e ${e.name}=…`).join('');
+  const envJson = env.filter((e) => e.required).length ? { env: Object.fromEntries(env.filter((e) => e.required).map((e) => [e.name, '…'])) } : {};
+  if (run) {
+    const cmd = [run.command, ...run.args].map(shellArg).join(' ');
+    tabs.push({ id: 'claude', label: 'Claude Code', code: claude || `claude mcp add ${id}${envFlags} -- ${cmd}`, note: 'Run in your terminal. Add <code>--scope project</code> to share it with your team through <code>.mcp.json</code>.' });
+    tabs.push({ id: 'codex', label: 'Codex', code: codex || `codex mcp add ${id}${envFlags.replace(/-e /g, '--env ')} -- ${cmd}`, note: 'Saved to <code>~/.codex/config.toml</code>.' });
+    tabs.push({ id: 'cursor', label: 'Cursor', code: JSON.stringify({ mcpServers: { [id]: { command: run.command, args: run.args, ...envJson } } }, null, 2), note: 'Add to <code>~/.cursor/mcp.json</code> (or <code>.cursor/mcp.json</code> in a project).' });
+    tabs.push({ id: 'vscode', label: 'VS Code', code: JSON.stringify({ servers: { [id]: { type: 'stdio', command: run.command, args: run.args, ...envJson } } }, null, 2), note: 'Add to <code>.vscode/mcp.json</code>, then start it from the MCP view in Copilot Chat.' });
+    tabs.push({ id: 'gemini', label: 'Gemini CLI', code: gemini || `gemini mcp add ${id} ${cmd}`, note: 'Saved to <code>.gemini/settings.json</code>.' });
+  } else if (remote) {
+    tabs.push({ id: 'claude', label: 'Claude Code', code: claude || `claude mcp add --transport ${/\/sse\b/.test(remote) ? 'sse' : 'http'} ${id} ${remote}`, note: 'A hosted server: nothing to install. Run <code>/mcp</code> in Claude Code to sign in if it asks.' });
+    tabs.push({ id: 'codex', label: 'Codex', code: codex || `[mcp_servers.${id}]\nurl = "${remote}"`, note: 'Add to <code>~/.codex/config.toml</code>.' });
+    tabs.push({ id: 'cursor', label: 'Cursor', code: JSON.stringify({ mcpServers: { [id]: { url: remote } } }, null, 2), note: 'Add to <code>~/.cursor/mcp.json</code>.' });
+    tabs.push({ id: 'vscode', label: 'VS Code', code: JSON.stringify({ servers: { [id]: { type: 'http', url: remote } } }, null, 2), note: 'Add to <code>.vscode/mcp.json</code>.' });
+    tabs.push({ id: 'gemini', label: 'Gemini CLI', code: gemini || `gemini mcp add --transport http ${id} ${remote}`, note: 'Saved to <code>.gemini/settings.json</code>.' });
+  } else if (claude) tabs.push({ id: 'claude', label: 'Claude Code', code: claude, note: 'From the project README.' });
+  if (run && remote) tabs.push({ id: 'remote', label: 'Hosted', code: `claude mcp add --transport http ${id} ${remote}`, note: 'The project also runs a hosted endpoint, so you can skip the local install.' });
+  return tabs;
+}
+
+function skillTabs({ repo, skill, install = {}, marketplace = false, path = '' }) {
+  const name = skill || repo.split('/')[1];
+  const tabs = [{ id: 'cli', label: 'Skills CLI', code: install.skillsAdd || `npx skills add ${repo}${skill ? ` --skill ${skill}` : ''}`, note: 'Installs into Claude Code, Codex, Cursor, OpenCode and the other agents it finds on your machine.' }];
+  if (marketplace || install.plugin?.length) tabs.push({ id: 'plugin', label: 'Claude Code plugin', code: (install.plugin?.length ? install.plugin : [`/plugin marketplace add ${repo}`]).join('\n'), note: 'Run inside Claude Code, then pick what to install from <code>/plugin</code>.' });
+  const dir = path ? `/tmp/${seg(name)}/${path}` : `/tmp/${seg(name)}`;
+  tabs.push({ id: 'manual', label: 'Manual', code: `git clone --depth 1 https://github.com/${repo}.git /tmp/${seg(name)}\ncp -r ${dir} ~/.claude/skills/${path ? '' : seg(name)}`, note: 'Claude Code reads <code>~/.claude/skills/</code> (or <code>.claude/skills/</code> in a project). Other agents read the same SKILL.md format from their own skills folder.' });
+  return tabs;
+}
+
+function installCard(tabs, title = 'Install') {
+  if (!tabs.length) return '';
+  return `<section class="ed-card ed-install rv" id="install">
+    <div class="ed-card-head"><p class="eyebrow">Get started</p><h2>${title}</h2></div>
+    <div class="ed-tabs" role="tablist" aria-label="Pick your agent">${tabs.map((t, i) => `<button type="button" role="tab" id="itab-${t.id}" aria-controls="ipan-${t.id}" aria-selected="${!i}"${i ? ' tabindex="-1"' : ''}>${esc(t.label)}</button>`).join('')}</div>
+    ${tabs.map((t, i) => `<div class="ed-panel" role="tabpanel" id="ipan-${t.id}" aria-labelledby="itab-${t.id}"${i ? ' hidden' : ''}>
+      <div class="ed-code"><pre><code>${esc(t.code)}</code></pre><button type="button" class="ed-copy" data-copy aria-label="Copy to clipboard"><span>Copy</span></button></div>
+      ${t.note ? `<p class="muted small">${t.note}</p>` : ''}
+    </div>`).join('')}
+  </section>`;
+}
+
+// Stars over the tracked window, drawn as a line that inks itself in.
+function starChart(points) {
+  if (!points || points.length < 2) return '';
+  const W = 640, H = 120, P = 6;
+  const t0 = Date.parse(points[0][0]), t1 = Date.parse(points.at(-1)[0]) || t0 + 1;
+  const vs = points.map((p) => p[1]), lo = Math.min(...vs), hi = Math.max(...vs), span = hi - lo || 1;
+  const xy = points.map(([d, v]) => [P + ((Date.parse(d) - t0) / (t1 - t0 || 1)) * (W - 2 * P), H - P - ((v - lo) / span) * (H - 2 * P)]);
+  const line = xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
+  const gained = hi === vs[0] ? vs.at(-1) - vs[0] : vs.at(-1) - vs[0];
+  return `<figure class="ed-chart rv">
+    <figcaption><span class="eyebrow">Star trend · last ${Math.max(1, Math.round((t1 - t0) / DAY))} days</span><b>${gained >= 0 ? '+' : ''}${gained.toLocaleString('en-US')} ★</b></figcaption>
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Stars went from ${vs[0].toLocaleString('en-US')} to ${vs.at(-1).toLocaleString('en-US')}">
+      <defs><linearGradient id="edfill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--cc)" stop-opacity=".32"/><stop offset="1" stop-color="var(--cc)" stop-opacity="0"/></linearGradient></defs>
+      <path class="ed-area" d="${line} L${xy.at(-1)[0].toFixed(1)} ${H} L${xy[0][0].toFixed(1)} ${H} Z" fill="url(#edfill)"/>
+      <path class="ed-line" d="${line}" pathLength="1" fill="none" stroke="var(--cc)" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>
+      ${xy.map(([x, y], i) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" vector-effect="non-scaling-stroke"><title>${fmtDate(points[i][0])}: ${points[i][1].toLocaleString('en-US')} stars</title></circle>`).join('')}
+    </svg>
+  </figure>`;
+}
+
+function readmeCard(rd, { title = 'README', href, eyebrow = 'Documentation' } = {}) {
+  if (!rd?.html) return '';
+  return `<section class="ed-card ed-readme rv" id="readme">
+    <div class="ed-card-head"><div><p class="eyebrow">${eyebrow}</p><h2>${esc(title)}</h2></div>${href ? `<a class="btn ghost" href="${esc(href)}" target="_blank" rel="noopener">View on GitHub ↗</a>` : ''}</div>
+    <div class="ed-prose">${rd.html}</div>
+  </section>`;
+}
+
+const tocCard = (rd) => (rd?.toc?.length > 2 ? `<div class="side-card ed-toc"><p class="eyebrow">On this page</p><h2>Contents</h2><ol>${rd.toc.map((h) => `<li class="l${h.level}"><a href="#${h.id}">${esc(h.text)}</a></li>`).join('')}</ol></div>` : '');
+
+const factList = (rows) => `<dl class="ed-facts">${rows.filter((r) => r && r[1] != null && r[1] !== '').map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+
+function edHero({ root, crumbs, color, img, imgRound = false, kicker, name, sub, lede, chips = '', links = [], stats = [] }) {
+  return `<section class="wrap ed-hero" style="--c:${color}">
+  <div class="ed-glow" aria-hidden="true"></div>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a>${crumbs.map(([n, p], i) => `<span>/</span>${i === crumbs.length - 1 ? `<span>${esc(n)}</span>` : `<a href="${root}${p}">${esc(n)}</a>`}`).join('')}</nav>
+  <div class="ed-head">
+    <img class="ed-av skel${imgRound ? ' round' : ''}" src="${esc(img || '')}" alt="" width="88" height="88" decoding="async" style="view-transition-name:eco-av">
+    <div class="ed-id">
+      <p class="eyebrow">${kicker}</p>
+      <h1 style="view-transition-name:eco-title">${esc(name)}</h1>
+      ${sub ? `<p class="ed-sub">${sub}</p>` : ''}
+      ${lede ? `<p class="lede">${esc(lede)}</p>` : ''}
+      ${chips ? `<div class="ed-chips">${chips}</div>` : ''}
+      <div class="tool-links">${links.filter(Boolean).join('')}</div>
+    </div>
+  </div>
+  ${stats.length ? `<dl class="stats ed-stats" style="--n:${stats.length}">${stats.map(([k, v, s]) => `<div><dt>${k}</dt><dd>${v}${s ? `<small> ${s}</small>` : ''}</dd></div>`).join('')}</dl>` : ''}
+</section>`;
+}
+
+const fieldChips = (fields, root, type) => fields.filter((f) => f !== 'general').map((f) => `<a class="ed-chip" href="${root}${ECO[type].path}?field=${f}">${esc(FIELD_NAME[f])}</a>`).join('');
+const relatedList = (items, root) => `<ul class="similar ed-related">${items.map((x) => `<li><a href="${root}${x.path}"><img class="ecard-av skel" src="${esc(x.img || '')}" alt="" width="24" height="24" loading="lazy" decoding="async"><span>${esc(x.name)}</span><code>${x.meta}</code></a></li>`).join('')}</ul>`;
+
+function repoDetailPage(type, r, rank) {
+  const path = ecoPath(type, r), root = rootOf(path), cfg = ECO[type];
+  const d = DETAILS[detailKey('gh', r.id)] || null;
+  const fields = ecoFields(r), [fcls, flabel, ftip] = d?.archived ? ['cold', 'Archived', 'Read-only on GitHub'] : freshness(r.pushedAt);
+  const isMcp = type === 'mcp';
+  const tabs = isMcp ? (r.kind === 'server' ? mcpTabs(r.name, d?.install || {}) : []) : skillTabs({ repo: r.repo, install: d?.install, marketplace: d?.marketplace, path: '' });
+  const primary = fields.find((f) => f !== 'general');
+  const related = cfg.list.filter((x) => x !== r && (primary ? ecoFields(x).includes(primary) : x.kind === r.kind)).slice(0, 6)
+    .map((x) => ({ path: ecoPath(type, x), name: x.name, img: avatar(x.avatar, 48), meta: `★ ${compact(x.count)}` }));
+  const sameOwner = Object.entries(ECO).flatMap(([t, c]) => c.list.filter((x) => x !== r && x.owner === r.owner).map((x) => ({ path: ecoPath(t, x), name: x.name, img: avatar(x.avatar, 48), meta: t === 'mcp' ? 'MCP' : 'Skill' }))).slice(0, 5);
+  const singles = (eco.skillsTop || []).filter((s) => s.repo?.toLowerCase() === r.repo.toLowerCase());
+  const rels = d?.releases || [];
+  const gaps = rels.slice(0, 6).map((x, i, a) => (i ? (Date.parse(a[i - 1].date) - Date.parse(x.date)) / DAY : null)).filter((x) => x != null);
+  const cadence = gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : null;
+  const skills = d?.skills || [];
+  const body = `
+${edHero({
+    root, color: tintOf(r.id), img: avatar(r.avatar, 176),
+    crumbs: [[cfg.path === 'mcp/' ? 'MCP' : 'Skills', cfg.path], [r.name, path]],
+    kicker: `${cfg.tag[r.kind]} · #${rank + 1} trending ${isMcp ? 'MCP repo' : 'skills repo'}${r.starsPerWeek > 0 ? ` · <span class="trend">↗ +${compact(r.starsPerWeek)} stars this week</span>` : ''}`,
+    name: r.name, sub: `<a href="https://github.com/${esc(r.owner)}" target="_blank" rel="noopener">${esc(r.owner)}</a><span>/</span>${esc(r.repo.split('/')[1])}`,
+    lede: r.description, chips: fieldChips(fields, root, type),
+    links: [
+      tabs.length ? '<a class="btn" href="#install">Install ↓</a>' : '',
+      `<a class="btn ghost" href="${esc(r.url)}" target="_blank" rel="noopener">GitHub ↗</a>`,
+      (r.homepage || d?.homepage) ? `<a class="btn ghost" href="${esc(r.homepage || d.homepage)}" target="_blank" rel="noopener nofollow">Website ↗</a>` : '',
+    ],
+    stats: [
+      ['Stars', num(r.count)], ['This week', r.starsPerWeek != null ? `${r.starsPerWeek >= 0 ? '+' : ''}${num(r.starsPerWeek)}` : '—'],
+      ['Forks', num(r.forks)], d?.issues != null ? ['Open issues', num(d.issues)] : null,
+      skills.length ? ['Skills inside', num(d.skillCount || skills.length)] : rels[0] ? ['Latest release', `<code>${esc(rels[0].tag)}</code>`] : ['Last push', ago(r.pushedAt)],
+    ].filter(Boolean),
+  })}
+${banner()}
+<section class="wrap section" style="--c:${tintOf(r.id)}">
+  <div class="feed-layout ed-layout">
+    <div class="ed-main">
+      ${starChart(r.stars)}
+      ${installCard(tabs, isMcp ? 'Add it to your agent' : 'Install the skills')}
+      ${skills.length > 1 || (skills.length === 1 && !isMcp) ? `<section class="ed-card rv" id="skills">
+        <div class="ed-card-head"><div><p class="eyebrow">Inside this repo</p><h2>${d.skillCount > skills.length ? `${skills.length} of ${d.skillCount}` : skills.length} skill${skills.length === 1 ? '' : 's'}</h2></div></div>
+        <div class="ed-skills">${skills.map((s, i) => {
+          const single = singles.find((x) => x.name === s.name);
+          const href = single ? `${root}${skillPath(single)}` : `https://github.com/${r.repo}/tree/${d.branch}/${s.path}`;
+          return `<a class="ed-skill rv" style="--i:${i % 12}" href="${esc(href)}"${single ? '' : ' target="_blank" rel="noopener"'}><b>${esc(s.name)}</b>${s.description ? `<span>${esc(s.description)}</span>` : ''}<code>${esc(s.path || '/')}</code>${single ? `<small>⬇ ${compact(single.installs)} installs</small>` : ''}</a>`;
+        }).join('')}</div>
+      </section>` : ''}
+      ${d?.readme ? readmeCard(d.readme, { href: `${r.url}#readme` }) : `<section class="ed-card rv"><p class="muted">The README and install details for this repo arrive with the next refresh. Meanwhile, <a href="${esc(r.url)}" target="_blank" rel="noopener">read it on GitHub ↗</a>.</p></section>`}
+      ${rels.length ? `<section class="ed-card rv" id="releases">
+        <div class="ed-card-head"><div><p class="eyebrow">Releases</p><h2>Recent versions</h2></div><a class="btn ghost" href="${esc(r.url)}/releases" target="_blank" rel="noopener">All releases ↗</a></div>
+        <ol class="ed-rels">${rels.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener"><code>${esc(x.tag)}</code><span>${esc(x.name && x.name !== x.tag ? x.name : '')}</span>${x.pre ? '<em>pre-release</em>' : ''}${time(x.date)}</a></li>`).join('')}</ol>
+      </section>` : ''}
+    </div>
+    <aside class="side ed-side">
+      <div class="side-card">
+        <p class="eyebrow">At a glance</p><h2>Health</h2>
+        <ul class="ed-health">
+          <li class="h-${fcls}"><i></i><b>${flabel}</b><span>${ftip} · ${time(r.pushedAt)}</span></li>
+          <li class="h-${r.starsPerWeek > 50 ? 'hot' : r.starsPerWeek > 5 ? 'ok' : 'meh'}"><i></i><b>Momentum</b><span>#${rank + 1} of ${cfg.list.length} by stars gained this week</span></li>
+          ${cadence != null ? `<li class="h-${cadence < 14 ? 'hot' : cadence < 45 ? 'ok' : 'meh'}"><i></i><b>Releases</b><span>about every ${cadence < 1 ? '<1' : Math.round(cadence)} day${Math.round(cadence) === 1 ? '' : 's'}</span></li>` : ''}
+          ${d?.contributors?.length ? `<li class="h-${d.contributors.length >= 10 ? 'hot' : d.contributors.length >= 3 ? 'ok' : 'meh'}"><i></i><b>Community</b><span>${d.contributors.length >= 12 ? '12+' : d.contributors.length} contributor${d.contributors.length === 1 ? '' : 's'} · ${compact(r.forks)} forks</span></li>` : ''}
+        </ul>
+        ${factList([['License', r.license ? esc(r.license) : 'None stated'], ['Language', r.language ? esc(r.language) : null], ['Created', fmtDate(r.createdAt)],
+          ['Watchers', d?.watchers != null ? compact(d.watchers) : null], ['Files', d?.files ? `${d.files.toLocaleString('en-US')}${d.truncated ? '+' : ''}` : null],
+          ['Package', d?.npm ? `<a href="https://www.npmjs.com/package/${esc(d.npm.name)}" target="_blank" rel="noopener">npm ↗</a>` : d?.pypi ? `<a href="https://pypi.org/project/${esc(d.pypi)}/" target="_blank" rel="noopener">PyPI ↗</a>` : null],
+          ['Tracked since', fmtDate(r.firstSeen)]])}
+        ${r.topics.length ? `<div class="ed-topics">${r.topics.map((t) => `<a href="${root}${cfg.path}?q=${encodeURIComponent(t)}">#${esc(t)}</a>`).join('')}</div>` : ''}
+      </div>
+      ${tocCard(d?.readme)}
+      ${d?.contributors?.length ? `<div class="side-card"><p class="eyebrow">People</p><h2>Contributors</h2><ul class="ed-people">${d.contributors.map((p, i) => `<li style="--i:${i}"><a href="https://github.com/${esc(p.login)}" target="_blank" rel="noopener" title="${esc(p.login)} · ${p.n.toLocaleString('en-US')} commits"><img class="skel" src="${esc(avatar(p.avatar, 64))}" alt="${esc(p.login)}" width="32" height="32" loading="lazy" decoding="async"></a></li>`).join('')}</ul></div>` : ''}
+      ${ad('side')}
+      ${related.length ? `<div class="side-card"><p class="eyebrow">Alternatives</p><h2>Related ${isMcp ? 'servers' : 'skills'}</h2>${relatedList(related, root)}</div>` : ''}
+      ${sameOwner.length ? `<div class="side-card"><p class="eyebrow">More from</p><h2>${esc(r.owner)}</h2>${relatedList(sameOwner, root)}</div>` : ''}
+    </aside>
+  </div>
+</section>`;
+  return layout({
+    root, path, active: type, ogFile: `og/${cfg.path.replace(/\/$/, '')}.png`,
+    crumbs: [[cfg.path === 'mcp/' ? 'MCP' : 'Skills', cfg.path], [r.name, path]],
+    title: `${r.name} — ${isMcp ? 'MCP server' : 'Agent Skills'}: install, README & stats | ${SITE_NAME}`,
+    description: `${r.description || r.name} ${isMcp ? 'Install it in Claude Code, Codex, Cursor, VS Code or Gemini CLI' : 'Install the skills in Claude Code, Codex, Cursor and more'}; ${compact(r.count)} GitHub stars.`,
+    jsonld: { '@context': 'https://schema.org', '@type': 'SoftwareSourceCode', name: r.name, description: r.description, codeRepository: r.url, url: `${SITE_URL}/${path}`,
+      ...(r.language ? { programmingLanguage: r.language } : {}), ...(r.license ? { license: `https://spdx.org/licenses/${r.license}` } : {}),
+      author: { '@type': 'Person', name: r.owner }, dateCreated: r.createdAt, dateModified: r.pushedAt },
+    body,
+  });
+}
+
+function skillDetailPage(s) {
+  const path = skillPath(s), root = rootOf(path);
+  const d = DETAILS[detailKey('sk', s.id)] || null;
+  const parent = s.repo && ecoByRepo.get(s.repo.toLowerCase());
+  const siblings = (eco.skillsTop || []).filter((x) => x !== s && x.repo && x.repo === s.repo).slice(0, 8)
+    .map((x) => ({ path: skillPath(x), name: x.name, img: `https://github.com/${encodeURIComponent(x.owner)}.png?size=48`, meta: `⬇ ${compact(x.installs)}` }));
+  const fields = fieldsOf(s.name, s.description);
+  const others = (eco.skillsTop || []).filter((x) => x !== s && x.repo !== s.repo && fieldsOf(x.name, x.description).some((f) => f !== 'general' && fields.includes(f))).slice(0, 6)
+    .map((x) => ({ path: skillPath(x), name: x.name, img: `https://github.com/${encodeURIComponent(x.owner)}.png?size=48`, meta: `⬇ ${compact(x.installs)}` }));
+  const rank = (eco.skillsTop || []).indexOf(s);
+  const body = `
+${edHero({
+    root, color: tintOf(s.id), img: s.owner ? `https://github.com/${encodeURIComponent(s.owner)}.png?size=176` : '',
+    crumbs: [['Skills', 'skills/'], [s.name, path]],
+    kicker: `Skill · #${rank + 1} most installed`, name: s.name,
+    sub: s.repo ? `${parent ? `<a href="${root}${ecoPath(parent.type, parent.r)}">${esc(s.repo)}</a>` : esc(s.repo)}${d?.dir ? `<span>/</span>${esc(d.dir)}` : ''}` : esc(s.owner),
+    lede: s.description, chips: fieldChips(fields, root, 'skills'),
+    links: ['<a class="btn" href="#install">Install ↓</a>', `<a class="btn ghost" href="${esc(s.url)}" target="_blank" rel="noopener">Source ↗</a>`, parent ? `<a class="btn ghost" href="${root}${ecoPath(parent.type, parent.r)}">Whole repo →</a>` : ''],
+    stats: [['Installs', num(s.installs)], s.stars ? ['Repo stars', num(s.stars)] : null, s.updatedAt ? ['Updated', ago(s.updatedAt.replace(' ', 'T') + (s.updatedAt.includes('Z') ? '' : 'Z'))] : null, d?.meta?.license ? ['License', esc(d.meta.license)] : null].filter(Boolean),
+  })}
+${banner()}
+<section class="wrap section" style="--c:${tintOf(s.id)}">
+  <div class="feed-layout ed-layout">
+    <div class="ed-main">
+      ${s.repo ? installCard(skillTabs({ repo: s.repo, skill: s.name, path: d?.dir || '' }), 'Install this skill') : ''}
+      ${d?.body ? readmeCard(d.body, { title: 'SKILL.md', eyebrow: 'What your agent reads', href: s.url }) : `<section class="ed-card rv"><p class="muted">The SKILL.md for this skill arrives with the next refresh. <a href="${esc(s.url)}" target="_blank" rel="noopener">Read it on GitHub ↗</a></p></section>`}
+    </div>
+    <aside class="side ed-side">
+      <div class="side-card"><p class="eyebrow">At a glance</p><h2>Details</h2>
+        ${factList([['Author', esc(s.owner)], ['Repository', s.repo ? `<a href="https://github.com/${esc(s.repo)}" target="_blank" rel="noopener">${esc(s.repo)} ↗</a>` : null], ['Folder', d?.dir ? `<code>${esc(d.dir)}</code>` : null],
+          ...Object.entries(d?.meta || {}).map(([k, v]) => [esc(k.replace(/[-_]/g, ' ')), esc(String(v).slice(0, 120))]), ['Listed on', '<a href="https://claude-plugins.dev/skills" target="_blank" rel="noopener">claude-plugins.dev ↗</a>']])}
+      </div>
+      ${tocCard(d?.body)}
+      ${ad('side')}
+      ${siblings.length ? `<div class="side-card"><p class="eyebrow">Same repo</p><h2>Sibling skills</h2>${relatedList(siblings, root)}</div>` : ''}
+      ${others.length ? `<div class="side-card"><p class="eyebrow">Alternatives</p><h2>Related skills</h2>${relatedList(others, root)}</div>` : ''}
+    </aside>
+  </div>
+</section>`;
+  return layout({
+    root, path, active: 'skills', ogFile: 'og/skills.png', crumbs: [['Skills', 'skills/'], [s.name, path]],
+    title: `${s.name} skill — install & SKILL.md | ${SITE_NAME}`,
+    description: `${s.description} ${compact(s.installs)} installs. One-line install for Claude Code, Codex, Cursor and other agents.`,
+    jsonld: { '@context': 'https://schema.org', '@type': 'SoftwareSourceCode', name: s.name, description: s.description, codeRepository: s.url, url: `${SITE_URL}/${path}`, author: { '@type': 'Person', name: s.owner } },
+    body,
+  });
+}
+
+function toolsCard(tools, count, { eyebrow = 'What it can do', id = 'tools' } = {}) {
+  if (!tools?.length) return '';
+  return `<section class="ed-card rv" id="${id}">
+    <div class="ed-card-head"><div><p class="eyebrow">${eyebrow}</p><h2>${count > tools.length ? `${tools.length} of ${count}` : tools.length} tool${tools.length === 1 ? '' : 's'}</h2></div>
+      ${tools.length > 6 ? '<label class="eco-search ed-tool-q"><input type="search" placeholder="Filter tools…" aria-label="Filter tools" autocomplete="off"></label>' : ''}</div>
+    <div class="ed-tools">${tools.map((t, i) => `<details class="ed-tool rv" style="--i:${i % 12}" data-text="${esc(`${t.name} ${t.description}`.toLowerCase())}">
+      <summary><code>${esc(t.name)}</code>${t.params?.length ? `<small>${t.params.length} param${t.params.length === 1 ? '' : 's'}</small>` : ''}<span>${esc(t.description.length > 140 ? `${t.description.slice(0, 137)}…` : t.description)}</span></summary>
+      ${t.description.length > 140 ? `<p>${esc(t.description)}</p>` : ''}
+      ${t.params?.length ? `<table class="ed-params"><thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead><tbody>${t.params.map((p) => `<tr><td><code>${esc(p.name)}</code>${p.required ? '<em>required</em>' : ''}</td><td>${esc(p.type || '')}</td><td>${esc(p.description)}</td></tr>`).join('')}</tbody></table>` : ''}
+    </details>`).join('')}</div>
+  </section>`;
+}
+
+function smitheryDetailPage(s) {
+  const path = smitheryPath(s), root = rootOf(path);
+  const d = DETAILS[detailKey('sm', s.id)] || null;
+  const hosted = `https://server.smithery.ai/${s.id}/mcp`;
+  const tabs = [
+    { id: 'smithery', label: 'Smithery CLI', code: `npx -y @smithery/cli@latest install ${s.id} --client claude`, note: 'Swap <code>--client claude</code> for <code>cursor</code>, <code>vscode</code>, <code>windsurf</code> or another client. The CLI asks for any required settings.' },
+    ...(s.remote ? mcpTabs(s.name, { remote: hosted }).filter((t) => t.id !== 'remote') : []),
+  ];
+  const config = (d?.connections || []).flatMap((c) => c.config).filter((p, i, a) => a.findIndex((x) => x.name === p.name) === i);
+  const fields = fieldsOf(s.name, s.description);
+  const related = (eco.mcpTop || []).filter((x) => x !== s && fieldsOf(x.name, x.description).some((f) => f !== 'general' && fields.includes(f))).slice(0, 6)
+    .map((x) => ({ path: smitheryPath(x), name: x.name, img: x.icon, meta: `${compact(x.uses)} uses` }));
+  const rank = (eco.mcpTop || []).indexOf(s);
+  const body = `
+${edHero({
+    root, color: tintOf(s.id), img: s.icon, imgRound: false,
+    crumbs: [['MCP', 'mcp/'], [s.name, path]],
+    kicker: `${s.remote ? 'Hosted MCP server' : 'MCP server'} · #${rank + 1} most used on Smithery${s.verified ? ' · <span class="trend">✓ verified</span>' : ''}`,
+    name: s.name, sub: `<code>${esc(s.id)}</code>`, lede: s.description, chips: fieldChips(fields, root, 'mcp'),
+    links: ['<a class="btn" href="#install">Install ↓</a>', `<a class="btn ghost" href="${esc(s.url)}" target="_blank" rel="noopener nofollow">Smithery ↗</a>`, s.homepage && s.homepage !== s.url ? `<a class="btn ghost" href="${esc(s.homepage)}" target="_blank" rel="noopener nofollow">Website ↗</a>` : ''],
+    stats: [['Uses', num(s.uses)], d ? ['Tools', num(d.toolCount)] : null, ['Runs', s.remote ? 'Hosted' : 'Locally'], d?.prompts?.length ? ['Prompts', num(d.prompts.length)] : null, s.createdAt ? ['Listed', ago(s.createdAt)] : null].filter(Boolean),
+  })}
+${banner()}
+<section class="wrap section" style="--c:${tintOf(s.id)}">
+  <div class="feed-layout ed-layout">
+    <div class="ed-main">
+      ${installCard(tabs, 'Add it to your agent')}
+      ${toolsCard(d?.tools, d?.toolCount)}
+      ${d?.prompts?.length ? `<section class="ed-card rv"><div class="ed-card-head"><div><p class="eyebrow">Ready-made</p><h2>Prompts</h2></div></div><ul class="ed-list">${d.prompts.map((p) => `<li><code>${esc(p.name)}</code><span>${esc(p.description)}</span></li>`).join('')}</ul></section>` : ''}
+      ${d?.resources?.length ? `<section class="ed-card rv"><div class="ed-card-head"><div><p class="eyebrow">Readable data</p><h2>Resources</h2></div></div><ul class="ed-list">${d.resources.map((p) => `<li><code>${esc(p.name)}</code><span>${esc(p.description || p.uri || '')}</span></li>`).join('')}</ul></section>` : ''}
+      ${!d ? `<section class="ed-card rv"><p class="muted">This server's tool list arrives with the next refresh. <a href="${esc(s.url)}" target="_blank" rel="noopener nofollow">See it on Smithery ↗</a></p></section>` : ''}
+    </div>
+    <aside class="side ed-side">
+      <div class="side-card"><p class="eyebrow">At a glance</p><h2>Details</h2>
+        ${factList([['Publisher', esc(s.owner || '—')], ['Transport', d?.connections?.length ? esc([...new Set(d.connections.map((c) => c.type))].join(', ')) : null], ['Verified', s.verified ? 'Yes' : 'No'], ['Listed', s.createdAt ? fmtDate(s.createdAt) : null]])}
+      </div>
+      ${config.length ? `<div class="side-card"><p class="eyebrow">Before you start</p><h2>Settings</h2><ul class="ed-config">${config.map((p) => `<li><code>${esc(p.name)}</code>${p.required ? '<em>required</em>' : ''}<span>${esc(p.description || p.type || '')}</span></li>`).join('')}</ul></div>` : ''}
+      ${ad('side')}
+      ${related.length ? `<div class="side-card"><p class="eyebrow">Alternatives</p><h2>Related servers</h2>${relatedList(related, root)}</div>` : ''}
+    </aside>
+  </div>
+</section>`;
+  return layout({
+    root, path, active: 'mcp', ogFile: 'og/mcp.png', crumbs: [['MCP', 'mcp/'], [s.name, path]],
+    title: `${s.name} MCP server — tools & install | ${SITE_NAME}`,
+    description: `${s.description} ${d ? `${d.toolCount} tools. ` : ''}Install in Claude Code, Cursor, VS Code and more.`,
+    jsonld: { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: s.name, description: s.description, applicationCategory: 'DeveloperApplication', url: `${SITE_URL}/${path}` },
+    body,
+  });
+}
+
+function registryDetailPage(s) {
+  const path = registryPath(s), root = rootOf(path);
+  const pkg = (s.pkgs || [])[0];
+  const run = pkg && (pkg.type === 'npm' ? { command: 'npx', args: ['-y', `${pkg.id}${pkg.version ? `@${pkg.version}` : ''}`] }
+    : pkg.type === 'pypi' ? { command: 'uvx', args: [`${pkg.id}${pkg.version ? `==${pkg.version}` : ''}`] }
+      : pkg.type === 'oci' ? { command: 'docker', args: ['run', '-i', '--rm', pkg.id] } : null);
+  const remote = (s.remotes || [])[0]?.url;
+  const env = (s.pkgs || []).flatMap((p) => p.env || []);
+  const tabs = mcpTabs(s.title, { run, remote, env });
+  const repo = s.repo?.match(/github\.com\/([^/]+\/[^/#?]+)/)?.[1]?.replace(/\.git$/, '');
+  const tracked = repo && ecoByRepo.get(repo.toLowerCase());
+  const body = `
+${edHero({
+    root, color: tintOf(s.name), img: repo ? `https://github.com/${encodeURIComponent(repo.split('/')[0])}.png?size=176` : '',
+    crumbs: [['MCP', 'mcp/'], [s.title, path]],
+    kicker: `Official MCP Registry · published ${ago(s.publishedAt)}`, name: s.title, sub: `<code>${esc(s.name)}</code>`, lede: s.description,
+    links: [tabs.length ? '<a class="btn" href="#install">Install ↓</a>' : '', s.url ? `<a class="btn ghost" href="${esc(s.url)}" target="_blank" rel="noopener nofollow">Website ↗</a>` : '', s.repo && s.repo !== s.url ? `<a class="btn ghost" href="${esc(s.repo)}" target="_blank" rel="noopener nofollow">Source ↗</a>` : '', tracked ? `<a class="btn ghost" href="${root}${ecoPath(tracked.type, tracked.r)}">Full repo page →</a>` : ''],
+    stats: [['Version', `<code>${esc(s.version)}</code>`], ['Runs', remote ? (run ? 'Hosted or local' : 'Hosted') : 'Locally'], ['Packages', esc(s.packages.join(', ') || '—')], ['Published', fmtDate(s.publishedAt)]],
+  })}
+${banner()}
+<section class="wrap section" style="--c:${tintOf(s.name)}">
+  <div class="feed-layout ed-layout">
+    <div class="ed-main">
+      ${installCard(tabs, 'Add it to your agent') || `<section class="ed-card rv"><p class="muted">This entry doesn't list a package or endpoint. Check <a href="${esc(s.repo || s.url || 'https://registry.modelcontextprotocol.io')}" target="_blank" rel="noopener nofollow">its source ↗</a> for setup steps.</p></section>`}
+      ${env.length ? `<section class="ed-card rv"><div class="ed-card-head"><div><p class="eyebrow">Before you start</p><h2>Environment variables</h2></div></div><ul class="ed-config">${env.map((e) => `<li><code>${esc(e.name)}</code>${e.required ? '<em>required</em>' : ''}${e.secret ? '<em>secret</em>' : ''}<span>${esc(e.description)}</span></li>`).join('')}</ul></section>` : ''}
+    </div>
+    <aside class="side ed-side">
+      <div class="side-card"><p class="eyebrow">At a glance</p><h2>Details</h2>
+        ${factList([['Registry name', `<code>${esc(s.name)}</code>`], ...(s.pkgs || []).map((p) => [esc(p.type), `<code>${esc(p.id)}</code>${p.transport ? ` · ${esc(p.transport)}` : ''}`]), ...(s.remotes || []).map((r) => [esc(r.type || 'remote'), `<code>${esc(r.url)}</code>`]), ['Registry', '<a href="https://registry.modelcontextprotocol.io" target="_blank" rel="noopener">registry.modelcontextprotocol.io ↗</a>']])}
+      </div>
+      ${ad('side')}
+    </aside>
+  </div>
+</section>`;
+  return layout({
+    root, path, active: 'mcp', ogFile: 'og/mcp.png', noindex: true, crumbs: [['MCP', 'mcp/'], [s.title, path]],
+    title: `${s.title} MCP server ${s.version} | ${SITE_NAME}`,
+    description: `${s.description || s.title} Published to the official MCP Registry. Install in Claude Code, Codex, Cursor, VS Code or Gemini CLI.`,
+    body,
+  });
+}
+
+// Every detail page, by path (first one wins if two items slug to the same place).
+const ECO_PAGES = new Map();
+for (const [type, c] of Object.entries(ECO)) c.list.forEach((r, i) => { const p = ecoPath(type, r); if (!ECO_PAGES.has(p)) ECO_PAGES.set(p, { lastmod: r.pushedAt, index: true, render: () => repoDetailPage(type, r, i) }); });
+for (const s of eco.skillsTop || []) { const p = skillPath(s); if (!ECO_PAGES.has(p)) ECO_PAGES.set(p, { lastmod: s.updatedAt ? new Date(`${s.updatedAt.replace(' ', 'T')}${/Z|[+-]\d\d:?\d\d$/.test(s.updatedAt) ? '' : 'Z'}`).toISOString() : null, index: true, render: () => skillDetailPage(s) }); }
+for (const s of eco.mcpTop || []) { const p = smitheryPath(s); if (!ECO_PAGES.has(p)) ECO_PAGES.set(p, { lastmod: s.createdAt, index: true, render: () => smitheryDetailPage(s) }); }
+for (const s of (eco.registry?.servers || []).slice(0, 30)) { const p = registryPath(s); if (!ECO_PAGES.has(p)) ECO_PAGES.set(p, { lastmod: s.publishedAt, index: false, render: () => registryDetailPage(s) }); }
+
 
 // ── usage (OpenCode Data) ─────────────────────────────────
 // Real-world usage across OpenCode (scripts/opencode.mjs): which models people actually run, and what it costs.
@@ -2324,6 +2701,7 @@ await out('my-feed/index.html', myFeedPage());
 await out('compare/index.html', comparePage());
 if (models.length) await out('models/index.html', modelsPage());
 for (const type of Object.keys(ECO)) if (ECO[type].list.length) await out(`${ECO[type].path}index.html`, ecoPage(type));
+for (const [p, pg] of ECO_PAGES) await out(`${p}index.html`, pg.render());
 if (models.length) await out('learn/index.html', learnPage());
 for (const l of labs) await out(`${labPath(l[0].labId)}index.html`, labPage(l));
 for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
@@ -2387,7 +2765,7 @@ await out('search.json', JSON.stringify({ generatedAt: snap.generatedAt, items: 
   ...labs.map((l) => ({ t: 'lab', n: l[0].lab, s: `${l.length} model${l.length === 1 ? '' : 's'}`, u: labPath(l[0].labId), c: l[0].color, i: srIcon(`lab-${l[0].labId}`) })),
   ...models.map((m) => ({ t: 'model', n: m.name, s: `${m.lab} · ${tokens(m.context)} ctx · ${priceLine(m)}`, u: modelPath(m), k: `${m.id} ${m.reasoning ? 'reasoning' : ''} ${m.openWeights ? 'open weights' : ''} ${m.free ? 'free' : ''} ${m.modalities.join(' ')}`.toLowerCase(), d: m.date, c: m.color, i: srIcon(`lab-${m.labId}`) })),
   ...news.map((n) => { const t = byId[n.toolIds[0]]; return { t: 'news', n: n.title, s: `${n.tag}${t ? ` · ${t.name}` : ''}`, u: n.url, x: 1, k: (n.summary || '').slice(0, 160).toLowerCase(), d: n.date, ...(t ? srTool(t) : {}) }; }),
-  ...Object.entries(ECO).flatMap(([type, c]) => c.list.map((r) => ({ t: type, n: r.name, s: `${r.repo} · ${c.tag[r.kind] || r.kind}`, u: r.url, x: 1, k: `${r.description || ''} ${r.topics.join(' ')}`.slice(0, 200).toLowerCase() }))),
+  ...Object.entries(ECO).flatMap(([type, c]) => c.list.map((r) => ({ t: type, n: r.name, s: `${r.repo} · ${c.tag[r.kind] || r.kind}`, u: ecoPath(type, r), k: `${r.description || ''} ${r.topics.join(' ')}`.slice(0, 200).toLowerCase() }))),
   ...allItems.map((i) => { const t = byId[i.toolId]; return { t: 'update', n: i.title, s: `${t.name} · ${KIND[i.kind]}${i.version ? ` · ${i.version}` : ''}`, u: i.url, x: 1, k: `${t.name} ${i.version || ''}`.toLowerCase(), d: i.date, ...srTool(t) }; }),
   ...snap.discussions.map((d) => { const t = byId[d.toolId]; return { t: 'discussion', n: d.title, s: `Hacker News${t ? ` · ${t.name}` : ''}`, u: d.hnUrl || d.url, x: 1, k: t ? t.name.toLowerCase() : '', d: d.date, ...(t ? srTool(t) : {}) }; }),
 ] }));
@@ -2402,6 +2780,7 @@ ${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}
 ` : ''}${Object.values(ECO).filter((c) => c.list.length).map((c) => `<url><loc>${SITE_URL}/${c.path}</loc><lastmod>${eco.fetchedAt || snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/companies/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+${[...ECO_PAGES].filter(([, pg]) => pg.index).map(([p, pg]) => `<url><loc>${SITE_URL}/${p}</loc>${pg.lastmod ? `<lastmod>${pg.lastmod}</lastmod>` : ''}<changefreq>daily</changefreq><priority>0.5</priority></url>`).join('\n')}
 ${companies.map((c) => `<url><loc>${SITE_URL}/${coPath(c)}</loc><lastmod>${c.last}</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>`).join('\n')}
 ${tools.map((t) => `<url><loc>${SITE_URL}/tools/${t.id}/</loc><lastmod>${t.lastActive}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`).join('\n')}
 ${tools.filter((t) => archive[t.id].length).map((t) => [`<url><loc>${SITE_URL}/tools/${t.id}/releases/</loc><lastmod>${archive[t.id][0].date}</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>`,
@@ -2414,4 +2793,4 @@ if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '
 const INDEXNOW_KEY = process.env.INDEXNOW_KEY || '';
 if (/^[a-zA-Z0-9-]{8,128}$/.test(INDEXNOW_KEY)) await out(`${INDEXNOW_KEY}.txt`, INDEXNOW_KEY);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 5 + companies.length + Object.values(ECO).filter((c) => c.list.length).length + (models.length ? 2 + labs.length + models.length : 0)} pages → dist/`);
+console.log(`Built ${tools.length + 5 + companies.length + Object.values(ECO).filter((c) => c.list.length).length + ECO_PAGES.size + (models.length ? 2 + labs.length + models.length : 0)} pages → dist/`);

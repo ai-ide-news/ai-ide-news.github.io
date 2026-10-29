@@ -1031,7 +1031,7 @@
   document.addEventListener('visibilitychange', checkForUpdates);
 
   // Leaderboard tabs (Models and Usage pages): each tab group on its own, arrow keys move between tabs.
-  $$('.lb-nav').forEach((nav) => {
+  $$('.lb-nav, .ed-tabs').forEach((nav) => {
     const tabs = [...nav.querySelectorAll('[role="tab"]')];
     const show = (tab, focus) => {
       tabs.forEach((t) => {
@@ -1082,6 +1082,92 @@
       setTimeout(tick, 55 + Math.random() * 70);
     };
     setTimeout(tick, 350);
+  });
+
+  // Skill & MCP detail pages, and the motion around them.
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Sections and cards rise in as they scroll into view; the star chart inks itself in.
+  if (!still && 'IntersectionObserver' in window) {
+    $$('.egrid .ecard').forEach((c, i) => { c.classList.add('rv'); c.style.setProperty('--i', i % 6); });
+    const rvs = $$('.rv');
+    if (rvs.length) {
+      document.documentElement.classList.add('rv-on');
+      const io = new IntersectionObserver((list) => list.forEach((en) => {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      }), { rootMargin: '0px 0px -6% 0px' });
+      rvs.forEach((el) => io.observe(el));
+    }
+  }
+  // Big numbers count up the first time they're seen.
+  const fmt = (n) => (Math.abs(n) >= 1000 ? `${(n / 1000).toFixed(Math.abs(n) >= 10000 ? 0 : 1)}k` : String(Math.round(n)));
+  const counters = $$('[data-count]');
+  if (counters.length && !still && 'IntersectionObserver' in window) {
+    const co = new IntersectionObserver((list) => list.forEach((en) => {
+      if (!en.isIntersecting) return;
+      co.unobserve(en.target);
+      const el = en.target, to = +el.dataset.count, t0 = performance.now(), dur = 900 + Math.min(600, Math.log10(Math.abs(to) + 1) * 120);
+      const step = (t) => {
+        const k = Math.min(1, (t - t0) / dur), e = 1 - (1 - k) ** 4;
+        el.textContent = k < 1 ? fmt(to * e) : fmt(to);
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }));
+    counters.forEach((el) => co.observe(el));
+  }
+  // Copy buttons on install snippets.
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-copy]');
+    if (!b) return;
+    const code = b.parentElement.querySelector('code')?.textContent || '';
+    try { await navigator.clipboard.writeText(code); } catch {
+      const r = document.createRange(); r.selectNodeContents(b.parentElement.querySelector('code')); getSelection().removeAllRanges(); getSelection().addRange(r);
+      return;
+    }
+    const label = b.querySelector('span');
+    b.classList.add('ok'); label.textContent = 'Copied ✓';
+    clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove('ok'); label.textContent = 'Copy'; }, 1600);
+  });
+  // README contents follow the reading position.
+  const tocLinks = $$('.ed-toc a');
+  if (tocLinks.length && 'IntersectionObserver' in window) {
+    const byId = new Map(tocLinks.map((a) => [decodeURIComponent(a.hash.slice(1)), a]));
+    const seen = new Set();
+    const so = new IntersectionObserver((list) => {
+      list.forEach((en) => (en.isIntersecting ? seen.add(en.target.id) : seen.delete(en.target.id)));
+      const first = [...byId.keys()].find((id) => seen.has(id));
+      if (!first) return;
+      tocLinks.forEach((a) => a.classList.toggle('on', a === byId.get(first)));
+    }, { rootMargin: '-80px 0px -55% 0px' });
+    byId.forEach((a, id) => { const h = document.getElementById(id); if (h) so.observe(h); });
+  }
+  // Filter a server's tool list.
+  $$('.ed-tool-q input').forEach((q) => q.addEventListener('input', () => {
+    const words = q.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    $$('.ed-tool', q.closest('.ed-card')).forEach((t) => { t.hidden = !words.every((w) => t.dataset.text.includes(w)); });
+  }));
+  // Card → detail page: the card's logo and name become the page's (cross-document view transitions).
+  // Names are set only on the card involved, so the list never captures hundreds of elements.
+  const named = [];
+  const nameCard = (url) => {
+    const a = $$('.ecard-who h3 a, .reg-top a').find((x) => x.href === url);
+    if (!a) return false;
+    const card = a.closest('.ecard, li');
+    const av = card.querySelector('.ecard-av');
+    if (av) { av.style.viewTransitionName = 'eco-av'; named.push(av); }
+    a.style.viewTransitionName = 'eco-title'; named.push(a);
+    return true;
+  };
+  const clearNames = () => { named.splice(0).forEach((el) => { el.style.viewTransitionName = ''; }); };
+  addEventListener('pageswap', (e) => {
+    clearNames();
+    if (e.viewTransition && e.activation?.entry?.url) nameCard(e.activation.entry.url);
+  });
+  // Coming back to the list (often from the back/forward cache): the page's card flies home.
+  addEventListener('pagereveal', (e) => {
+    const from = window.navigation?.activation?.from?.url;
+    clearNames();
+    if (e.viewTransition && from && nameCard(from)) e.viewTransition.finished.finally(clearNames);
   });
 
   // Installable app + offline reading (dist/sw.js, built from scripts/sw.js).

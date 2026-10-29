@@ -409,8 +409,16 @@ export const ECOSYSTEM = {
     topics: ['mcp-server', 'mcp-servers', 'model-context-protocol', 'mcp', 'mcp-tools', 'mcp-tool', 'mcp-client', 'fastmcp', 'remote-mcp-server', 'mcp-gateway'],
     deny: [],
   },
+  // Creative and office apps are smaller niches: each gets its own search with a lower star bar,
+  // and what those searches find is kept even below the trending cap.
+  apps: {
+    minStars: 10,
+    skills: ['adobe', 'photoshop', 'premiere', '"after effects"', 'illustrator', 'blender', 'comfyui', 'artcraft', 'office', 'excel', 'pptx', 'docx'],
+    mcp: ['adobe', 'photoshop', 'illustrator', 'premiere', '"after effects"', 'lightroom', 'indesign', 'blender', 'davinci', 'comfyui',
+      'artcraft', 'excel', 'powerpoint', 'word', 'office', '"microsoft 365"'],
+  },
   // Display names where the repo name doesn't read well.
-  names: { 'anthropics/skills': 'Anthropic Skills', 'modelcontextprotocol/servers': 'MCP Reference Servers', 'prefecthq/fastmcp': 'FastMCP', 'upstash/context7': 'Context7' },
+  names: { 'anthropics/skills': 'Anthropic Skills', 'adobe/skills': 'Adobe Skills', 'ahujasid/mcp-for-blender': 'Blender MCP','modelcontextprotocol/servers': 'MCP Reference Servers', 'prefecthq/fastmcp': 'FastMCP', 'upstash/context7': 'Context7' },
 };
 
 // Title patterns that tie a Hacker News story to a tool (kept strict to avoid false matches).
