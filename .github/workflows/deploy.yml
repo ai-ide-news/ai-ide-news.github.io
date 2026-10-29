@@ -30,7 +30,11 @@ jobs:
     outputs:
       deploy: ${{ env.QUICK != '1' || steps.fetch.outputs.changed == 'true' }}
     steps:
+      # The tip of main when this job starts, not the commit that queued the run: a run waiting behind
+      # another would otherwise rebuild from data older than what the previous run just committed.
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 22
