@@ -661,6 +661,13 @@
    "mono": false,
    "src": "https://raw.githubusercontent.com/rlaope/oh-my-hermes/main/assets/omh-logo.png",
    "tone": "light"
+  },
+  "gh-udhaykumarbala-cleanyourtv-app": {
+   "logo": null,
+   "checked": 1793235804014,
+   "file": null,
+   "mono": false,
+   "src": null
   }
  }
 }
