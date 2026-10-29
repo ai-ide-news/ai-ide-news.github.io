@@ -54,11 +54,14 @@ async function searchKind(type, get, ghHeaders, prev, now, skip = new Set()) {
   const base = `stars:>${cfg.minStars} pushed:>${iso(now - cfg.maxIdleDays * DAY)} archived:false fork:false`;
   const known = new Set(TOOLS.filter((t) => t.github).map((t) => t.github.toLowerCase()));
   const deny = new Set(cfg.deny.map((s) => s.toLowerCase()));
-  const seen = new Map();
-  for (const q of spec.queries(base)) { // sequential and spaced: the Search API allows ~30 req/min
+  const seen = new Map(), niche = new Set();
+  const appBase = base.replace(`stars:>${cfg.minStars}`, `stars:>${ECOSYSTEM.apps.minStars}`);
+  const word = type === 'mcp' ? 'mcp' : 'skill';
+  const queries = [...spec.queries(base).map((q) => [q, 100]), ...ECOSYSTEM.apps[type].map((a) => [`${a} ${word} in:name,description ${appBase}`, 30, true])];
+  for (const [q, per, isApp] of queries) { // sequential and spaced: the Search API allows ~30 req/min
     if (seen.size) await new Promise((r) => setTimeout(r, 2100));
-    const res = await get(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=100`, { json: true, headers: ghHeaders() });
-    for (const r of res.items || []) seen.set(r.full_name.toLowerCase(), r);
+    const res = await get(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=${per}`, { json: true, headers: ghHeaders() });
+    for (const r of res.items || []) { const k = r.full_name.toLowerCase(); seen.set(k, r); if (isApp) niche.add(k); }
   }
   const today = iso(now);
   const prevById = new Map((prev || []).map((d) => [d.id, d]));
@@ -86,7 +89,7 @@ async function searchKind(type, get, ghHeaders, prev, now, skip = new Set()) {
       };
     })
     .sort((a, b) => b.score - a.score)
-    .slice(0, cfg.max);
+    .filter((r, i) => i < cfg.max || niche.has(r.id));
 }
 
 // The official MCP Registry lists servers alphabetically, so read the whole recent window and sort it.
@@ -105,6 +108,12 @@ async function fetchRegistry(get, now) {
         version: s.version, publishedAt: m.publishedAt || m.updatedAt,
         url: s.websiteUrl || s.repository?.url || null, repo: s.repository?.url || null,
         remote: !!s.remotes?.length, packages: [...new Set((s.packages || []).map((p) => p.registryType || p.registry_type).filter(Boolean))],
+        // What the detail page needs to show install commands.
+        pkgs: (s.packages || []).slice(0, 4).map((p) => ({
+          type: p.registryType || p.registry_type, id: p.identifier || p.name, version: p.version || null, transport: p.transport?.type || null,
+          env: (p.environmentVariables || p.environment_variables || []).slice(0, 10).map((e) => ({ name: e.name, required: !!e.isRequired, secret: !!e.isSecret, description: (e.description || '').slice(0, 160) })),
+        })).filter((p) => p.type && p.id),
+        remotes: (s.remotes || []).slice(0, 3).map((r) => ({ type: r.type || r.transport_type, url: r.url })).filter((r) => r.url),
       });
     }
     cursor = res.metadata?.nextCursor;

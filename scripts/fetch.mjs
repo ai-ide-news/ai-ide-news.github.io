@@ -13,6 +13,7 @@ import { fetchBenchmarks } from './benchmarks.mjs';
 import { fetchAA } from './aa.mjs';
 import { fetchOpenCode } from './opencode.mjs';
 import { fetchEcosystem } from './ecosystem.mjs';
+import { fetchDetails } from './eco-details.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
 const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://aiticker.site)';
@@ -496,6 +497,11 @@ async function main() {
   let ecosystem = prev.ecosystem || null;
   if (!QUICK || !ecosystem || NOW - Date.parse(ecosystem.fetchedAt) > DAY / 4) {
     ecosystem = { ...await fetchEcosystem({ get, ghHeaders, prev: ecosystem || {}, now: NOW, report }), fetchedAt: new Date(NOW).toISOString() };
+  }
+  // Detail pages (README, skills inside, releases, tools, install commands); cached per item in data/details/.
+  // Full runs only: each repo costs four GitHub API calls.
+  if (ecosystem && !QUICK) {
+    try { await fetchDetails({ eco: ecosystem, get, ghHeaders, report }); } catch (e) { report.push(`⚠ Skill & MCP details: ${e.message} (kept previous)`); }
   }
 
   // X: every tool's own account (found automatically, like the tools themselves) plus the AI labs.
