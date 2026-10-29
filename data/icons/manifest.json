@@ -668,6 +668,86 @@
    "file": null,
    "mono": false,
    "src": null
+  },
+  "letta-code": {
+   "logo": null,
+   "checked": 1793298097018,
+   "file": "letta-code.png",
+   "mono": false,
+   "src": "https://www.letta.com/assets/images/webclip.png",
+   "tone": null
+  },
+  "emdash": {
+   "logo": null,
+   "checked": 1793298097181,
+   "file": "emdash.svg",
+   "mono": true,
+   "src": "https://emdash.com/icon.svg?icon.ccc521cf.svg",
+   "tone": null
+  },
+  "t3code": {
+   "logo": null,
+   "checked": 1793298097225,
+   "file": "t3code.png",
+   "mono": false,
+   "src": "https://t3.codes/apple-touch-icon.png",
+   "tone": null
+  },
+  "openwork": {
+   "logo": null,
+   "checked": 1793298097595,
+   "file": "openwork.png",
+   "mono": false,
+   "src": "https://openworklabs.com/apple-icon.png?328d7ab129ae7f25",
+   "tone": null
+  },
+  "gptme": {
+   "logo": null,
+   "checked": 1793298097749,
+   "file": "gptme.png",
+   "mono": false,
+   "src": "https://gptme.org/media/logo.png",
+   "tone": null
+  },
+  "claude-squad": {
+   "logo": null,
+   "checked": 1793298098114,
+   "file": "claude-squad.png",
+   "mono": false,
+   "src": "github-org-avatar",
+   "tone": null
+  },
+  "auggie": {
+   "logo": null,
+   "checked": 1793298098241,
+   "file": "auggie.svg",
+   "mono": true,
+   "src": "https://www.augmentcode.com/favicon.svg",
+   "tone": null
+  },
+  "cmux": {
+   "logo": null,
+   "checked": 1793298098346,
+   "file": "cmux.png",
+   "mono": false,
+   "src": "https://cmux.com/apple-icon.png?apple-icon.2ycvhapzlxf2q.png",
+   "tone": "light"
+  },
+  "vibe-kanban": {
+   "logo": null,
+   "checked": 1793298098643,
+   "file": "vibe-kanban.png",
+   "mono": false,
+   "src": "https://www.vibekanban.com/favicon.png",
+   "tone": "dark"
+  },
+  "mini-swe-agent": {
+   "logo": null,
+   "checked": 1793298099436,
+   "file": "mini-swe-agent.png",
+   "mono": false,
+   "src": "github-org-avatar",
+   "tone": null
   }
  }
 }

@@ -20,6 +20,8 @@ const KINDS = {
       `"agent skill" in:description ${base}`,
       `"claude skills" in:description ${base}`,
       `"SKILL.md" in:description,readme ${base}`,
+      `"Claude Code skills" in:description ${base}`,
+      `"Codex skills" in:description ${base}`,
     ],
   },
   mcp: {
@@ -30,6 +32,7 @@ const KINDS = {
       ...ECOSYSTEM.mcp.topics.map((t) => `topic:${t} ${base}`),
       `"MCP server" in:description ${base}`,
       `"model context protocol" in:description ${base}`,
+      `"MCP tools" in:description ${base}`,
     ],
   },
 };
@@ -52,7 +55,8 @@ async function searchKind(type, get, ghHeaders, prev, now, skip = new Set()) {
   const known = new Set(TOOLS.filter((t) => t.github).map((t) => t.github.toLowerCase()));
   const deny = new Set(cfg.deny.map((s) => s.toLowerCase()));
   const seen = new Map();
-  for (const q of spec.queries(base)) { // sequential: the Search API allows ~30 req/min
+  for (const q of spec.queries(base)) { // sequential and spaced: the Search API allows ~30 req/min
+    if (seen.size) await new Promise((r) => setTimeout(r, 2100));
     const res = await get(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=100`, { json: true, headers: ghHeaders() });
     for (const r of res.items || []) seen.set(r.full_name.toLowerCase(), r);
   }
@@ -113,10 +117,15 @@ async function fetchRegistry(get, now) {
 // The most-installed individual skills and servers, from the catalogs agents install from — most of these live inside
 // bigger repos or are hosted services, so the GitHub repo search above never sees them.
 // Skills: claude-plugins.dev (every SKILL.md on GitHub, by installs). MCP: Smithery's registry (by use count).
-const POPULAR = 100;
+const POPULAR = 100, POPULAR_PAGES = 2;
 async function fetchPopularSkills(get) {
-  const { skills = [] } = await get(`https://claude-plugins.dev/api/skills?limit=${POPULAR}&offset=0`, { json: true });
-  return skills.filter((s) => s.installs > 0 && s.sourceUrl).map((s) => ({
+  const skills = [];
+  for (let p = 0; p < POPULAR_PAGES; p++) {
+    const res = await get(`https://claude-plugins.dev/api/skills?limit=${POPULAR}&offset=${p * POPULAR}`, { json: true });
+    skills.push(...(res.skills || []));
+    if ((res.skills || []).length < POPULAR) break;
+  }
+  return [...new Map(skills.map((s) => [s.namespace || s.id, s])).values()].filter((s) => s.installs > 0 && s.sourceUrl).map((s) => ({
     id: s.namespace || s.id, name: s.name, owner: s.author || s.metadata?.repoOwner || '',
     repo: s.metadata?.repoOwner && s.metadata?.repoName ? `${s.metadata.repoOwner}/${s.metadata.repoName}` : null,
     url: s.sourceUrl, description: (s.description || '').replace(/\s+/g, ' ').trim(),
@@ -124,8 +133,13 @@ async function fetchPopularSkills(get) {
   }));
 }
 async function fetchPopularServers(get) {
-  const { servers = [] } = await get(`https://registry.smithery.ai/servers?pageSize=${POPULAR}&page=1`, { json: true });
-  return servers.filter((s) => !s.unlisted && !s.inactive && s.useCount > 0).map((s) => ({
+  const servers = [];
+  for (let p = 1; p <= POPULAR_PAGES; p++) {
+    const res = await get(`https://registry.smithery.ai/servers?pageSize=${POPULAR}&page=${p}`, { json: true });
+    servers.push(...(res.servers || []));
+    if (p >= (res.pagination?.totalPages || 1)) break;
+  }
+  return [...new Map(servers.map((s) => [s.qualifiedName, s])).values()].filter((s) => !s.unlisted && !s.inactive && s.useCount > 0).map((s) => ({
     id: s.qualifiedName, name: s.displayName || s.qualifiedName, owner: s.namespace || '',
     url: `https://smithery.ai/servers/${s.qualifiedName}`, homepage: s.homepage || null, icon: s.iconUrl || null,
     description: (s.description || '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\s+/g, ' ').trim(),

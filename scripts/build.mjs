@@ -1868,7 +1868,7 @@ function registryList(reg) {
 }
 
 // Most-installed skills (claude-plugins.dev) and most-used servers (Smithery), shown above the trending repos.
-const POP_SHOWN = 24, POP_OPEN = 6; // the rest folds away so the trending filters stay near the top
+const POP_SHOWN = 48, POP_OPEN = 6; // the rest folds away so the trending filters stay near the top
 function popCard(r, type) {
   const img = type === 'mcp' ? r.icon : r.owner && `https://github.com/${encodeURIComponent(r.owner)}.png?size=64`;
   const count = type === 'mcp' ? r.uses : r.installs;
