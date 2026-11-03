@@ -3,10 +3,11 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
-  // Ad blocker wall: a bait element that cosmetic filters hide, a probe of the AdSense script
+  // Nonblocking ad-support notice: a bait element that cosmetic filters hide, a probe of the AdSense script
   // that network filters block, and a check that the AdSense script in <head> really came from
   // Google (uBlock swaps in a local no-op stand-in that never shows up in resource timing).
-  // Any one tripping covers the page. Skipped inside the Android app (a Trusted Web Activity,
+  // A failed ad request must never hide the page (including during search rendering).
+  // Skipped inside the Android app (a Trusted Web Activity,
   // see play/): it opens with ?source=twa and an android-app:// referrer, remembered per tab.
   const inApp = (() => {
     try {
@@ -34,14 +35,11 @@
       if (!blocked) return;
       const wall = document.createElement('div');
       wall.className = 'adwall';
-      wall.setAttribute('role', 'alertdialog');
-      wall.setAttribute('aria-modal', 'true');
+      wall.setAttribute('role', 'region');
       wall.setAttribute('aria-labelledby', 'adwall-t');
-      wall.innerHTML = '<div class="adwall-box"><p class="eyebrow">Ad blocker detected</p><h2 id="adwall-t">Please turn off your ad blocker</h2><p>aiticker is free and ads keep it running. Pause your ad blocker (or allow this site) and reload to keep reading.</p><button type="button" class="btn">I’ve turned it off — reload</button></div>';
-      wall.querySelector('button').addEventListener('click', () => location.reload());
-      document.documentElement.classList.add('adwalled');
+      wall.innerHTML = '<div class="adwall-box"><h2 id="adwall-t">Support aiticker</h2><p>Ads help keep this tracker free. If you use an ad blocker, consider allowing this site. You can keep reading either way.</p><button type="button" class="btn ghost">Dismiss</button></div>';
+      wall.querySelector('button').addEventListener('click', () => wall.remove());
       document.body.append(wall);
-      wall.querySelector('button').focus();
     });
   }
 

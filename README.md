@@ -58,6 +58,22 @@ npm run dev   # fetch → build → serve on http://localhost:4173
 
 Add a curated tool in `scripts/sources.mjs` (trending ones are added automatically). Outputs: HTML pages, `feed.xml` (RSS), `data.json` (JSON API), `sitemap.xml`.
 
+## Search quality checks
+
+```bash
+npm test
+npm run build
+npm run check:seo
+```
+
+On a sandbox that disallows test-runner child processes, run `node --test --experimental-test-isolation=none tests/*.test.mjs` instead of `npm test`.
+
+The build publishes workflow directories under `/tools/` (AI IDEs, terminal coding agents, editor extensions, desktop apps, cloud agents and app builders), linked from the homepage, tool directory and individual tools. Topic copy lives in [seo.mjs](<scripts/seo.mjs>). These are source-linked release directories, not claimed product rankings. Existing tool, company and release URLs stay unchanged. Ad-loading failures show only a dismissible notice; they never hide the content.
+
+CI runs the unit tests and checks every sitemap URL for an existing, indexable page, a self-canonical, a title, a description and parseable structured data. It also checks topic navigation, internal links and site-search inclusion. No search-account changes happen during the build.
+
+After deployment, inspect the homepage and new topic URLs in Search Console and verify the existing sitemap is fetched successfully. Compare relevant non-branded queries and landing pages over subsequent weeks; exclude unrelated company-name queries when assessing coding-tool discovery. Track clicks, impressions and CTR together rather than treating total impressions as relevant traffic. These changes cannot guarantee indexing, ranking or AdSense approval; sustained growth also needs useful original reporting and genuine links from relevant communities.
+
 ---
 
 Made by [Abdullah ElTiby](https://github.com/AbdullahElTiby).

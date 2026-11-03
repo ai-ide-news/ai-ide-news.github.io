@@ -16,6 +16,7 @@ import { OPENCODE_SOURCE } from './opencode.mjs';
 import { learnBody, LEARN_SECTIONS } from './learn.mjs';
 import { ogSvg, ogPng } from './og.mjs';
 import { readDetails, detailKey } from './eco-details.mjs';
+import { TOOL_TOPICS, topicPath, toolDescription } from './seo.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -37,7 +38,7 @@ const ADS = {
 const CF_BEACON = (process.env.CF_ANALYTICS_TOKEN || '').trim();
 // Cloudflare Worker (worker/) that reads users' own sources for the My feed page; unset hides custom sources.
 const FEED_PROXY = (process.env.FEED_PROXY || '').trim().replace(/\/$/, '');
-// Block the site for visitors running an ad blocker. On whenever AdSense is; ADWALL=1 forces it locally.
+// Show a nonblocking ad-support notice when ads cannot load. ADWALL=1 previews it locally.
 const ADWALL = !!ADS.client || process.env.ADWALL === '1';
 const PRIVACY_UPDATED = '22 October 2026';
 // Android app (Trusted Web Activity, see play/). sha256 lists the signing-key fingerprints allowed
@@ -1136,7 +1137,9 @@ function companyPage(c) {
   const coNews = news.filter((n) => n.toolIds.some((id) => c.tools.some((t) => t.id === id)));
   const rel90 = c.tools.flatMap((t) => t.updates).filter((i) => NOW - Date.parse(i.date) < 90 * DAY).length + c.models.filter((m) => NOW - Date.parse(m.date) < 90 * DAY).length;
   const what = [c.tools.length && `${c.tools.length} AI coding tool${c.tools.length === 1 ? '' : 's'}`, c.models.length && `${c.models.length} AI model${c.models.length === 1 ? '' : 's'}`].filter(Boolean).join(' and ');
-  const others = companies.filter((x) => x !== c && !family.includes(x));
+  const others = companies.filter((x) => x !== c && !family.includes(x)
+    && (c.models.length ? x.models.length : x.tools.some((t) => c.tools.some((own) => own.category === t.category)))).slice(0, 8);
+  const focus = c.tools.length && c.models.length ? 'AI tools & models' : c.models.length ? 'AI models' : 'AI coding tools';
   const body = `
 <section class="wrap tool-hero" style="--c:${c.color}">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}companies/">Companies</a><span>/</span><span>${esc(c.name)}</span></nav>
@@ -1144,8 +1147,8 @@ function companyPage(c) {
     ${coTile(c, root, 'xl')}
     <div>
       <p class="eyebrow">${c.models.length ? 'AI lab' : 'Company'}${info.parent ? ` · part of ${parent ? `<a class="lab-link" href="${root}${coPath(parent)}">${esc(info.parent)}</a>` : esc(info.parent)}` : ''}${info.founded ? ` · founded ${info.founded}` : ''}</p>
-      <h1>${scrawl(c.name)} <em>profile</em></h1>
-      <p class="lede">Everything ${esc(c.name)} ships that we track: ${what}. Last shipped ${ago(c.last)}.</p>
+      <h1>${scrawl(c.name)} <em>${esc(focus)}</em></h1>
+      <p class="lede">Track ${what} from ${esc(c.name)}: ${[...c.tools, ...c.models].slice(0, 3).map((x) => esc(x.name)).join(', ')}. Browse the latest releases${c.models.length ? ', model context windows and API prices' : ', version history and changelogs'} below.</p>
       <div class="tool-links">
         ${c.models.length ? `<a class="btn" href="${root}${labPath(c.labId)}">All ${esc(c.name)} models →</a>` : ''}
         ${c.tools.length === 1 ? `<a class="btn${c.models.length ? ' ghost' : ''}" href="${root}tools/${c.tools[0].id}/">${esc(c.tools[0].name)} changelog →</a>` : ''}
@@ -1200,7 +1203,7 @@ ${coNews.length ? `<section class="wrap section">
 </section>` : ''}
 
 <section class="wrap section">
-  <div class="section-head"><div><p class="eyebrow">Directory</p><h2>Other companies</h2></div></div>
+  <div class="section-head"><div><p class="eyebrow">Explore</p><h2>More ${c.models.length ? 'AI model labs' : 'coding-tool makers'}</h2></div><a href="${root}companies/">All companies →</a></div>
   ${coGrid(others, root)}
   ${ad('inline')}
 </section>`;
@@ -1208,8 +1211,8 @@ ${coNews.length ? `<section class="wrap section">
     root, path: coPath(c), active: 'companies',
     og: { kicker: 'Company', title: c.name, sub: 'AI tools, models & latest releases', stats: [c.tools.length && ['Tools', String(c.tools.length)], c.models.length && ['Models', String(c.models.length)], info.founded && ['Founded', String(info.founded)]].filter(Boolean), icon: ogIcon(c.iconId) },
     crumbs: [['Companies', 'companies/'], [c.name, coPath(c)]],
-    title: `${c.name}: AI Tools, Models & Releases | ${SITE_NAME}`,
-    description: `${c.name}${info.founded ? ` (founded ${info.founded})` : ''}: ${what} tracked — ${[...c.tools, ...c.models].slice(0, 5).map((x) => x.name).join(', ')}. Latest releases, versions and news, updated automatically.`,
+    title: `${c.name} ${focus} & Releases | ${SITE_NAME}`,
+    description: `${c.name} ${focus.toLowerCase()}: ${[...c.tools, ...c.models].slice(0, 3).map((x) => x.name).join(', ')}. Track releases${c.models.length ? ', context windows and API pricing' : ', latest versions and official changelogs'}.`,
     jsonld: {
       '@context': 'https://schema.org', '@type': 'Organization', name: c.name, url: `${SITE_URL}/${coPath(c)}`,
       ...(info.founded ? { foundingDate: info.founded } : {}), ...(info.parent ? { parentOrganization: { '@type': 'Organization', name: info.parent } } : {}),
@@ -1326,8 +1329,9 @@ function indexPage() {
   <div class="dateline"><span>${new Date(NOW).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span><span><span class="dot"></span>Updated ${time(snap.generatedAt, 'live-ago')}</span><span>${tools.length} tools on the wire</span></div>
   <div class="hero-grid">
     <div>
-      <h1>What changed in your AI coding tools, <em>and why it matters.</em></h1>
-      <p class="lede">New versions, model launches, pricing changes and security alerts for Cursor, Claude Code, Codex, Gemini CLI, Copilot, Kiro, Zed and ${tools.length - 7} more — straight from official sources, with the noise filtered out.</p>
+      <h1>AI coding tool news <em>&amp; release notes.</em></h1>
+      <p class="lede">Track AI IDE updates, coding-agent releases, model launches, pricing changes and security alerts for Cursor, Claude Code, Codex, Gemini CLI, Copilot and more — linked to official sources.</p>
+      ${topicLinks(root)}
       <nav class="jump" aria-label="Go straight to">
         <a href="#versions" data-focus="q"><b>Latest version</b><small>of a specific tool</small></a>
         ${news.length ? '<a href="#news"><b>Important news</b><small>launches, pricing, security</small></a>' : ''}
@@ -1409,12 +1413,17 @@ ${banner()}
     </aside>
   </div>
   <div class="feed-more"><button id="more" class="btn">Load more updates</button><p class="empty" hidden>Nothing matches these filters.</p></div>
+</section>
+<section class="wrap section privacy" aria-labelledby="tracking-method">
+  <h2 id="tracking-method">How we track AI coding-tool updates</h2>
+  <p>${SITE_NAME} is an independent release tracker, not a vendor or a product ranking. Tool pages collect official GitHub releases, vendor changelogs and product blogs; community discussion is labelled separately. Each update links to its source so you can check the full announcement.</p>
+  <p>Start with a <a href="tools/">tool's changelog and latest version</a>, browse <a href="news/">AI coding news</a>, or <a href="compare/">compare published plans and prices</a>. Release feeds can omit details, and model or plan availability can vary; verify requirements with the vendor. <a href="contact/">Send corrections or suggest a source</a>.</p>
 </section>`;
 
   return layout({
     root, path: '', active: 'home',
-    title: `AI IDE & CLI News — Cursor, Claude Code, Codex | ${SITE_NAME}`,
-    description: `Live tracker of the latest releases, patches and changelogs for AI IDEs and coding CLIs: Cursor, Claude Code, Codex CLI, Gemini CLI, GitHub Copilot, Kiro, Zed, Windsurf, OpenCode, Cline and more. Real data, updated automatically.`,
+    title: `AI Coding Tool News & Release Notes | ${SITE_NAME}`,
+    description: 'Track Cursor, Claude Code, Codex and Gemini CLI updates. AI IDE news, latest versions, release notes and pricing changes linked to official sources.',
     jsonld: {
       '@context': 'https://schema.org', '@graph': [
         { '@type': 'WebSite', '@id': `${SITE_URL}/#website`, name: SITE_NAME, url: `${SITE_URL}/`, inLanguage: 'en', description: 'Latest news, releases and changelogs for AI IDEs and AI coding CLIs.', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url }, publisher: { '@id': `${SITE_URL}/#org` } },
@@ -1442,6 +1451,8 @@ function toolPage(t) {
   const offers = prices.length ? { '@type': 'AggregateOffer', priceCurrency: 'USD', lowPrice: Math.min(...prices), highPrice: Math.max(...prices), offerCount: prices.length } : null;
   const similar = tools.filter((x) => x.category === t.category && x.id !== t.id).slice(0, 6);
   const first = firstRelease(t);
+  const latestUpdate = t.latestRelease || t.updates[0];
+  const latestPath = latestUpdate && relPathById.get(latestUpdate.id);
 
   const body = `
 <section class="wrap tool-hero" style="--c:${t.color}">
@@ -1452,6 +1463,8 @@ function toolPage(t) {
       <p class="eyebrow">${CATEGORIES[t.category].label} · ${vendorLink(t.vendor, root)}${est(t.vendor)}${t.discovered ? ` · <span class="trend">↗ Trending on GitHub</span>` : ''}</p>
       <h1>${scrawl(t.name)} <em>changelog</em></h1>
       <p class="lede">${esc(t.blurb)}</p>
+      ${latestUpdate ? `<p class="release-answer">${ver ? `Latest tracked ${esc(t.name)} version: <strong>${esc(ver)}</strong>` : `Latest tracked ${esc(t.name)} update: <strong>${esc(latestUpdate.title)}</strong>`}, released ${fmtDate(latestUpdate.date)}. ${latestPath ? `<a href="${root}${latestPath}">Read the release notes</a> · ` : ''}<a href="${esc(latestUpdate.url)}" rel="noopener">Official source ↗</a></p>` : ''}
+      <p class="muted small">Browse <a href="${root}${topicPath(t.category)}">${esc(TOOL_TOPICS[t.category].title)}</a> or <a href="${root}compare/">compare plans and pricing</a>. Independently tracked; not affiliated with ${esc(t.vendor)}.</p>
       <div class="tool-links">
         <a class="btn" href="${esc(t.site)}" target="_blank" rel="noopener">Official site ↗</a>
         ${t.meta.repoUrl ? `<a class="btn ghost" href="${esc(t.meta.repoUrl)}" target="_blank" rel="noopener">GitHub ↗</a>` : ''}
@@ -1499,8 +1512,8 @@ ${banner()}`;
     root, path: `tools/${t.id}/`, active: 'tools',
     og: { kicker: `${CATEGORIES[t.category]?.short || 'AI coding tool'} · ${t.vendor}`, title: t.name, sub: 'Changelog & latest version', stats: [ver && ['Latest', ver], t.latest && ['Updated', fmtDate(t.latest.date)], ['Updates · 90d', String(rel90.length)]].filter(Boolean), icon: ogIcon(t.id) },
     crumbs: [['Tools', 'tools/'], [t.name, `tools/${t.id}/`]],
-    title: `${t.name} Changelog & Latest Version${ver ? ` (${ver})` : ''} | ${SITE_NAME}`,
-    description: `${t.name} release notes, latest version${ver ? ` ${ver}` : ''}, patches and news from ${t.vendor}. ${t.blurb} Updated automatically from official sources.`,
+    title: `${t.name} Changelog & Release Notes | ${SITE_NAME}`,
+    description: toolDescription(t, ver, latestUpdate ? fmtDate(latestUpdate.date) : null),
     jsonld: {
       '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: t.name, applicationCategory: 'DeveloperApplication',
       operatingSystem: 'Windows, macOS, Linux', url: t.site, publisher: { '@type': 'Organization', name: t.vendor },
@@ -1623,13 +1636,52 @@ ${banner()}`;
   });
 }
 
+function topicLinks(root, current) {
+  return `<nav class="topic-links" aria-label="Browse AI coding tools by workflow">${Object.entries(TOOL_TOPICS)
+    .filter(([key]) => tools.some((t) => t.category === key))
+    .map(([key, topic]) => `<a href="${root}${topicPath(key)}"${key === current ? ' aria-current="page"' : ''}>${esc(topic.title)}</a>`).join('')}</nav>`;
+}
+
+function toolTopicPage(category) {
+  const topic = TOOL_TOPICS[category];
+  const list = tools.filter((t) => t.category === category);
+  const root = '../../', path = topicPath(category);
+  const body = `
+<section class="wrap hero hero-sm">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="${root}">Home</a><span>/</span><a href="${root}tools/">Tools</a><span>/</span><span>${esc(topic.title)}</span></nav>
+  <p class="eyebrow">Coding workflows</p>
+  <h1>${esc(topic.title)} <em>&amp; release notes</em></h1>
+  <p class="lede">${esc(topic.description)}</p>
+  <p>${esc(topic.guidance)}</p>
+  ${topicLinks(root, category)}
+</section>
+<section class="wrap section">
+  <div class="section-head"><div><h2>Latest ${esc(topic.title)} updates</h2><p class="muted small">${list.length} tools tracked, sorted by latest tracked release or update. This is a release directory, not a best-to-worst ranking.</p></div></div>
+  <div class="vgrid">${list.map((t) => versionCard(t, root)).join('')}</div>
+</section>
+<section class="wrap section privacy">
+  <h2>How to use this release tracker</h2>
+  <p>Open a tool to see its latest tracked version, release dates and official release notes. Follow the source links to verify platform support and installation requirements. <a href="${root}compare/">Compare published plans and pricing</a>, or read <a href="${root}news/">AI coding news</a> for launches, security notices and pricing changes.</p>
+  <p>Updates are collected automatically from each tool's configured official sources. A version can be missing or delayed when a feed is unavailable; this directory does not independently test every release. <a href="${root}contact/">Report a missing tool or correction</a>.</p>
+</section>`;
+  return layout({
+    root, path, active: 'tools', title: `${topic.title}: Updates & Release Notes | ${SITE_NAME}`,
+    description: topic.description,
+    crumbs: [['Tools', 'tools/'], [topic.title, path]],
+    jsonld: { '@type': 'CollectionPage', name: `${topic.title} release tracker`, url: `${SITE_URL}/${path}`,
+      mainEntity: { '@type': 'ItemList', itemListElement: list.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.name, url: `${SITE_URL}/tools/${t.id}/` })) } },
+    body,
+  });
+}
+
 function toolsIndexPage() {
   const root = '../';
   const body = `
 <section class="wrap hero hero-sm">
   <p class="eyebrow">Directory</p>
-  <h1>All <em>${tools.length}</em> tracked tools</h1>
-  <p class="lede">Every AI IDE, coding CLI and editor agent we follow — sorted by most recent ship.</p>
+  <h1>AI coding tools <em>&amp; latest versions</em></h1>
+  <p class="lede">${tools.length} AI IDEs, coding agents and editor extensions — sorted by most recent tracked release. Browse a workflow below or open a tool for its changelog.</p>
+  ${topicLinks(root)}
 </section>
 
 ${banner()}
@@ -1642,7 +1694,7 @@ ${banner()}
     root, path: 'tools/', active: 'tools', title: `All AI IDEs & Coding CLIs — Latest Versions | ${SITE_NAME}`,
     og: { kicker: 'Directory', title: 'AI IDEs & coding CLIs', sub: 'Latest versions, all in one place', stats: [['Tools tracked', String(tools.length)], ['Checked every', '10 min']] },
     jsonld: { '@type': 'ItemList', name: 'AI IDEs and coding CLIs', itemListElement: tools.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.name, url: `${SITE_URL}/tools/${t.id}/` })) },
-    description: `Latest versions of ${tools.length} AI coding tools: ${tools.map((t) => t.name).join(', ')}.`, body,
+    description: 'Browse AI IDEs, terminal coding agents and editor extensions. Check latest versions, official release notes and changelogs, or compare plans and pricing.', body,
   });
 }
 
@@ -1691,7 +1743,7 @@ function newsPage() {
   const body = `
 <section class="wrap hero hero-sm">
   <p class="eyebrow">News</p>
-  <h1>Important <em>news</em></h1>
+  <h1>AI coding <em>news</em></h1>
   <p class="lede">The AI coding stories that actually matter from the last 30 days. Every candidate from official blogs, official X accounts and Hacker News is scored for importance; routine posts never make it here.</p>
 </section>
 
@@ -2674,9 +2726,9 @@ const pwa = async () => {
     ],
   }));
   await out('offline.html', layout({
-    root: '/', path: 'offline.html', title: `Offline · ${SITE_NAME}`, description: 'You are offline.',
+    root: '/', path: 'offline.html', title: `Offline · ${SITE_NAME}`, description: 'You are offline.', noindex: true,
     body: `<section class="wrap" style="padding:15vh 0;text-align:center"><h1>You're offline</h1><p>This page isn't saved on this device yet. Pages you've already opened still work, and everything refreshes once you're back online.</p><p><a href="/">← Back to the latest updates</a></p></section>`,
-  }).replace('<head>', '<head>\n<meta name="robots" content="noindex">'));
+  }));
   if (ANDROID_APP.sha256.length) await out('.well-known/assetlinks.json', JSON.stringify([{
     relation: ['delegate_permission/common.handle_all_urls'],
     target: { namespace: 'android_app', package_name: ANDROID_APP.id, sha256_cert_fingerprints: ANDROID_APP.sha256 },
@@ -2696,6 +2748,11 @@ await pwa();
 
 await out('index.html', indexPage());
 await out('tools/index.html', toolsIndexPage());
+for (const category of Object.keys(TOOL_TOPICS)) {
+  if (!tools.some((t) => t.category === category)) continue;
+  if (byId[TOOL_TOPICS[category].slug]) throw new Error(`Topic slug conflicts with a tool: ${topicPath(category)}`);
+  await out(`${topicPath(category)}index.html`, toolTopicPage(category));
+}
 await out('news/index.html', newsPage());
 await out('my-feed/index.html', myFeedPage());
 await out('compare/index.html', comparePage());
@@ -2749,6 +2806,7 @@ const srTool = (t) => ({ c: t.color, i: srIcon(t.id) });
 await out('search.json', JSON.stringify({ generatedAt: snap.generatedAt, items: [
   { t: 'page', n: 'Home — latest updates', s: 'Every release, changelog and blog post, live', u: '', k: 'feed home latest releases' },
   { t: 'page', n: 'All tools', s: `${tools.length} AI IDEs, CLIs and editor agents`, u: 'tools/', k: 'directory ides clis agents' },
+  ...Object.entries(TOOL_TOPICS).filter(([category]) => tools.some((t) => t.category === category)).map(([category, topic]) => ({ t: 'page', n: topic.title, s: topic.description, u: topicPath(category), k: 'coding tools release notes changelog latest versions' })),
   { t: 'page', n: 'Compare plans & pricing', s: 'Free tiers, seats and budgets side by side', u: 'compare/', k: 'pricing plans cost free budget seats' },
   ...(news.length ? [{ t: 'page', n: 'News', s: 'Only the important stories', u: 'news/', k: 'headlines stories' }] : []),
   { t: 'page', n: 'My feed', s: 'Follow any source: RSS, YouTube, Reddit, Instagram…', u: 'my-feed/', k: 'custom personal follow subscribe rss instagram youtube reddit bluesky mastodon' },
@@ -2779,6 +2837,7 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 ${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${models.length ? `<url><loc>${SITE_URL}/learn/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 ` : ''}${Object.values(ECO).filter((c) => c.list.length).map((c) => `<url><loc>${SITE_URL}/${c.path}</loc><lastmod>${eco.fetchedAt || snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+${Object.keys(TOOL_TOPICS).filter((category) => tools.some((t) => t.category === category)).map((category) => `<url><loc>${SITE_URL}/${topicPath(category)}</loc><lastmod>${tools.filter((t) => t.category === category).reduce((last, t) => t.lastActive > last ? t.lastActive : last, '1970-01-01T00:00:00Z')}</lastmod></url>`).join('\n')}
 <url><loc>${SITE_URL}/companies/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 ${[...ECO_PAGES].filter(([, pg]) => pg.index).map(([p, pg]) => `<url><loc>${SITE_URL}/${p}</loc>${pg.lastmod ? `<lastmod>${pg.lastmod}</lastmod>` : ''}<changefreq>daily</changefreq><priority>0.5</priority></url>`).join('\n')}
 ${companies.map((c) => `<url><loc>${SITE_URL}/${coPath(c)}</loc><lastmod>${c.last}</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>`).join('\n')}

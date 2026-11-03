@@ -5,6 +5,8 @@
   "scripts": {
     "fetch": "node scripts/fetch.mjs",
     "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check:seo": "node scripts/check-seo.mjs",
     "dev": "node scripts/fetch.mjs && node scripts/build.mjs && npx http-server dist -p 4173"
   },
   "keywords": [],

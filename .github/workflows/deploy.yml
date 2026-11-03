@@ -40,6 +40,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm test
       - name: Fetch latest releases, changelogs & news
         id: fetch
         run: node scripts/fetch.mjs
@@ -58,6 +59,9 @@ jobs:
           FEED_PROXY: ${{ vars.FEED_PROXY }}   # optional: My feed outside sources (worker/)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # README lookups when resolving new logos
           INDEXNOW_KEY: ${{ vars.INDEXNOW_KEY }}   # optional: publishes the IndexNow key file
+      - name: Validate built search metadata and sitemap
+        if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
+        run: npm run check:seo
       - name: Pick new releases to announce
         if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
         run: |
