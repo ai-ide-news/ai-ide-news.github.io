@@ -62,6 +62,11 @@ jobs:
       - name: Validate built search metadata and sitemap
         if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
         run: npm run check:seo
+      - name: Validate AdSense publisher and ads.txt
+        if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
+        run: npm run check:ads
+        env:
+          ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
       - name: Pick new releases to announce
         if: env.QUICK != '1' || steps.fetch.outputs.changed == 'true'
         run: |

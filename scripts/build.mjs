@@ -17,6 +17,7 @@ import { learnBody, LEARN_SECTIONS } from './learn.mjs';
 import { ogSvg, ogPng } from './og.mjs';
 import { readDetails, detailKey } from './eco-details.mjs';
 import { TOOL_TOPICS, topicPath, toolDescription } from './seo.mjs';
+import { adsenseClient, adsTxt } from './adsense.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -29,7 +30,7 @@ const VERIFY = process.env.GOOGLE_SITE_VERIFICATION || '';
 const DAY = 86400e3;
 // Google AdSense. Unset → no ad code at all. Client alone → Auto ads; slot ids → fixed placements.
 const ADS = {
-  client: (process.env.ADSENSE_CLIENT || '').trim(),           // ca-pub-XXXXXXXXXXXXXXXX
+  client: adsenseClient(process.env.ADSENSE_CLIENT || ''),           // ca-pub-XXXXXXXXXXXXXXXX
   side: (process.env.ADSENSE_SLOT_SIDE || '').trim(),          // sidebar unit
   inline: (process.env.ADSENSE_SLOT_INLINE || '').trim(),      // between sections
   preview: process.env.ADS_PREVIEW === '1',                     // local: show placeholder boxes
@@ -2846,8 +2847,7 @@ ${tools.filter((t) => archive[t.id].length).map((t) => [`<url><loc>${SITE_URL}/t
   ...archive[t.id].filter((r) => !thinRelease(r)).map((r) => `<url><loc>${SITE_URL}/${relPath(t.id, r)}</loc><lastmod>${r.date}</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>`)].join('\n')).join('\n')}
 </urlset>`);
 await out('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
-if (ADS.client) await out('ads.txt', `google.com, ${ADS.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0
-`);
+if (ADS.client) await out('ads.txt', adsTxt(ADS.client));
 // IndexNow ownership proof: search engines fetch /<key>.txt before accepting pings (scripts/announce.mjs).
 const INDEXNOW_KEY = process.env.INDEXNOW_KEY || '';
 if (/^[a-zA-Z0-9-]{8,128}$/.test(INDEXNOW_KEY)) await out(`${INDEXNOW_KEY}.txt`, INDEXNOW_KEY);

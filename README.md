@@ -37,6 +37,20 @@ After each deploy, `scripts/announce.mjs` posts new releases (one post per tool,
 
 Preview locally without posting: `node scripts/announce.mjs plan && DRY_RUN=1 node scripts/announce.mjs send`.
 
+## AdSense checks
+
+Production uses the repository variable `ADSENSE_CLIENT` (`ca-pub-` plus 16 digits). The build generates `/ads.txt` with that same publisher, and CI checks both the file and homepage ad loader before deployment. Missing or malformed production configuration fails validation; local builds can still omit ads.
+
+To validate locally with ads enabled (PowerShell):
+
+```powershell
+$env:ADSENSE_CLIENT = 'ca-pub-4290514464067576'
+npm run build
+npm run check:ads
+```
+
+AdSense's **Ads.txt status** is separate from **Approval status**. If the live `/ads.txt` returns the correct publisher but AdSense still says “Not found”, open the custom domain in AdSense → Sites and request an ads.txt update/check if offered. Google must recrawl it; neither a deployment nor this check grants site approval.
+
 ## My feed
 
 `/my-feed/` lets each reader build their own stream: pick tools from the catalog (releases & changelogs), toggle the curated news / Hacker News, and add any outside source — an RSS/Atom/JSON feed, a website (its feed is auto-discovered), a YouTube channel (`yt:@handle` or URL), a subreddit (`r/name`), a Bluesky profile, a Mastodon account (`@user@host`), or an Instagram / X profile. Picks are stored in the browser (localStorage) and can be shared with a link; there are no accounts.
