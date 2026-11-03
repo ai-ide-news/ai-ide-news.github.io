@@ -608,6 +608,7 @@
 {"slug":"0.2026.02.04.08.20","id":"cask:warp@0.2026.02.04.08.20","kind":"release","version":"v0.2026.02.04.08.20","title":"Warp v0.2026.02.04.08.20","url":"https://www.warp.dev","date":"2026-02-06T19:52:51Z","summary":"Warp 0.2026.02.04.08.20 for macOS, published to Homebrew as the warp cask.","html":""}
 ],
 "claude-desktop": [
+{"slug":"4.16336.0","id":"cask:claude@4.16336.0","kind":"release","version":"v4.16336.0","title":"Claude Desktop v4.16336.0","url":"https://claude.com/download","date":"2026-11-03T19:23:13.995Z","summary":"Claude Desktop 4.16336.0 for macOS, published to Homebrew as the claude cask.","html":""},
 {"slug":"4.4212.0","id":"cask:claude@4.4212.0","kind":"release","version":"v4.4212.0","title":"Claude Desktop v4.4212.0","url":"https://claude.com/download","date":"2026-10-29T18:53:33Z","summary":"Claude Desktop 4.4212.0 for macOS, published to Homebrew as the claude cask.","html":""},
 {"slug":"4.29.0","id":"cask:claude@4.29.0","kind":"release","version":"v4.29.0","title":"Claude Desktop v4.29.0","url":"https://claude.com/download","date":"2026-10-27T16:28:26.384Z","summary":"Claude Desktop 4.29.0 for macOS, published to Homebrew as the claude cask.","html":""},
 {"slug":"3.6556.2","id":"cask:claude@3.6556.2","kind":"release","version":"v3.6556.2","title":"Claude Desktop v3.6556.2","url":"https://claude.com/download","date":"2026-10-23T01:39:01.397Z","summary":"Claude Desktop 3.6556.2 for macOS, published to Homebrew as the claude cask.","html":""},
