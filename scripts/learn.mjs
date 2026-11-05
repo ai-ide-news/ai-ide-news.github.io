@@ -54,7 +54,7 @@ function cachedProvider(m) {
 export const LEARN_SECTIONS = [
   ['what', 'What is AI?'], ['how', 'How a model answers'], ['tokens', 'Tokens'], ['context', 'Context window'],
   ['prompts', 'System prompts'], ['cache', 'Cache hits'], ['reasoning', 'Reasoning tokens'], ['tools', 'Tools & agents'],
-  ['mcp', 'MCP'], ['embeddings', 'Embeddings & RAG'], ['hallucinations', 'Hallucinations'], ['training', 'How models are trained'],
+  ['mcp', 'MCP'], ['utcp', 'UTCP'], ['embeddings', 'Embeddings & RAG'], ['hallucinations', 'Hallucinations'], ['training', 'How models are trained'],
   ['moe', 'Mixture of experts'], ['quant', 'Quantization'], ['weights', 'Open vs. closed weights'], ['multimodal', 'Multimodal'],
   ['speed', 'Speed'], ['benchmarks', 'Benchmarks'],
 ];
@@ -246,6 +246,42 @@ ${sec('mcp', `  ${head('mcp', 'MCP, the', 'Model Context Protocol')}
     </div>
     <div class="lmcp-tools" id="mc-tools" aria-live="polite"></div>`, 'Click servers to plug them in. Each one adds its tools to what the model can do — no changes to the model or the app.')}
   <p>Browse hundreds of real servers, ranked by how fast they're growing, on our <a href="${root}mcp/">MCP page</a>.</p>`)}
+
+${sec('utcp', `  ${head('utcp', 'UTCP, the', 'Universal Tool Calling Protocol')}
+  <p>MCP puts a server between the model and the service. The <strong>Universal Tool Calling Protocol</strong> starts from a different question: if a service already has an API, why wrap it in another server? UTCP is an open standard that lets an agent call the tool directly.</p>
+  <p>A tool publishes a <strong>manual</strong>: a JSON file listing what each tool does, the inputs it takes and how to call it. The agent reads the manual once, then talks to the service over its own protocol, such as HTTP or the command line, using the service's own login. UTCP is only involved in finding the tool, not in each call.</p>
+  ${demo('utcp', 'Follow one tool call', `
+    <div class="lw-seg" role="radiogroup" aria-label="Protocol" id="ut-pick">${[['mcp', 'Through MCP'], ['utcp', 'Direct with UTCP']].map(([k, l], i) => `<button type="button" role="radio" aria-checked="${i === 1}" data-k="${k}">${l}</button>`).join('')}</div>
+    <div class="lutcp" id="ut-path" data-mode="utcp">
+      <span class="lutcp-n">Your agent</span><i class="lutcp-a" aria-hidden="true"></i>
+      <span class="lutcp-n lutcp-mid">MCP server</span><i class="lutcp-a lutcp-mid" aria-hidden="true"></i>
+      <span class="lutcp-n">Weather API</span>
+    </div>
+    <dl class="lutcp-facts">
+      <div><dt>The agent sends</dt><dd><code id="ut-send"></code></dd></div>
+      <div><dt>Someone maintains</dt><dd id="ut-keep"></dd></div>
+      <div><dt>Login handled by</dt><dd id="ut-auth"></dd></div>
+    </dl>
+    <pre class="lutcp-manual" id="ut-manual" tabindex="0" aria-label="Example UTCP manual">{
+  "manual_version": "1.0.0",
+  "utcp_version": "1.0.1",
+  "tools": [{
+    "name": "get_weather",
+    "description": "Get current weather for a location",
+    "inputs": {
+      "type": "object",
+      "properties": { "location": { "type": "string" } },
+      "required": ["location"]
+    },
+    "tool_call_template": {
+      "call_template_type": "http",
+      "url": "https://api.example.com/weather",
+      "http_method": "GET"
+    }
+  }]
+}</pre>`, 'Switch protocols to compare the same weather lookup. The API is a made-up example.')}
+  <p>The catch is that the work moves rather than disappears. The agent's client has to speak each protocol and handle logins, retries and errors itself, and every tool is responsible for its own security. MCP also has far more servers and vendor backing, plus features UTCP doesn't cover, such as shared resources and prompts.</p>
+  <p>You don't have to pick one forever: UTCP has a plugin for calling existing MCP servers. Read the details in the <a href="https://www.utcp.io/" rel="noopener">UTCP documentation</a>.</p>`)}
 
 ${sec('embeddings', `  ${head('embeddings', 'Embeddings &amp;', 'RAG')}
   <p>Computers can't compare meanings directly, so models turn text into lists of numbers called <strong>embeddings</strong>. Each one is a point in a space with hundreds of dimensions, and texts with similar meanings land close together — “fix the login bug” ends up near “authentication error”, even though they share no words.</p>

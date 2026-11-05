@@ -1492,6 +1492,17 @@ img.skel { color: transparent; }
 .lmcp-tools { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
 .lmcp-tools code { font: 12px var(--mono); padding: 3px 7px; border-radius: 3px; background: var(--card-2); border: 1px solid var(--line); color: var(--ink); }
 .lmcp-tools code.new { animation: lw-in .6s var(--ease); border-color: var(--accent); }
+.lutcp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.lutcp-n { padding: 8px 12px; border: 1px solid var(--line-2); border-radius: 4px; background: var(--bg); font-size: 13.5px; }
+.lutcp-a { flex: 0 1 36px; min-width: 18px; border-top: 2px solid var(--accent); }
+.lutcp-mid { transition: opacity .2s; }
+.lutcp[data-mode='utcp'] .lutcp-mid { display: none; }
+.lutcp-facts { display: grid; gap: 8px; margin: 0; min-width: 0; }
+.lutcp-facts div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; }
+.lutcp-facts dt { color: var(--ink-3); font-size: 13px; }
+.lutcp-facts dd { margin: 0; min-width: 0; font-size: 13.5px; overflow-wrap: anywhere; }
+.lutcp-facts code { font: 12px var(--mono); }
+.lutcp-manual { margin: 0; min-width: 0; max-height: 280px; overflow: auto; padding: 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--card-2); font: 12px/1.5 var(--mono); }
 /* embeddings */
 .lemb { width: 100%; height: auto; background: radial-gradient(circle at 1px 1px, var(--line-2) 1px, transparent 0) 0 0 / 20px 20px, var(--bg); border: 1px solid var(--line); border-radius: 5px; font: 11px var(--font); }
 .lemb text { fill: var(--ink-3); transition: fill .2s; }
