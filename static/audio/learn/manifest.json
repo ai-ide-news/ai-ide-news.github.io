@@ -62,6 +62,13 @@
     "model": "eleven_v3",
     "via": "Magnific"
   },
+  "utcp": {
+    "hash": "00c097a3ba5b",
+    "seconds": 58,
+    "voice": "Alistair Emmett Sinclair",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
   "embeddings": {
     "hash": "8b965e8091e0",
     "seconds": 49,

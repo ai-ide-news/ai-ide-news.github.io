@@ -277,6 +277,31 @@
     render();
   }
 
+  // ── UTCP path ──────────────────────────────────────────
+  if ($('#w-utcp')) {
+    const M = {
+      mcp: {
+        send: '{"method":"tools/call","params":{"name":"get_weather","arguments":{"location":"Cairo"}}}',
+        keep: 'An MCP server that wraps the API',
+        auth: 'The MCP server, on the agent’s behalf',
+      },
+      utcp: {
+        send: 'GET https://api.example.com/weather?location=Cairo',
+        keep: 'A JSON manual describing the existing API',
+        auth: 'The API’s own login, used by the agent’s client',
+      },
+    };
+    const show = (k) => {
+      $('#ut-path').dataset.mode = k;
+      $('#ut-send').textContent = M[k].send;
+      $('#ut-keep').textContent = M[k].keep;
+      $('#ut-auth').textContent = M[k].auth;
+      $('#ut-manual').hidden = k !== 'utcp';
+    };
+    choice($('#ut-pick'), (b) => show(b.dataset.k));
+    show('utcp');
+  }
+
   // ── Embeddings map ─────────────────────────────────────
   if ($('#w-emb')) {
     const NS = 'http://www.w3.org/2000/svg';
@@ -588,6 +613,10 @@ console.log(\`Loaded \${people.length} rows\`);
       ['Every tool a model', () => ['github', 'postgres', 'browser', 'figma', 'sentry'].forEach((k) => plug(k, false))],
       ['such as GitHub', () => plug('github', true)], ['database', () => plug('postgres', true)], ['a browser', () => plug('browser', true)],
       ['design files', () => plug('figma', true)], ['works everywhere', () => plug('sentry', true)],
+    ],
+    utcp: [
+      ['puts a server', () => nth('#ut-pick', 0)], ['A tool publishes a manual', () => nth('#ut-pick', 1)],
+      ['Switch protocols', () => seq([0, 1].map((i) => () => nth('#ut-pick', i)), 900)],
     ],
     embeddings: [
       ['Fix the login bug', () => nth('#em-q', 0)], ['search by meaning possible', () => nth('#em-q', 1)], ['closest documents', () => nth('#em-q', 2)],

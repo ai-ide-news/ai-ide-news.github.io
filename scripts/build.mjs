@@ -1911,7 +1911,7 @@ function learnPage() {
   return layout({
     root, path: 'learn/', active: 'learn', title: `How AI Works: Tokens, Context, Agents, MCP & RAG | ${SITE_NAME}`,
     og: { kicker: 'Learn', title: 'How AI actually works', sub: 'Tokens, context, agents, MCP & more' },
-    description: 'A plain-language, interactive guide to how AI models work: tokens, context windows, system prompts, cache hits, agents and tool calling, MCP, embeddings and RAG, hallucinations, training, mixture of experts, quantization and more — with real prices, hands-on demos and narrated audio.',
+    description: 'A plain-language, interactive guide to how AI models work: tokens, context windows, system prompts, cache hits, agents and tool calling, MCP, UTCP, embeddings and RAG, hallucinations, training, mixture of experts, quantization and more — with real prices, hands-on demos and narrated audio.',
     body: learnBody({ models, root, esc, modelPath, generatedAt: snap.generatedAt, bench: snap.benchmarks?.scores ? { scores: snap.benchmarks.scores, list: BENCHMARKS, key: benchKey, source: BENCH_SOURCE } : null }),
     jsonld: { '@context': 'https://schema.org', '@type': 'Article', headline: 'How AI actually works', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url }, dateModified: snap.generatedAt, url: `${SITE_URL}/learn/` },
   });
