@@ -16,6 +16,7 @@ A live tracker of the latest releases, patches, changelogs and community discuss
 | OpenRouter models API | New models from the major labs (release date, context window, API price) |
 | GitHub Search API (Skills & MCP) | `/skills/` and `/mcp/` pages: trending Agent Skills and MCP server repos, ranked by star velocity (`scripts/ecosystem.mjs`, tuned via `ECOSYSTEM` in `scripts/sources.mjs`) |
 | Official MCP Registry (`registry.modelcontextprotocol.io`) | Servers just published to the registry, on the MCP page |
+| [Codex Resets](https://codex-resets.com/) and [claude-resets.com](https://claude-resets.com/) APIs | `/resets/` page: announced Codex and Claude Code usage-limit resets, credited on the page as both sources require (`scripts/resets.mjs`) |
 | OpenCode Data (`opencode.ai/data/index.json`) | Real-world model usage on the OpenCode tool page: tokens, daily users, retention, session cost, cache ratio, market share by lab, countries |
 
 ### Trending auto-discovery

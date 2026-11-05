@@ -2096,3 +2096,36 @@ main:has(> .ed-hero), body:has(.ed-hero) { overflow-x: clip; }
   .ed-glow, .ed-av, .ed-id > *, .ed-stats > div, .ed-panel, .ed-health .h-hot i, .ed-copy.ok span, .ed-tool[open] > * + * { animation: none !important; }
   .ecard { transition: none; }
 }
+
+/* Limit resets */
+.rs-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.rs-card { min-width: 0; padding: 22px; border: 1px solid var(--line-2); border-top: 3px solid var(--c); border-radius: 8px; }
+.rs-card h2 { margin: 0; font-size: 16px; }
+.rs-card h2 a { display: inline-flex; align-items: center; gap: 8px; color: inherit; }
+.rs-days { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 18px 0 6px; color: var(--ink-2); }
+.rs-days b { font: 600 72px/1 var(--font); letter-spacing: -.04em; font-variant-numeric: tabular-nums; color: var(--ink); }
+.rs-last { min-height: 3em; margin: 0 0 16px; font-size: 13.5px; color: var(--ink-2); }
+.rs-stats { grid-template-columns: repeat(2, 1fr); }
+.rs-stats > div { padding: 10px 12px 10px 0; }
+.rs-stats > div + div { border-left: 0; padding-left: 0; }
+.rs-stats > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+.rs-stats dd { font-size: 20px; }
+.rs-explain { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 32px; }
+.rs-explain h2 { margin: 0 0 4px; font-size: 16px; }
+.rs-explain p { margin: 0; color: var(--ink-2); }
+.rs-chips { margin: 0 0 12px; }
+.rs-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line-2); }
+.rs-list > li { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 4px 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.rs-list > li[hidden] { display: none; }
+.rs-date { font: 12px/1.7 var(--mono); color: var(--ink-3); }
+.rs-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; font: 12px var(--mono); color: var(--ink-3); }
+.rs-tags b { font: 600 14px var(--font); color: var(--c); }
+.rs-tags .on { color: var(--accent-ink); }
+.rs-text { margin: 4px 0; overflow-wrap: anywhere; }
+.rs-src { font-size: 13px; }
+@media (max-width: 720px) {
+  .rs-cards, .rs-explain { grid-template-columns: minmax(0, 1fr); }
+  .rs-days b { font-size: 60px; }
+  .rs-last { min-height: 0; }
+  .rs-list > li { grid-template-columns: minmax(0, 1fr); }
+}

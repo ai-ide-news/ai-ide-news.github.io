@@ -18,6 +18,7 @@ import { ogSvg, ogPng } from './og.mjs';
 import { readDetails, detailKey } from './eco-details.mjs';
 import { TOOL_TOPICS, topicPath, toolDescription } from './seo.mjs';
 import { adsenseClient, adsTxt } from './adsense.mjs';
+import { RESET_SOURCES, resetStats } from './resets.mjs';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -214,6 +215,7 @@ function navGroups(root, active) {
       trending.length && ['Trending', `${root}#trending`, 'Rising on GitHub', ''],
       news.length && ['News', `${root}news/`, 'Only the important stories', 'news'],
       ['Community', `${root}#discussions`, 'Hacker News threads', ''],
+      RESETS.length && ['Limit resets', `${root}resets/`, 'Codex and Claude Code refills', 'resets'],
       ['My feed', `${root}my-feed/`, 'Your own pick of sources', 'myfeed'],
     ]],
     ['Tools', 'Pick your setup', [
@@ -246,7 +248,7 @@ const TAB_ICONS = {
 };
 function tabBar(root, active) {
   const tabs = [
-    ['Home', root, 'home', ['home', 'versions', 'myfeed']],
+    ['Home', root, 'home', ['home', 'versions', 'myfeed', 'resets']],
     ['Tools', `${root}tools/`, 'tools', ['tools', 'compare', 'companies']],
     models.length && ['Models', `${root}models/`, 'models', ['models', 'learn']],
     news.length && ['News', `${root}news/`, 'news', ['news']],
@@ -256,7 +258,7 @@ function tabBar(root, active) {
 }
 
 // Breadcrumb trail for search results: Home › section › … › page. crumbs: [[name, path], …].
-const SECTIONS = { tools: 'Tools', models: 'Models', companies: 'Companies', news: 'News', compare: 'Compare', learn: 'Learn', skills: 'Skills', mcp: 'MCP', 'my-feed': 'My feed', privacy: 'Privacy', contact: 'Contact' };
+const SECTIONS = { tools: 'Tools', models: 'Models', companies: 'Companies', news: 'News', compare: 'Compare', learn: 'Learn', skills: 'Skills', mcp: 'MCP', 'my-feed': 'My feed', resets: 'Limit resets', privacy: 'Privacy', contact: 'Contact' };
 function breadcrumbs(path, crumbs) {
   const top = path.split('/')[0];
   const trail = crumbs || (SECTIONS[top] && path === `${top}/` ? [[SECTIONS[top], path]] : null);
@@ -1295,6 +1297,86 @@ function contactPage() {
   <p>You can also open an issue at <a href="${REPO_URL}/issues" rel="noopener">${REPO_URL.replace('https://', '')}</a>.</p>
 </section>`;
   return layout({ root, path: 'contact/', title: `Contact | ${SITE_NAME}`, description: `How to reach the publisher of ${SITE_NAME}: email ${CONTACT_EMAIL}.`, body });
+}
+
+// Codex and Claude Code limit resets: how long since the last one, and every one on record.
+const RESETS = Object.entries(RESET_SOURCES)
+  .map(([key, src]) => ({ key, ...src, events: snap.resets?.[key] || [], stats: resetStats(snap.resets?.[key] || [], NOW) }))
+  .filter((p) => p.events.length);
+const RESETS_ALL = RESETS.flatMap((p) => p.events.map((e) => ({ ...e, product: p }))).sort((a, b) => b.date.localeCompare(a.date));
+
+const resetDays1 = (n) => (n == null ? 'n/a' : `${n.toFixed(1)}d`);
+const resetKind = (e) => (e.banked ? 'Banked' : 'Regular');
+const resetScope = (e) => (e.scope === 'all' ? 'All users' : e.scope ? e.scope.charAt(0).toUpperCase() + e.scope.slice(1) : '');
+const resetLink = (e, label) => (e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">${label} ↗</a>` : label);
+
+function resetCard(p, root) {
+  const { stats, stats: { last, lastRegular } } = p;
+  const days = Math.floor(Math.max(0, NOW - Date.parse(last.date)) / DAY);
+  const t = byId[p.toolId];
+  return `<article class="rs-card" style="--c:${t?.color || 'var(--accent)'}">
+  <h2>${t ? `<a href="${root}tools/${t.id}/">${icon(t, root, 'sm')}${esc(p.name)}</a>` : esc(p.name)}</h2>
+  <p class="rs-days" data-since="${esc(last.date)}"><b>${days}</b> <span>${days === 1 ? 'day' : 'days'} since the last reset</span></p>
+  <p class="rs-last">${resetLink(last, `${resetKind(last)} reset on ${fmtDate(last.date)}`)}${last.banked && lastRegular ? `<br>Last regular reset: ${resetLink(lastRegular, fmtDate(lastRegular.date))}` : ''}</p>
+  <dl class="stats rs-stats">
+    <div><dt>Tracked</dt><dd>${stats.count}</dd></div>
+    <div><dt>Avg gap</dt><dd>${resetDays1(stats.meanGap)}</dd></div>
+    <div><dt>Longest wait</dt><dd>${resetDays1(stats.longestGap)}</dd></div>
+    <div><dt>Last 30 days</dt><dd>${stats.last30}</dd></div>
+  </dl>
+</article>`;
+}
+
+function resetRow(e) {
+  const scope = resetScope(e);
+  const until = e.usableUntil ? `${NOW > Date.parse(e.usableUntil) ? 'Expired' : 'Apply by'} ${fmtDate(e.usableUntil)}` : '';
+  return `<li data-product="${e.product.key}" data-banked="${e.banked ? 1 : 0}" style="--c:${byId[e.product.toolId]?.color || 'var(--accent)'}">
+  <span class="rs-date">${fmtDate(e.date)}</span>
+  <div class="rs-body">
+    <p class="rs-tags"><b>${esc(e.product.name)}</b><span${e.banked ? ' class="on"' : ''}>${resetKind(e)}</span>${scope ? `<span>${esc(scope)}</span>` : ''}${until ? `<span>${until}</span>` : ''}</p>
+    ${e.text ? `<p class="rs-text">${esc(e.text)}</p>` : ''}
+    ${e.url ? `<a class="rs-src" href="${esc(e.url)}" target="_blank" rel="noopener">Announcement ↗</a>` : ''}
+  </div>
+</li>`;
+}
+
+function resetsPage() {
+  const root = '../';
+  const bankedCount = RESETS_ALL.filter((e) => e.banked).length;
+  const chip = (filter, label, count, on = false) => `<button type="button" class="chip${on ? ' on' : ''}" data-rs="${filter}" aria-pressed="${on}">${esc(label)} <small>${count}</small></button>`;
+  const credit = (p) => `${esc(p.name)} data from <a href="${p.site}" rel="noopener">${esc(p.siteName)}</a>${p.license ? ` (<a href="${p.license.url}" rel="noopener">${p.license.name}</a>)` : ''}`;
+  const body = `
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">Usage limits</p>
+  <h1>Codex &amp; Claude Code <em>limit resets</em></h1>
+  <p class="lede">OpenAI and Anthropic sometimes refill usage limits ahead of schedule, usually after an incident, a launch or a milestone. See how long it has been since the last one, and every reset on record.</p>
+</section>
+<section class="wrap section"><div class="rs-cards">${RESETS.map((p) => resetCard(p, root)).join('')}</div></section>
+${banner()}
+<section class="wrap section rs-explain">
+  <div><h2>Regular reset</h2><p>Your usage counters are cleared for you. There's nothing to do except check your limits.</p></div>
+  <div><h2>Banked reset</h2><p>A saved credit you apply yourself when you want it. Your limits don't refill until you apply it, and it can expire.</p></div>
+</section>
+<section class="wrap section">
+  <div class="section-head"><div><p class="eyebrow">History</p><h2>Every announced reset</h2></div></div>
+  <div class="nchips rs-chips" role="group" aria-label="Filter resets">
+    ${chip('all', 'All', RESETS_ALL.length, true)}
+    ${RESETS.map((p) => chip(p.key, p.name, p.stats.count)).join('')}
+    ${bankedCount ? chip('banked', 'Banked', bankedCount) : ''}
+  </div>
+  <ol class="rs-list" id="rs-list">${RESETS_ALL.map(resetRow).join('')}</ol>
+  <p class="muted small section-note">Announced resets only, not your account's own weekly window, which your tool's usage screen shows. ${RESETS.map(credit).join('; ')}. Quoted posts belong to their authors. Updated ${fmtDate(snap.resets.fetchedAt || snap.generatedAt)}.</p>
+  ${ad('inline')}
+</section>`;
+  const lastLine = RESETS.map((p) => `${p.name} ${fmtDate(p.stats.last.date)}`).join(', ');
+  return layout({
+    root, path: 'resets/', active: 'resets',
+    title: `Codex & Claude Code Limit Resets: Tracker & History | ${SITE_NAME}`,
+    description: `When Codex and Claude Code usage limits were last reset (${lastLine}), with days since, average gaps and every announcement.`,
+    og: { kicker: 'Limit resets', title: 'Codex & Claude Code limit resets', sub: 'Days since the last reset, and every one on record', stats: RESETS.map((p) => [`${p.name} resets`, String(p.stats.count)]) },
+    jsonld: { '@type': 'ItemList', name: 'Codex and Claude Code limit resets', itemListElement: RESETS_ALL.filter((e) => e.url).slice(0, 30).map((e, i) => ({ '@type': 'ListItem', position: i + 1, name: `${e.product.name} limit reset, ${fmtDate(e.date)}`, url: e.url })) },
+    body,
+  });
 }
 
 function versionCard(t, root) {
@@ -2775,6 +2857,7 @@ await writeFile(ARCHIVE, `{\n${Object.entries(archive).filter(([, l]) => l.lengt
 await out('companies/index.html', companiesIndexPage());
 await out('privacy/index.html', privacyPage());
 await out('contact/index.html', contactPage());
+if (RESETS.length) await out('resets/index.html', resetsPage());
 for (const c of companies) await out(`${coPath(c)}index.html`, companyPage(c));
 
 const allItems = tools.flatMap((t) => t.items).sort((a, b) => b.date.localeCompare(a.date));
@@ -2791,6 +2874,7 @@ await out('data.json', JSON.stringify({
   benchmarkSource: BENCH_SOURCE,
   skills: ECO.skills.list.map(({ stars, avatar, ...r }) => r),
   mcp: ECO.mcp.list.map(({ stars, avatar, ...r }) => r),
+  resets: Object.fromEntries(RESETS.map((p) => [p.key, p.events])),
   ...(oc ? { opencodeUsage: { source: OPENCODE_SOURCE, updatedAt: oc.updatedAt, pastWeek: oc.leaderboard.pastWeek } } : {}),
 }));
 // Tiny file the open page polls to announce new updates without a full reload of data.json.
@@ -2810,6 +2894,7 @@ await out('search.json', JSON.stringify({ generatedAt: snap.generatedAt, items: 
   ...Object.entries(TOOL_TOPICS).filter(([category]) => tools.some((t) => t.category === category)).map(([category, topic]) => ({ t: 'page', n: topic.title, s: topic.description, u: topicPath(category), k: 'coding tools release notes changelog latest versions' })),
   { t: 'page', n: 'Compare plans & pricing', s: 'Free tiers, seats and budgets side by side', u: 'compare/', k: 'pricing plans cost free budget seats' },
   ...(news.length ? [{ t: 'page', n: 'News', s: 'Only the important stories', u: 'news/', k: 'headlines stories' }] : []),
+  ...(RESETS.length ? [{ t: 'page', n: 'Limit resets', s: 'Days since the last Codex and Claude Code reset', u: 'resets/', k: 'usage rate limits reset refill banked weekly codex claude code' }] : []),
   { t: 'page', n: 'My feed', s: 'Follow any source: RSS, YouTube, Reddit, Instagram…', u: 'my-feed/', k: 'custom personal follow subscribe rss instagram youtube reddit bluesky mastodon' },
   ...(models.length ? [
     { t: 'page', n: 'Models', s: `${models.length} models, benchmarks, leaderboard, showdown`, u: 'models/', k: 'llm benchmarks leaderboard showdown pricing context' },
@@ -2832,7 +2917,7 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>${SITE_URL}/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>1.0</priority></url>
 <url><loc>${SITE_URL}/news/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>hourly</changefreq><priority>0.9</priority></url>
-<url><loc>${SITE_URL}/privacy/</loc><lastmod>${new Date(PRIVACY_UPDATED + ' UTC').toISOString()}</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
+${RESETS.length ? `<url><loc>${SITE_URL}/resets/</loc><lastmod>${RESETS_ALL[0].date}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n` : ''}<url><loc>${SITE_URL}/privacy/</loc><lastmod>${new Date(PRIVACY_UPDATED + ' UTC').toISOString()}</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
 <url><loc>${SITE_URL}/contact/</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 <url><loc>${SITE_URL}/my-feed/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
 ${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${models.length ? `<url><loc>${SITE_URL}/learn/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -2852,4 +2937,4 @@ if (ADS.client) await out('ads.txt', adsTxt(ADS.client));
 const INDEXNOW_KEY = process.env.INDEXNOW_KEY || '';
 if (/^[a-zA-Z0-9-]{8,128}$/.test(INDEXNOW_KEY)) await out(`${INDEXNOW_KEY}.txt`, INDEXNOW_KEY);
 await out('.nojekyll', '');
-console.log(`Built ${tools.length + 5 + companies.length + Object.values(ECO).filter((c) => c.list.length).length + ECO_PAGES.size + (models.length ? 2 + labs.length + models.length : 0)} pages → dist/`);
+console.log(`Built ${tools.length + 5 + (RESETS.length ? 1 : 0) + companies.length + Object.values(ECO).filter((c) => c.list.length).length + ECO_PAGES.size + (models.length ? 2 + labs.length + models.length : 0)} pages → dist/`);

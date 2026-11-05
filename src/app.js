@@ -255,6 +255,19 @@
   const tick = () => $$('time[datetime]').forEach((t) => { t.textContent = ago(t.dateTime); });
   tick(); setInterval(tick, 60000);
 
+  // Limit resets: whole days since the last reset, and the history filter.
+  const resetDays = () => $$('[data-since]').forEach((el) => {
+    const d = Math.floor(Math.max(0, Date.now() - Date.parse(el.dataset.since)) / 86400000);
+    el.querySelector('b').textContent = d;
+    el.querySelector('span').textContent = `${d === 1 ? 'day' : 'days'} since the last reset`;
+  });
+  resetDays(); setInterval(resetDays, 60000);
+  $$('.rs-chips .chip').forEach((chip, _, chips) => chip.addEventListener('click', () => {
+    chips.forEach((c) => { const on = c === chip; c.classList.toggle('on', on); c.setAttribute('aria-pressed', String(on)); });
+    const f = chip.dataset.rs;
+    $$('#rs-list > li').forEach((li) => { li.hidden = !(f === 'all' || (f === 'banked' ? li.dataset.banked === '1' : li.dataset.product === f)); });
+  }));
+
   // Filters
   const feed = $('#feedlist');
   const PAGE = +(feed?.dataset.page || 40);
