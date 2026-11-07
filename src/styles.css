@@ -2159,6 +2159,8 @@ main:has(> .ed-hero), body:has(.ed-hero) { overflow-x: clip; }
 .lc-num input { padding-right: 46px; font-family: var(--mono); }
 .lc-sum p { margin: 16px 0 12px; font-size: 15px; color: var(--ink-2); }
 .lc-sum b { color: var(--ink); }
+.lc-warn { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--line-2); border-left: 3px solid var(--accent); border-radius: var(--r); background: var(--card-2); font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+.lc-warn code { font: 12.5px var(--mono); }
 .lc-picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
 .lc-pickcard { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 12px 14px; background: var(--bg); border: 1px solid var(--line-2); border-left: 3px solid var(--accent); border-radius: var(--r); color: var(--ink); cursor: pointer; font: inherit; }
 .lc-pickcard:hover { border-color: var(--ink); border-left-color: var(--accent); }

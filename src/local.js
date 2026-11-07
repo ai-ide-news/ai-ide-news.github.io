@@ -43,6 +43,7 @@
       ['RX 9070 XT', 16, 640], ['RX 9070', 16, 640], ['RX 9060 XT 16GB', 16, 322], ['RX 9060 XT 8GB', 8, 322], ['RX 7900 XTX', 24, 960], ['RX 7900 XT', 20, 800], ['RX 7900 GRE', 16, 576],
       ['RX 7800 XT', 16, 624], ['RX 7700 XT', 12, 432], ['RX 7600 XT', 16, 288], ['RX 7600', 8, 288], ['RX 6950 XT', 16, 576], ['RX 6900 XT', 16, 512], ['RX 6800 XT', 16, 512],
       ['RX 6800', 16, 512], ['RX 6700 XT', 12, 384], ['RX 6750 XT', 12, 432], ['RX 6650 XT', 8, 280], ['RX 6600 XT', 8, 256], ['RX 6600', 8, 224], ['RX 5700 XT', 8, 448], ['RX 5700', 8, 448], ['RX 5600 XT', 6, 288], ['RX 5500 XT', 8, 224], ['Radeon VII', 16, 1024], ['RX Vega 64', 8, 484], ['RX 590', 8, 256], ['RX 580', 8, 256], ['RX 570', 8, 224], ['Radeon PRO W7900', 48, 864], ['Radeon AI PRO R9700', 32, 640], ['Instinct MI300X', 192, 5300],
+      ['Older Radeon (RX 400 / 500 / R9)', 4, 180],
     ],
     intel: [['Arc Pro B60', 24, 456], ['Arc B580', 12, 456], ['Arc B570', 10, 380], ['Arc A770 16GB', 16, 560], ['Arc A770 8GB', 8, 512], ['Arc A750', 8, 512], ['Arc A580', 8, 512]],
     // Unified memory: [name, default memory GB, bandwidth]
@@ -52,6 +53,25 @@
     ],
     unified: [['Ryzen AI Max+ 395 (Strix Halo)', 128, 256], ['Ryzen AI Max 390 / 385', 64, 256], ['NVIDIA DGX Spark (GB10)', 128, 273], ['Ryzen AI 300 laptop (iGPU)', 32, 120], ['Intel Core Ultra (iGPU)', 32, 120]],
     cpu: [['Desktop / laptop CPU', 0, 80]],
+  };
+
+  // ── Which backend a card actually gets ───────────────────
+  // Not every Radeon runs ROCm. RDNA3/4 and the RX 6800+ are supported (Linux, and Windows through Ollama /
+  // LM Studio); the rest of RDNA2 needs a gfx override on Linux; RDNA1 (RX 5000), Vega and Polaris have no ROCm
+  // at all and only run through Vulkan, which is slower and rules out vLLM. NVIDIA, Intel and Apple are native.
+  const AMD_OVERRIDE = /^RX 6[67]/;
+  const AMD_VULKAN = /^(RX 5\d00|RX Vega|Radeon VII|RX 5[789]0$|Older Radeon)/;
+  const AMD_OLD = /^(RX 5[789]0$|Older Radeon)/;
+  function backend(hw) {
+    if (hw.kind !== 'amd') return { api: 'native', eff: 0.65 };
+    if (AMD_OVERRIDE.test(hw.gpu)) return { api: 'override', eff: 0.55 };
+    if (AMD_VULKAN.test(hw.gpu)) return { api: 'vulkan', eff: AMD_OLD.test(hw.gpu) ? 0.4 : 0.5, old: AMD_OLD.test(hw.gpu) };
+    return { api: 'rocm', eff: 0.65 };
+  }
+  const BACKEND_NOTE = {
+    override: '<b>No official ROCm for the RX 6600 / 6700 family.</b> On Linux, ROCm works if you set <code>HSA_OVERRIDE_GFX_VERSION=10.3.0</code>; on Windows, Ollama’s ROCm build skips these cards, so use a Vulkan runtime — LM Studio, llama.cpp’s Vulkan build, or Ollama’s Vulkan backend. Speeds below assume Vulkan.',
+    vulkan: '<b>This card has no ROCm support</b> — AMD never added RDNA1 (RX 5000) and has dropped Vega and Polaris, so Ollama’s default AMD build and vLLM won’t use it. It still runs local AI through <b>Vulkan</b>: LM Studio (Vulkan runtime), llama.cpp’s Vulkan build, or Ollama’s Vulkan backend. Speeds below are already lowered for that.',
+    old: ' Cards this old are also slow at reading long prompts, so keep the context short.',
   };
 
   const els = {
@@ -102,6 +122,8 @@
     if (/Radeon.*(880M|890M|780M|760M)|Radeon\(TM\) Graphics/i.test(r)) return { kind: 'unified', name: 'Ryzen AI 300 laptop (iGPU)' };
     if (/Intel.*(Arc|Iris|UHD|Graphics)/i.test(r) && !/Arc (A|B)\d{3}/i.test(r)) return { kind: 'unified', name: 'Intel Core Ultra (iGPU)' };
     if (/nvidia/i.test(info.gpuVendor || '') || /nvidia/i.test(r)) return { kind: 'nvidia', name: 'RTX 4060' };
+    if (/Radeon.*\bHD [56]\d{3}/i.test(r)) return { kind: 'cpu', name: 'Desktop / laptop CPU' }; // pre-GCN: no Vulkan compute
+    if (/\bRX [45][4-9]0\b|\bR[579] \d{3}|\bHD [78]\d{3}/i.test(r)) return { kind: 'amd', name: 'Older Radeon (RX 400 / 500 / R9)' };
     if (/amd|ati/i.test(info.gpuVendor || '') || /amd|radeon/i.test(r)) return { kind: 'amd', name: 'RX 7600' };
     return { kind: 'cpu', name: 'Desktop / laptop CPU' };
   }
@@ -142,11 +164,11 @@
     const ctx = Math.min(hw.ctx, m.ctx || hw.ctx);
     const kv = m.kv * ctx * kvf / 1e9;
     const total = w + kv + OVER;
-    const B = budget(hw);
+    const B = budget(hw), eff = backend(hw).eff;
     const active = (m.a || m.t) * bpw / 8 + kv * 0.5; // bytes read per token: active weights + half-full cache
     let where, tps, gpuShare = 0;
     // Plus a fixed few milliseconds per token of kernel launches and sampling, which caps tiny/MoE models.
-    if (B.gpu > 0 && total <= B.gpu) { where = 'gpu'; gpuShare = 1; tps = 1 / (active / (0.65 * B.gpuBw) + 0.004); }
+    if (B.gpu > 0 && total <= B.gpu) { where = 'gpu'; gpuShare = 1; tps = 1 / (active / (eff * B.gpuBw) + 0.004); }
     else if (total <= B.gpu + B.cpu && B.cpu > 0) {
       where = B.gpu > 0 ? 'split' : 'cpu';
       // Cache and buffers stay on the GPU; weights fill what's left. MoE models keep their dense parts on the GPU,
@@ -155,7 +177,7 @@
       gpuShare = Math.min(1, room / w);
       const activeShare = m.a && B.gpu > 0 ? Math.min(1, gpuShare + (1 - gpuShare) * 0.45) : gpuShare;
       const g = active * activeShare, c = active - g;
-      tps = 1 / ((B.gpuBw ? g / (0.65 * B.gpuBw) : 0) + c / (0.55 * B.cpuBw) + 0.006);
+      tps = 1 / ((B.gpuBw ? g / (eff * B.gpuBw) : 0) + c / (0.55 * B.cpuBw) + 0.006);
     } else { where = 'no'; tps = 0; }
     return { q, bpw, w, kv, total, ctx, where, tps, gpuShare, budget: B };
   }
@@ -195,8 +217,10 @@
     const row = (r) => `<li><button type="button" class="lc-row" data-id="${esc(r.m.id)}" data-q="${r.p.q}"><i class="lsq" style="--c:${esc(r.m.c || '#888')}"></i><span class="lc-rn">${esc(r.m.n)}<small>${esc(r.m.lab)} · ${ps(r.m.t)}${r.m.a ? ` (${ps(r.m.a)} active)` : ''}${r.m.tools ? ' · tools' : ''}${r.m.vis ? ' · vision' : ''}</small></span><span class="lc-rq">${r.p.q}</span><span class="lc-rm">${gbs(r.p.total)}${r.p.where === 'split' ? `<small>${Math.round(r.p.gpuShare * 100)}% on GPU</small>` : r.p.where === 'cpu' ? '<small>CPU</small>' : ''}</span><span class="lc-rt">${tpsTxt(r.p.tps)}<small>tok/s</small></span></button></li>`;
     const LABEL = { smooth: ['Runs smoothly', '20+ tokens a second — faster than you read'], usable: ['Usable', '8–20 tokens a second'], slow: ['Slow but works', '3–8 tokens a second: fine for overnight jobs'], crawl: ['Technically runs', 'Under 3 tokens a second'] };
     const none = list.length - ok.length;
+    const be = backend(hw);
+    const note = BACKEND_NOTE[be.api] ? `<p class="lc-warn">${BACKEND_NOTE[be.api]}${be.old ? BACKEND_NOTE.old : ''}</p>` : '';
     els.out.innerHTML = `
-      <div class="lc-sum"><p><b>${ok.length}</b> of ${list.length} models run on this machine${B.gpu ? ` · <b>${gbs(B.gpu)}</b> usable ${B.unified ? 'unified memory for the GPU' : 'VRAM'}` : ''}${B.cpu ? ` + <b>${gbs(B.cpu)}</b> RAM for offload` : ''} · ${hw.ctx / 1024}K context</p></div>
+      <div class="lc-sum"><p><b>${ok.length}</b> of ${list.length} models run on this machine${B.gpu ? ` · <b>${gbs(B.gpu)}</b> usable ${B.unified ? 'unified memory for the GPU' : 'VRAM'}` : ''}${B.cpu ? ` + <b>${gbs(B.cpu)}</b> RAM for offload` : ''} · ${hw.ctx / 1024}K context</p>${note}</div>
       <div class="lc-picks">${pick('Strongest that runs', strongest, 'Highest-rated model you can run at a usable speed')}${pick('Best for coding agents', coder, 'Tool calling, 10+ tokens a second')}${pick('Fastest', fastest, 'For autocomplete and quick questions')}</div>
       ${Object.entries(groups).filter(([, a]) => a.length).map(([k, a]) => `<details class="lc-group lc-${k}"${k === 'smooth' || (k === 'usable' && !groups.smooth.length) ? ' open' : ''}><summary><b>${LABEL[k][0]}</b> <span class="lc-n">${a.length}</span><small>${LABEL[k][1]}</small></summary><ul class="lc-rows">${a.map(row).join('')}</ul></details>`).join('')}
       ${none ? `<p class="muted small">${none} more ${none === 1 ? 'model needs' : 'models need'} more memory than this machine has — see what an upgrade unlocks below.</p>` : ''}`;
@@ -226,8 +250,8 @@
       opts.push({ label, detail, n: gained.length, names });
     };
     if (['nvidia', 'amd', 'intel'].includes(hw.kind)) {
-      const v = UPS.vram.find(([gb]) => gb > hw.vram); if (v) add(`Upgrade to a ${v[0]} GB card`, `e.g. ${v[1]}`, { ...hw, vram: v[0], bw: Math.max(hw.bw, v[2]) });
-      const v2 = UPS.vram.filter(([gb]) => gb > hw.vram)[1]; if (v2) add(`Upgrade to a ${v2[0]} GB card`, `e.g. ${v2[1]}`, { ...hw, vram: v2[0], bw: Math.max(hw.bw, v2[2]) });
+      const v = UPS.vram.find(([gb]) => gb > hw.vram); if (v) add(`Upgrade to a ${v[0]} GB card`, `e.g. ${v[1]}`, { ...hw, gpu: v[1], vram: v[0], bw: Math.max(hw.bw, v[2]) });
+      const v2 = UPS.vram.filter(([gb]) => gb > hw.vram)[1]; if (v2) add(`Upgrade to a ${v2[0]} GB card`, `e.g. ${v2[1]}`, { ...hw, gpu: v2[1], vram: v2[0], bw: Math.max(hw.bw, v2[2]) });
     }
     if (hw.kind === 'cpu') { add('Add a 16 GB graphics card', 'e.g. RTX 5060 Ti 16GB or RX 9060 XT 16GB', { ...hw, kind: 'nvidia', vram: 16, bw: 448 }); add('Add a 24 GB graphics card', 'e.g. a used RTX 3090', { ...hw, kind: 'nvidia', vram: 24, bw: 936 }); }
     if (!unifiedKind(hw.kind)) {
@@ -292,14 +316,16 @@
     const ngl = p.where === 'cpu' ? ' -ngl 0' : ' -ngl 99';
     const tabs = [];
     const big = p.w > 48;
+    const be = backend(hw), vk = be.api === 'vulkan' || be.api === 'override';
+    const vkOllama = vk ? `# No ROCm on this card: run Ollama on Vulkan (OLLAMA_VULKAN=1 turns it on where it's still opt-in)${be.api === 'override' ? '\n# Linux alternative: HSA_OVERRIDE_GFX_VERSION=10.3.0 ollama serve  (ROCm, a bit faster)' : ''}\nOLLAMA_VULKAN=1 ` : '';
     if (m.g) {
       const ref = `${m.g}${tag ? `:${tag}` : ''}`;
-      tabs.push(['ollama', 'Ollama', `${big ? '# Large split model: llama.cpp handles multi-file GGUFs more reliably.\n' : ''}${kvf < 1 || ctx > 4096 ? `# set once, then restart Ollama\n${hw.kind === 'nvidia' || hw.kind === 'amd' || hw.kind === 'intel' || hw.kind === 'cpu' ? '' : ''}OLLAMA_CONTEXT_LENGTH=${ctx} OLLAMA_FLASH_ATTENTION=1${kvf < 1 ? ` OLLAMA_KV_CACHE_TYPE=${kvf < 0.5 ? 'q4_0' : 'q8_0'}` : ''} ollama serve\n\n` : ''}ollama run hf.co/${ref}\n\n# OpenAI-compatible API: http://localhost:11434/v1`]);
-      tabs.push(['llama', 'llama.cpp', `llama-server -hf ${ref} -c ${ctx}${ngl}${moe} -fa on${kvFlags} --jinja\n\n# Chat in the browser: http://localhost:8080\n# OpenAI-compatible API: http://localhost:8080/v1`]);
-      tabs.push(['lms', 'LM Studio', `# In the app: Discover → search “${m.g.split('/')[1]}” → pick ${tag || p.q}\n# or from the terminal:\nlms get ${m.g}\nlms load --context-length ${ctx}\nlms server start   # API: http://localhost:1234/v1`]);
+      tabs.push(['ollama', 'Ollama', `${big ? '# Large split model: llama.cpp handles multi-file GGUFs more reliably.\n' : ''}${kvf < 1 || ctx > 4096 || vk ? `# set once, then restart Ollama\n${vkOllama}OLLAMA_CONTEXT_LENGTH=${ctx} OLLAMA_FLASH_ATTENTION=1${kvf < 1 ? ` OLLAMA_KV_CACHE_TYPE=${kvf < 0.5 ? 'q4_0' : 'q8_0'}` : ''} ollama serve\n\n` : ''}ollama run hf.co/${ref}\n\n# OpenAI-compatible API: http://localhost:11434/v1`]);
+      tabs.push(['llama', 'llama.cpp', `${vk ? '# Download the Vulkan build (…-bin-win-vulkan-x64.zip / ubuntu-vulkan) from GitHub releases\n' : ''}llama-server -hf ${ref} -c ${ctx}${ngl}${moe} -fa on${kvFlags} --jinja\n\n# Chat in the browser: http://localhost:8080\n# OpenAI-compatible API: http://localhost:8080/v1`]);
+      tabs.push(['lms', 'LM Studio', `${vk ? '# Settings → Runtime: select the Vulkan llama.cpp runtime (ROCm won’t load on this card)\n' : ''}# In the app: Discover → search “${m.g.split('/')[1]}” → pick ${tag || p.q}\n# or from the terminal:\nlms get ${m.g}\nlms load --context-length ${ctx}\nlms server start   # API: http://localhost:1234/v1`]);
     }
     if (m.mlx && (hw.kind === 'apple' || !m.g)) tabs.push(['mlx', 'MLX (Mac)', `pip install -U mlx-lm\nmlx_lm.server --model ${m.mlx}\n\n# Quick test\nmlx_lm.generate --model ${m.mlx} --prompt "Write a haiku about GPUs"`]);
-    tabs.push(['vllm', 'vLLM (server)', `# Linux + NVIDIA/AMD, whole model in VRAM (BF16 needs ~${gbs(m.t * 2)}; FP8 ~${gbs(m.t)})\npip install -U vllm\nvllm serve ${m.hf} --max-model-len ${ctx}${m.t * 2 > (hw.vram || 0) && m.t * 2 > 80 ? ` --tensor-parallel-size ${Math.min(8, 2 ** Math.ceil(Math.log2(m.t * 2.2 / 80)))}` : ''}${m.tools ? ' --enable-auto-tool-choice --tool-call-parser hermes' : ''}`]);
+    if (!vk || !tabs.length) tabs.push(['vllm', 'vLLM (server)', `${vk ? '# vLLM needs CUDA or ROCm, so this card can’t run it — shown for reference\n' : ''}# Linux + NVIDIA/AMD, whole model in VRAM (BF16 needs ~${gbs(m.t * 2)}; FP8 ~${gbs(m.t)})\npip install -U vllm\nvllm serve ${m.hf} --max-model-len ${ctx}${m.t * 2 > (hw.vram || 0) && m.t * 2 > 80 ? ` --tensor-parallel-size ${Math.min(8, 2 ** Math.ceil(Math.log2(m.t * 2.2 / 80)))}` : ''}${m.tools ? ' --enable-auto-tool-choice --tool-call-parser hermes' : ''}`]);
     if (!tabs.find((t) => t[0] === tab)) tab = tabs[0][0];
     els.tabs.innerHTML = tabs.map(([k, l]) => `<button type="button" role="tab" aria-selected="${k === tab}" data-k="${k}">${l}</button>`).join('');
     const t = tabs.find((x) => x[0] === tab);
