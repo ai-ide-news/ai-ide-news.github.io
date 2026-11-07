@@ -73,6 +73,7 @@ export async function fetchModels(get) {
       reasoning: (m.supported_parameters || []).includes('reasoning'),
       tools: (m.supported_parameters || []).includes('tools'),
       openWeights: !!m.hugging_face_id,
+      hf: m.hugging_face_id || null,
       summary: clip((m.description || '').replace(/\s+/g, ' ').trim()),
       url: `https://openrouter.ai/${m.id}`,
     });

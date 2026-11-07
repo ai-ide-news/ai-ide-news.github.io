@@ -435,6 +435,37 @@
     render();
   }
 
+  // ── Will it run? (running at home) ─────────────────────
+  // Same formulas as the full calculator (src/local.js), with a fixed 16K context and generic attention.
+  if ($('#w-local')) {
+    const Q = [['Q3_K_M', 3.9], ['Q4_K_M', 4.85], ['Q5_K_M', 5.7], ['Q6_K', 6.6], ['Q8_0', 8.5]];
+    let t = 8, a = 0, vram = 16, bw = 896, ram = 32;
+    const qs = $('#lo-q'), bar = $('#lo-bar');
+    const gb = (n) => `${n >= 10 ? Math.round(n) : n.toFixed(1)} GB`;
+    const render = () => {
+      const [qn, bpw] = Q[qs.value];
+      $('#lo-qv').textContent = `${qn} · ${bpw} bits`;
+      const w = t * bpw / 8, kv = 131072 * (t / 8) ** 0.42 * 16384 / 1e9, total = w + kv + 0.8;
+      const gpu = vram ? vram - 0.6 : 0, cpu = Math.max(0, ram - 6), mac = !ram;
+      const active = (a || t) * bpw / 8 + kv / 2;
+      let where, tps;
+      if (gpu && total <= gpu) { where = mac ? 'Fits in unified memory' : 'Fits entirely in VRAM'; tps = 1 / (active / (0.65 * bw) + 0.004); }
+      else if (total <= gpu + cpu) {
+        const share = gpu ? Math.max(0, gpu - kv - 0.8) / w : 0, s = a && gpu ? Math.min(1, share + (1 - share) * 0.45) : share;
+        where = gpu ? `${Math.round(share * 100)}% on the GPU, the rest in system RAM` : 'Runs on the CPU from system RAM';
+        tps = 1 / ((gpu ? active * s / (0.65 * bw) : 0) + active * (1 - s) / (0.55 * 80) + 0.006);
+      } else { where = `Needs ${gb(total)} — doesn't fit`; tps = 0; }
+      const cap = Math.max(total, gpu + cpu) * 1.05, pct = (v) => `${(v / cap * 100).toFixed(1)}%`;
+      bar.innerHTML = `<i class="w" style="width:${pct(w)}"></i><i class="k" style="width:${pct(kv)}"></i><i class="o" style="width:${pct(0.8)}"></i>${gpu ? `<s class="lim" style="left:${pct(gpu)}"><span>${mac ? 'GPU limit' : 'VRAM'}</span></s>` : ''}${cpu ? `<s class="lim lim2" style="left:${pct(gpu + cpu)}"><span>+ RAM</span></s>` : ''}`;
+      $('#lo-out').replaceChildren(el('b', { textContent: tps ? `~${tps >= 100 ? Math.round(tps / 10) * 10 : Math.round(tps)} tokens/s` : 'Won’t run' }), ` · ${gb(total)} needed`);
+      $('#lo-why').textContent = `${where}. ${tps >= 20 ? 'Faster than you can read.' : tps >= 8 ? 'Usable for chat and coding.' : tps ? 'Slow — fine for batch jobs.' : 'Try a lower quantization or a smaller model.'}${a ? ` Only ${a}B of its ${t}B parameters are read per token.` : ''}`;
+    };
+    qs.addEventListener('input', render);
+    choice($('#lo-model'), (b) => { t = +b.dataset.t; a = +b.dataset.a; render(); });
+    choice($('#lo-hw'), (b) => { vram = +b.dataset.v; bw = +b.dataset.b; ram = +b.dataset.r; render(); });
+    render();
+  }
+
   // ── Generic tab switchers (open/closed list, benchmarks) ─
   choice($('#wt-pick'), (b) => $$('#w-weights .lmlist').forEach((u) => { u.hidden = u.dataset.k !== b.dataset.k; }));
   choice($('#bm-pick'), (b) => $$('#w-bench .lbench').forEach((u) => { u.hidden = u.dataset.i !== b.dataset.i; }));
@@ -517,12 +548,14 @@ console.log(\`Loaded \${people.length} rows\`);
   const canSpeak = !!synth && typeof SpeechSynthesisUtterance !== 'undefined';
   if (!canSpeak) secs.forEach((s) => { if (!s.dataset.audio) { const b = $('.lplay', s); if (b) { b.disabled = true; b.title = 'Read-aloud is not supported in this browser'; } } });
 
-  // Browser voices for chapters without a recording; natural / neural voices first.
+  // Browser voices for chapters without a recording, in the page's language; natural / neural voices first.
+  const pageLang = ($('.lbody')?.closest('[lang]')?.lang || document.documentElement.lang || 'en').split('-')[0];
+  const LOCALE = { en: 'en-US', es: 'es-ES', zh: 'zh-CN', hi: 'hi-IN', ar: 'ar-SA' };
   const natural = /natural|neural|online|premium|enhanced|google/i;
   let voices = [];
   const loadVoices = () => {
     if (!canSpeak) return;
-    voices = synth.getVoices().filter((v) => /^en(-|_|$)/i.test(v.lang)).sort((a, b) => (natural.test(b.name) - natural.test(a.name)) || a.lang.localeCompare(b.lang));
+    voices = synth.getVoices().filter((v) => v.lang.toLowerCase().replace('_', '-').split('-')[0] === pageLang).sort((a, b) => (natural.test(b.name) - natural.test(a.name)) || a.lang.localeCompare(b.lang));
     if (!voices.length) return;
     const saved = load('lp-voice');
     voiceSel.replaceChildren(...voices.map((v) => new Option(`${v.name.replace(/^Microsoft /, '')} (${v.lang})`, v.name, false, v.name === saved)));
@@ -634,6 +667,12 @@ console.log(\`Loaded \${people.length} rows\`);
       ['rounded away', () => bits(2)],
     ],
     weights: [['Some labs keep', () => nth('#wt-pick', 1)], ['Others publish', () => nth('#wt-pick', 0)], ['Closed models have often', () => nth('#wt-pick', 1)], ['Open models give you choice', () => nth('#wt-pick', 0)]],
+    local: [
+      ['Open weight models can run', () => { nth('#lo-model', 0); nth('#lo-hw', 1); }], ['Memory decides which', () => nth('#lo-hw', 0)],
+      ['eight billion parameter model', () => { nth('#lo-model', 0); glide('#lo-q', 1, 300); }], ['seventy billion', () => { nth('#lo-model', 2); nth('#lo-hw', 2); }],
+      ['Memory bandwidth decides', () => nth('#lo-hw', 3)], ['mixture of experts', () => { nth('#lo-model', 3); nth('#lo-hw', 4); }],
+      ['open the calculator', () => pulse($('#w-local .btn'))],
+    ],
     multimodal: [['Under the hood', () => glide('#im-s', 256, 500)], ['cut into small patches', () => glide('#im-s', 2048, 2600)], ['a page of text', () => glide('#im-s', 1024, 800)]],
     speed: [
       ['Latency, or time', () => nth('#sd-pre', 0)], ['fifty tokens a second', () => speedRun(0.5, 50)], ['five hundred tokens a second', () => speedRun(0.5, 500)],
@@ -742,14 +781,14 @@ console.log(\`Loaded \${people.length} rows\`);
     if (e.closest('.lhead') && e.tagName !== 'H2') return false;
     return true;
   };
-  const sentences = (text) => text.split(/(?<=[.!?])\s+/).map((t) => t.trim()).filter(Boolean);
+  const sentences = (text) => text.split(/(?<=[.!?।؟])\s+|(?<=[。！？])/).map((t) => t.trim()).filter(Boolean);
   const speakNext = () => {
     if (!running) return;
     if (qi >= queue.length) return ended();
     const item = queue[qi], u = new SpeechSynthesisUtterance(item.text);
     u.rate = Number(rateSel.value);
     const v = voices.find((x) => x.name === voiceSel.value);
-    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-US';
+    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = LOCALE[pageLang] || pageLang;
     u.onstart = () => { if (current === u && player.dataset.state === 'loading') setState('playing'); };
     u.onend = () => { if (current === u) { qi++; speakNext(); } };
     u.onerror = (e) => { if (current === u && e.error !== 'interrupted' && e.error !== 'canceled') { qi++; speakNext(); } };

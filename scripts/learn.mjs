@@ -8,6 +8,16 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { narration } from './learn-narration.mjs';
+import { DEEP } from './learn-deep.mjs';
+import { TRANSLATIONS } from './learn-i18n/index.mjs';
+
+// The guide in the world's five most-spoken languages. English is the source; the others translate the
+// prose and narration of every chapter (demos, live-data examples and the "Go deeper" notes stay English).
+export const LEARN_LANGS = [['en', 'English'], ...Object.entries(TRANSLATIONS).map(([k, t]) => [k, t.name])];
+export const learnPath = (lang) => (lang === 'en' ? 'learn/' : `learn/${lang}/`);
+const strip = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+// What each translated chapter's recording says: its title, then its paragraphs.
+export const narrationFor = (lang) => (lang === 'en' ? narration : Object.fromEntries(Object.entries(TRANSLATIONS[lang].ch).map(([id, c]) => [id, [c.t, ...c.p.map(strip)].join('\n')])));
 
 const fmt = (n) => n.toLocaleString('en-US');
 const money = (n) => `$${n >= 100 ? n.toFixed(0) : n >= 0.1 ? n.toFixed(2) : n >= 0.01 ? n.toFixed(3) : n.toFixed(4)}`;
@@ -18,18 +28,19 @@ const saidParams = (b) => (b >= 1000 ? `${+(b / 1000).toFixed(2)} trillion` : `$
 const play = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M7 4.5v15l12-7.5z"/></svg>';
 
 // Recordings whose text still matches the narration script (manifest maps id → { hash, seconds }).
-const AUDIO_DIR = new URL('../static/audio/learn/', import.meta.url);
+const AUDIO_ROOT = new URL('../static/audio/learn/', import.meta.url);
 export const narrationHash = (text) => createHash('sha1').update(text).digest('hex').slice(0, 12);
-function recordings() {
+function recordings(lang = 'en') {
+  const AUDIO_DIR = lang === 'en' ? AUDIO_ROOT : new URL(`${lang}/`, AUDIO_ROOT);
   let manifest = {};
   try { manifest = JSON.parse(readFileSync(new URL('manifest.json', AUDIO_DIR), 'utf8')); } catch { /* none yet */ }
   const ok = {}, stale = [];
-  for (const [id, text] of Object.entries(narration)) {
+  for (const [id, text] of Object.entries(narrationFor(lang))) {
     const entry = manifest[id];
     if (!entry || !existsSync(new URL(`${id}.mp3`, AUDIO_DIR))) continue;
     if (entry.hash === narrationHash(text)) ok[id] = entry; else stale.push(id);
   }
-  if (stale.length) console.warn(`learn: narration changed since recording for ${stale.join(', ')}; using browser speech there`);
+  if (stale.length) console.warn(`learn${lang === 'en' ? '' : ` (${lang})`}: narration changed since recording for ${stale.join(', ')}; using browser speech there`);
   return ok;
 }
 
@@ -55,14 +66,16 @@ export const LEARN_SECTIONS = [
   ['what', 'What is AI?'], ['how', 'How a model answers'], ['tokens', 'Tokens'], ['context', 'Context window'],
   ['prompts', 'System prompts'], ['cache', 'Cache hits'], ['reasoning', 'Reasoning tokens'], ['tools', 'Tools & agents'],
   ['mcp', 'MCP'], ['utcp', 'UTCP'], ['embeddings', 'Embeddings & RAG'], ['hallucinations', 'Hallucinations'], ['training', 'How models are trained'],
-  ['moe', 'Mixture of experts'], ['quant', 'Quantization'], ['weights', 'Open vs. closed weights'], ['multimodal', 'Multimodal'],
+  ['moe', 'Mixture of experts'], ['quant', 'Quantization'], ['weights', 'Open vs. closed weights'], ['local', 'Running AI at home'], ['multimodal', 'Multimodal'],
   ['speed', 'Speed'], ['benchmarks', 'Benchmarks'],
 ];
 
-export function learnBody({ models, root, esc, modelPath, generatedAt, bench }) {
+export function learnBody({ models, root, esc, modelPath, generatedAt, bench, local = {}, lang = 'en' }) {
+  const T = lang === 'en' ? null : TRANSLATIONS[lang];
   const link = (m) => `<a href="${root}${modelPath(m)}">${esc(m.name)}</a>`;
   const prefer = (names, ok) => names.map((n) => models.find((m) => m.name === n)).find((m) => m && ok(m)) || models.find(ok);
-  const audio = recordings();
+  const audio = recordings(lang);
+  const audioDir = `${root}audio/learn/${lang === 'en' ? '' : `${lang}/`}`;
 
   // Tokens & prices
   const tokM = prefer(['Claude Sonnet 5.5', 'GPT-6.1 Sol', 'Gemini 4 Argon'], (m) => m.input > 0 && m.output > 0);
@@ -99,6 +112,11 @@ export function learnBody({ models, root, esc, modelPath, generatedAt, bench }) 
   const openLabs = Object.entries(open.reduce((a, m) => ((a[m.lab] = (a[m.lab] || 0) + 1), a), {})).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const hostCount = (m) => new Set((m.providers || []).map((p) => p.name)).size;
   const mostHosted = [...open].sort((a, b) => hostCount(b) - hostCount(a))[0];
+  // Running locally: how many open models fit common memory sizes at 4-bit with an 8K context
+  const sized = models.filter((m) => m.openWeights && local[m.id]?.total);
+  const needQ4 = (m) => { const l = local[m.id]; return l.total * 4.85 / 8 + ((l.kv || 131072 * (l.total / 8) ** 0.42) * 8192) / 1e9 + 0.8; };
+  const fits = (gb) => sized.filter((m) => needQ4(m) <= gb).length;
+  const bigLocal = [...sized].filter((m) => needQ4(m) <= 23).sort((a, b) => local[b.id].total - local[a.id].total)[0];
   // Multimodal
   const MODAL = { text: 'Text', image: 'Images', file: 'Files & PDFs', audio: 'Audio', video: 'Video' };
   const modal = Object.keys(MODAL).map((k) => [k, models.filter((m) => (m.modalities || ['text']).includes(k)).length]);
@@ -114,21 +132,45 @@ export function learnBody({ models, root, esc, modelPath, generatedAt, bench }) 
   const num = (id) => sections.findIndex((s) => s[0] === id) + 1;
   const title = (id) => sections.find((s) => s[0] === id)[1];
   const head = (id, t, em) => `<div class="lhead"><p class="eyebrow">${String(num(id)).padStart(2, '0')} · ${esc(title(id))}</p><h2>${t} <em>${em}</em></h2><button type="button" class="btn ghost lplay" data-play="${id}" aria-label="Listen to “${esc(title(id))}”">${play}<span>Listen</span>${audio[id] ? `<small>${Math.max(1, Math.round(audio[id].seconds / 60))} min</small>` : ''}</button></div>`;
-  const sec = (id, body) => `<section class="lsec" id="${id}" data-title="${esc(title(id))}"${audio[id] ? ` data-audio="${root}audio/learn/${id}.mp3"` : ''}>\n${body}\n</section>`;
+  // Every chapter ends with its collapsed "Go deeper" notes. English chapters are kept by id so the
+  // translated guide can reuse their demos.
+  const S = {};
+  const deep = (id) => DEEP[id] ? `<details class="ldeep no-say"><summary><b>${T ? esc(T.ui.deep) : 'Go deeper'}</b><span>${esc(DEEP[id].t)}${T ? ` · ${esc(T.ui.deepNote)}` : ''}</span></summary><div class="ldeep-in" lang="en" dir="ltr">${DEEP[id].html.replaceAll('{root}', root)}</div></details>` : '';
+  const sec = (id, body) => (S[id] = `<section class="lsec" id="${id}" data-title="${esc(title(id))}"${audio[id] ? ` data-audio="${audioDir}${id}.mp3"` : ''}>\n${body}\n  ${deep(id)}\n</section>`);
   // Interactive demo card. Skipped by the read-aloud fallback (the recordings describe them instead).
   const demo = (id, label, inner, cap = '') => `<figure class="lw no-say" id="w-${id}"><div class="lw-top"><span class="lw-tag">Try it</span><span class="lw-label">${label}</span></div><div class="lw-body">${inner}</div>${cap ? `<figcaption class="lw-cap">${cap}</figcaption>` : ''}</figure>`;
   const minutes = Math.round(Object.values(audio).reduce((a, r) => a + r.seconds, 0) / 60) || Math.round(sections.length * 1.2);
   const recorded = Object.keys(audio).length;
 
-  return `
+  const player = `
+<div class="lplayer no-say" id="lplayer" data-captions="${audioDir}captions.json" hidden>
+  <div class="lp-cap" id="lp-cap" aria-hidden="true"></div>
+  <div class="lp-prog" aria-hidden="true"><i id="lp-bar"></i></div>
+  <div class="wrap lplayer-in">
+    <button type="button" class="icon-btn" id="lp-prev" aria-label="Previous chapter"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+    <button type="button" class="icon-btn lp-main" id="lp-toggle" aria-label="Pause"><svg class="i-pause" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg><svg class="i-play" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M7 4.5v15l12-7.5z"/></svg><span class="lp-spin" aria-hidden="true"></span></button>
+    <button type="button" class="icon-btn" id="lp-next" aria-label="Next chapter"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+    <button type="button" class="icon-btn" id="lp-stop" aria-label="Stop"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 6h12v12H6z"/></svg></button>
+    <div class="lp-now"><span class="eyebrow">Now playing</span><strong id="lp-title">—</strong></div>
+    <span class="lp-time" id="lp-time"></span>
+    <button type="button" class="icon-btn lp-cc" id="lp-cc" aria-pressed="true" aria-label="Captions" title="Captions">CC</button>
+    <label class="lp-opt"><span class="eyebrow">Speed</span><select id="lp-rate">${[0.8, 1, 1.15, 1.3, 1.5, 1.75].map((r) => `<option value="${r}"${r === 1 ? ' selected' : ''}>${r}×</option>`).join('')}</select></label>
+    <label class="lp-opt lp-voice" hidden><span class="eyebrow">Voice</span><select id="lp-voice"><option>Loading voices…</option></select></label>
+  </div>
+</div>
+<script src="${root}assets/learn.js?v=${Date.now()}" defer></script>`;
+  const langs = `<nav class="llangs no-say" aria-label="Language">${LEARN_LANGS.map(([k, n]) => `<a href="${root}${learnPath(k)}" hreflang="${k}" lang="${k}"${k === lang ? ' aria-current="page"' : ''}>${esc(n)}</a>`).join('')}</nav>`;
+
+  const en = `
 <section class="wrap hero hero-sm">
   <p class="eyebrow">Learn</p>
   <h1>How AI <em>actually</em> works</h1>
   <p class="lede">A plain-language guide to the words you see on every model page — tokens, context windows, cache hits, agents, MCP, mixture of experts — with a hands-on demo in every chapter and real examples from the ${fmt(models.length)} models we track.</p>
   <div class="lhero-actions">
     <button type="button" class="btn lplay" data-play="all">${play}<span>Listen to the whole guide</span></button>
-    <span class="muted small">${sections.length} chapters · about ${minutes} minutes${recorded ? ' · narrated audio' : " · uses your device's built-in voices"}</span>
+    <span class="muted small">${sections.length} chapters · about ${minutes} minutes${recorded ? ' · narrated audio' : " · uses your device's built-in voices"} · open “Go deeper” in any chapter for the technical version</span>
   </div>
+  ${langs}
 </section>
 
 <div class="wrap learn">
@@ -350,6 +392,19 @@ ${sec('weights', `  ${head('weights', 'Open vs. closed', 'weights')}
     ${[['open', open], ['closed', closed]].map(([k, arr], i) => `<ul class="lmlist" data-k="${k}"${i ? ' hidden' : ''}>${arr.slice(0, 6).map((m) => `<li><span class="lsq" style="--c:${esc(m.color || '#888')}"></span><a href="${root}${modelPath(m)}">${esc(m.name)}</a><small>${esc(m.lab)}${k === 'open' ? ` · ${hostCount(m)} host${hostCount(m) === 1 ? '' : 's'}` : ''}</small><b>${m.input > 0 ? per(m.input) : 'free'}</b></li>`).join('')}</ul>`).join('')}`, 'Price is per million input tokens.')}
   <div class="lcallout"><p class="eyebrow">Real example</p><p>The labs publishing the most open models we track are ${openLabs.map(([l, c]) => `${esc(l)} (${c})`).join(', ')}. ${mostHosted ? `${link(mostHosted)} is offered by ${hostCount(mostHosted)} different hosts — the kind of competition a closed model can't have.` : ''}</p></div>`)}
 
+${sized.length ? sec('local', `  ${head('local', 'Running AI', 'at home')}
+  <p>Open-weight models can run on your own computer. A program called a <strong>runtime</strong> — Ollama, LM Studio or llama.cpp — loads the model's weights into memory, ideally your graphics card's memory (VRAM), and generates text exactly the way a cloud provider would. Nothing leaves your machine, there's no bill per token, and it works offline.</p>
+  <p>Two numbers decide what you can run. <strong>Memory</strong> decides which models fit: roughly the parameter count × bits per weight ÷ 8, plus room for the context. An 8-billion-parameter model at 4 bits needs about 5 GB; a 70B one needs more than 40 GB. <strong>Memory bandwidth</strong> decides speed, because every new token means reading all the active weights again — which is why mixture-of-experts models, with few active parameters, are so popular at home.</p>
+  ${demo('local', 'Will it run?', `
+    <div class="lw-seg lw-seg-wrap" role="radiogroup" aria-label="Model" id="lo-model">${[['8B dense', 8, 0], ['32B dense', 32, 0], ['70B dense', 70, 0], ['30B MoE · 3B active', 30, 3], ['120B MoE · 12B active', 120, 12]].map(([l, t, a], i) => `<button type="button" role="radio" aria-checked="${i === 0}" data-t="${t}" data-a="${a}">${l}</button>`).join('')}</div>
+    <div class="lw-seg lw-seg-wrap" role="radiogroup" aria-label="Computer" id="lo-hw">${[['8 GB gaming GPU', 8, 272, 32], ['16 GB GPU', 16, 896, 32], ['24 GB GPU', 24, 1008, 64], ['Mac, 64 GB', 48, 546, 0], ['No GPU, 32 GB RAM', 0, 80, 32]].map(([l, v, b, r], i) => `<button type="button" role="radio" aria-checked="${i === 1}" data-v="${v}" data-b="${b}" data-r="${r}">${l}</button>`).join('')}</div>
+    <label class="lw-slider"><span>Quantization <b id="lo-qv">Q4_K_M · 4.85 bits</b></span><input type="range" id="lo-q" min="0" max="4" step="1" value="1"></label>
+    <div class="lc-bar" id="lo-bar" aria-hidden="true"></div>
+    <p class="lw-big" id="lo-out"></p>
+    <p class="lw-read" id="lo-why"></p>
+    <p><a class="btn" href="${root}local/">Check your own computer →</a></p>`, 'Simplified: weights plus a 16K-token context. The full calculator uses each model’s real size and attention shape.')}
+  <div class="lcallout"><p class="eyebrow">Real example</p><p>Of the ${fmt(sized.length)} open-weight models we track with a published size, <strong>${fmt(fits(7.5))}</strong> fit an 8 GB graphics card at 4-bit, <strong>${fmt(fits(23))}</strong> fit a 24 GB card, and <strong>${fmt(fits(115))}</strong> fit a 128 GB unified-memory machine.${bigLocal ? ` The largest that fits in 24 GB is ${link(bigLocal)}, at ${params(local[bigLocal.id].total)} parameters.` : ''} The <a href="${root}local/">Run AI at home</a> page checks all of them against your own hardware and gives the setup commands.</p></div>`) : ''}
+
 ${sec('multimodal', `  ${head('multimodal', 'Multimodal', 'models')}
   <p>Early language models only handled text. <strong>Multimodal</strong> models also take in images, PDFs, audio and even video. For coding that's surprisingly useful: paste a screenshot of a broken layout or a design mock-up and ask the model to build it, or let an agent screenshot the app it's working on to check its own work.</p>
   <p>Under the hood, an image becomes tokens too. It's cut into small patches and each patch becomes a token or so — so a big image can use as much context as a page of text.</p>
@@ -386,20 +441,44 @@ ${sec('benchmarks', `  ${head('benchmarks', 'Reading', 'benchmarks')}
 </article>
 </div>
 
-<div class="lplayer no-say" id="lplayer" data-captions="${root}audio/learn/captions.json" hidden>
-  <div class="lp-cap" id="lp-cap" aria-hidden="true"></div>
-  <div class="lp-prog" aria-hidden="true"><i id="lp-bar"></i></div>
-  <div class="wrap lplayer-in">
-    <button type="button" class="icon-btn" id="lp-prev" aria-label="Previous chapter"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
-    <button type="button" class="icon-btn lp-main" id="lp-toggle" aria-label="Pause"><svg class="i-pause" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg><svg class="i-play" viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M7 4.5v15l12-7.5z"/></svg><span class="lp-spin" aria-hidden="true"></span></button>
-    <button type="button" class="icon-btn" id="lp-next" aria-label="Next chapter"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
-    <button type="button" class="icon-btn" id="lp-stop" aria-label="Stop"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 6h12v12H6z"/></svg></button>
-    <div class="lp-now"><span class="eyebrow">Now playing</span><strong id="lp-title">—</strong></div>
-    <span class="lp-time" id="lp-time"></span>
-    <button type="button" class="icon-btn lp-cc" id="lp-cc" aria-pressed="true" aria-label="Captions" title="Captions">CC</button>
-    <label class="lp-opt"><span class="eyebrow">Speed</span><select id="lp-rate">${[0.8, 1, 1.15, 1.3, 1.5, 1.75].map((r) => `<option value="${r}"${r === 1 ? ' selected' : ''}>${r}×</option>`).join('')}</select></label>
-    <label class="lp-opt lp-voice" hidden><span class="eyebrow">Voice</span><select id="lp-voice"><option>Loading voices…</option></select></label>
+${player}`;
+  if (!T) return en;
+  return translated();
+
+  // The same chapters in another language: translated heading and prose, the English demo, Go deeper notes.
+  function translated() {
+    const u = T.ui;
+    const figs = (id) => (S[id]?.match(/<figure class="lw no-say"[\s\S]*?<\/figure>/g) || []).join('\n');
+    const tsecs = sections.filter(([id]) => S[id] && T.ch[id]);
+    const tnum = (id) => String(tsecs.findIndex(([x]) => x === id) + 1).padStart(2, '0');
+    const tmin = Math.round(tsecs.reduce((a, [id]) => a + (audio[id]?.seconds || 0), 0) / 60) || Math.round(tsecs.length * 1.2);
+    const theads = (id) => { const c = T.ch[id]; return `<div class="lhead"><p class="eyebrow">${tnum(id)} · ${esc(c.t)}</p><h2>${esc(c.h[0])} <em>${esc(c.h[1])}</em></h2><button type="button" class="btn ghost lplay" data-play="${id}" aria-label="${esc(u.listen)}: ${esc(c.t)}">${play}<span>${esc(u.listen)}</span>${audio[id] ? `<small>${Math.max(1, Math.round(audio[id].seconds / 60))} ${esc(u.min)}</small>` : ''}</button></div>`; };
+    const tsec = (id) => { const c = T.ch[id]; return `<section class="lsec" id="${id}" data-title="${esc(c.t)}"${audio[id] ? ` data-audio="${audioDir}${id}.mp3"` : ''}>\n  ${theads(id)}\n  ${c.p.map((x) => `<p>${x.replaceAll('{root}', root)}</p>`).join('\n  ')}\n  ${figs(id)}\n  ${id === 'local' ? `<p><a class="btn" href="${root}local/">${esc(u.localCta)}</a></p>` : ''}\n  ${deep(id)}\n</section>`; };
+    return `
+<div lang="${lang}" dir="${T.dir || 'ltr'}">
+<section class="wrap hero hero-sm">
+  <p class="eyebrow">${esc(u.eyebrow)}</p>
+  <h1>${esc(u.h1[0])} <em>${esc(u.h1[1])}</em> ${esc(u.h1[2])}</h1>
+  <p class="lede">${esc(u.lede(fmt(models.length)))}</p>
+  <div class="lhero-actions">
+    <button type="button" class="btn lplay" data-play="all">${play}<span>${esc(u.listenAll)}</span></button>
+    <span class="muted small">${esc(u.meta(tsecs.length, tmin))}</span>
   </div>
+  <p class="muted small">${esc(u.demoNote)}</p>
+  ${langs}
+</section>
+
+<div class="wrap learn">
+<nav class="ltoc no-say" aria-label="${esc(u.toc)}">
+  <p class="eyebrow">${esc(u.toc)}</p>
+  <ol>${tsecs.map(([id]) => `<li><a href="#${id}">${esc(T.ch[id].t)}</a></li>`).join('')}</ol>
+</nav>
+<article class="lbody">
+${tsecs.map(([id]) => tsec(id)).join('\n\n')}
+<p class="muted small lsrc no-say">${esc(u.source)}</p>
+</article>
 </div>
-<script src="${root}assets/learn.js?v=${Date.now()}" defer></script>`;
+</div>
+${player}`;
+  }
 }

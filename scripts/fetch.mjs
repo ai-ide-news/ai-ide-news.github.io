@@ -15,6 +15,7 @@ import { fetchOpenCode } from './opencode.mjs';
 import { fetchEcosystem } from './ecosystem.mjs';
 import { fetchResets } from './resets.mjs';
 import { fetchDetails } from './eco-details.mjs';
+import { fetchLocal } from './local-models.mjs';
 
 const SNAPSHOT = new URL('../data/snapshot.json', import.meta.url);
 const UA = 'Mozilla/5.0 (compatible; AI-IDE-News/1.0; +https://aiticker.site)';
@@ -466,6 +467,16 @@ async function main() {
     models = models.map((m) => (prevProviders[m.id] ? { ...m, providers: prevProviders[m.id] } : m));
   }
 
+  // Hardware needs of each open-weight model (Hugging Face sizes + configs), for the Run-at-home page.
+  // Incremental: only newly listed open models are looked up, on full runs.
+  let local = prev.local || {};
+  if (!QUICK || !prev.local) {
+    try {
+      local = await fetchLocal(get, models, prev.local || {});
+      report.push(`✓ Local hardware needs   ${Object.values(local).filter((r) => r.total).length} of ${Object.keys(local).length} open models sized`);
+    } catch (e) { report.push(`⚠ Local hardware needs: ${e.message} (kept previous)`); }
+  }
+
   // Benchmark scores (Epoch AI, ~2 MB zip): full runs only, or when the last copy is over a day old.
   let benchmarks = prev.benchmarks || null;
   if (!QUICK || !benchmarks || NOW - Date.parse(benchmarks.fetchedAt) > DAY) {
@@ -554,7 +565,7 @@ async function main() {
   if (QUICK && !changed) { console.log(report.sort().join('\n')); return; } // nothing new: leave the snapshot untouched
 
   await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), providersAt: providersFresh, tools, discovered, discussions, news: await newsImages(news, prev.news), models, benchmarks, aa, opencode, ecosystem, resets, x }, null, 1));
+  await writeFile(SNAPSHOT, JSON.stringify({ generatedAt: new Date(NOW).toISOString(), providersAt: providersFresh, tools, discovered, discussions, news: await newsImages(news, prev.news), models, local, benchmarks, aa, opencode, ecosystem, resets, x }, null, 1));
   console.log(report.sort().join('\n'));
 }
 

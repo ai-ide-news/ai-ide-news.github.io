@@ -1,5 +1,6 @@
 // Spoken narration for the Learn page, one script per section. Recorded with Magnific text-to-speech
-// (ElevenLabs v3, voice "Alistair Emmett Sinclair") into static/audio/learn/<id>.mp3.
+// (ElevenLabs v3) into static/audio/learn/<id>.mp3, saved in the Magnific project "Abdallah". Translated chapters
+// (scripts/learn-i18n/) are recorded the same way into static/audio/learn/<lang>/.
 // Kept free of live numbers so the recordings stay true as prices change. When you edit a script,
 // re-record it: static/audio/learn/manifest.json stores a hash of the text each file was made from,
 // and the build falls back to the browser's own voice for any section whose text no longer matches.
@@ -70,6 +71,11 @@ That's why the same open model can cost different amounts from different hosts: 
   weights: `Open and closed weights. A model's weights are its learned parameters: the file that is the model. Some labs keep their weights private. You can only use those models through the lab's own app or paid service. These are closed models.
 Others publish their weights, so anyone can download them, run them on their own hardware, fine-tune them, or sell access to them. These are open weight models.
 Closed models have often led on raw ability. Open models give you choice. You can pick from many hosts competing on price and speed, keep your data on your own machines, and keep using a model even after its maker moves on. The gap between the two has narrowed a lot. Every model page on this site shows which kind it is.`,
+
+  local: `Running AI at home. Open weight models can run on your own computer. A program called a runtime, like Ollama, LM Studio or llama dot c p p, loads the model's weights into memory, ideally your graphics card's memory, and generates text exactly the way a cloud provider would. Nothing leaves your machine, there's no bill per token, and it works offline.
+Two numbers decide what you can run. Memory decides which models fit. A model needs roughly its parameter count, times the bits per weight, divided by eight, plus room for the context. So an eight billion parameter model at four bits needs about five gigabytes, and a seventy billion one needs more than forty.
+Memory bandwidth decides the speed, because every new token means reading all the active weights again. That's why mixture of experts models are so popular at home: they need plenty of memory, but they run as fast as a small model.
+Try the demo on this page. Then open the calculator: it reads your hardware, and tells you which models will run, how fast, and exactly how to set them up.`,
 
   multimodal: `Multimodal models. Early language models only handled text. Multimodal models can take in other kinds of input as well: images, PDFs and other files, audio, and even video.
 For coding, that's surprisingly useful. You can paste a screenshot of a broken layout, a photo of a whiteboard sketch, or a design mock-up, and ask the model to build it. Agents can take screenshots of the app they're working on, and check their own work visually.
