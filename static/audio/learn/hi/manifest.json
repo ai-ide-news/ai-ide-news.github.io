@@ -1,0 +1,142 @@
+{
+  "what": {
+    "hash": "0493e2bca7f5",
+    "seconds": 58,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "how": {
+    "hash": "692dd72d69c1",
+    "seconds": 59,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "tokens": {
+    "hash": "85c6a0886209",
+    "seconds": 51,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "context": {
+    "hash": "3967137ddfe1",
+    "seconds": 47,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "prompts": {
+    "hash": "831e47c317a8",
+    "seconds": 50,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "cache": {
+    "hash": "ead6a30140fb",
+    "seconds": 55,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "reasoning": {
+    "hash": "c4b3c3804576",
+    "seconds": 37,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "tools": {
+    "hash": "9df980a7873b",
+    "seconds": 45,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "mcp": {
+    "hash": "5e227ec3fc1d",
+    "seconds": 41,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "utcp": {
+    "hash": "34149134c1b2",
+    "seconds": 66,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "embeddings": {
+    "hash": "ebf546f7242a",
+    "seconds": 48,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "hallucinations": {
+    "hash": "9383b7a8a7c4",
+    "seconds": 44,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "training": {
+    "hash": "03c42318e4e2",
+    "seconds": 43,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "moe": {
+    "hash": "0b2f296b6d3b",
+    "seconds": 39,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "quant": {
+    "hash": "cb7ee4e001a6",
+    "seconds": 30,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "weights": {
+    "hash": "309779fe2083",
+    "seconds": 40,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "local": {
+    "hash": "3dd587d901ec",
+    "seconds": 69,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "multimodal": {
+    "hash": "71e53f400eae",
+    "seconds": 38,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "speed": {
+    "hash": "71fe50503966",
+    "seconds": 36,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  },
+  "benchmarks": {
+    "hash": "42a41b30b945",
+    "seconds": 40,
+    "voice": "Rohit Bhardwaj",
+    "model": "eleven_v3",
+    "via": "Magnific"
+  }
+}

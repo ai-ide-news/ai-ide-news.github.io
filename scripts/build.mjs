@@ -13,7 +13,9 @@ import { TOOL_LAUNCH, COMPANIES, fmtLaunch } from './launches.mjs';
 import { BENCHMARKS, BENCH_SETS, BENCH_SOURCE, benchKey } from './benchmarks.mjs';
 import { AA_SOURCE } from './aa.mjs';
 import { OPENCODE_SOURCE } from './opencode.mjs';
-import { learnBody, LEARN_SECTIONS } from './learn.mjs';
+import { learnBody, LEARN_SECTIONS, LEARN_LANGS, learnPath } from './learn.mjs';
+import { TRANSLATIONS } from './learn-i18n/index.mjs';
+import { localBody, LOCAL_SECTIONS } from './local.mjs';
 import { ogSvg, ogPng } from './og.mjs';
 import { readDetails, detailKey } from './eco-details.mjs';
 import { TOOL_TOPICS, topicPath, toolDescription } from './seo.mjs';
@@ -226,6 +228,7 @@ function navGroups(root, active) {
     models.length && ['Models', 'Under the hood', [
       ['Models', `${root}models/`, 'Benchmarks, prices, leaderboard', 'models'],
       ['Learn', `${root}learn/`, 'How models work, narrated', 'learn'],
+      LOCAL.length && ['Run AI at home', `${root}local/`, 'What your computer can run', 'local'],
     ]],
     (ECO.skills.list.length || ECO.mcp.list.length) && ['Extend', 'Plug things in', [
       ECO.skills.list.length && ['Skills', `${root}skills/`, 'Agent skills worth installing', 'skills'],
@@ -250,7 +253,7 @@ function tabBar(root, active) {
   const tabs = [
     ['Home', root, 'home', ['home', 'versions', 'myfeed', 'resets']],
     ['Tools', `${root}tools/`, 'tools', ['tools', 'compare', 'companies']],
-    models.length && ['Models', `${root}models/`, 'models', ['models', 'learn']],
+    models.length && ['Models', `${root}models/`, 'models', ['models', 'learn', 'local']],
     news.length && ['News', `${root}news/`, 'news', ['news']],
   ].filter(Boolean);
   const ico = (k) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${TAB_ICONS[k]}</svg>`;
@@ -258,7 +261,7 @@ function tabBar(root, active) {
 }
 
 // Breadcrumb trail for search results: Home › section › … › page. crumbs: [[name, path], …].
-const SECTIONS = { tools: 'Tools', models: 'Models', companies: 'Companies', news: 'News', compare: 'Compare', learn: 'Learn', skills: 'Skills', mcp: 'MCP', 'my-feed': 'My feed', resets: 'Limit resets', privacy: 'Privacy', contact: 'Contact' };
+const SECTIONS = { tools: 'Tools', models: 'Models', companies: 'Companies', news: 'News', compare: 'Compare', learn: 'Learn', local: 'Run AI at home', skills: 'Skills', mcp: 'MCP', 'my-feed': 'My feed', resets: 'Limit resets', privacy: 'Privacy', contact: 'Contact' };
 function breadcrumbs(path, crumbs) {
   const top = path.split('/')[0];
   const trail = crumbs || (SECTIONS[top] && path === `${top}/` ? [[SECTIONS[top], path]] : null);
@@ -278,7 +281,7 @@ const ogIcon = (id) => {
   return { mono: !!m.mono, href: `data:${type};base64,${readFileSync(new URL(`data/icons/${m.file}`, ROOT)).toString('base64')}` };
 };
 
-function layout({ root, path, title, description, body, jsonld, crumbs, og, ogFile, noindex = false, active = '' }) {
+function layout({ root, path, title, description, body, jsonld, crumbs, og, ogFile, noindex = false, active = '', lang = 'en', locale = 'en_US', alternates = null }) {
   const canonical = `${SITE_URL}/${path}`;
   let ogImage = `${SITE_URL}/og.png`, ogAlt = `${SITE_NAME}: live AI IDE &amp; coding CLI updates`;
   if (ogFile) { ogImage = `${SITE_URL}/${ogFile}`; ogAlt = esc(title); } // reuse another page's card
@@ -295,7 +298,7 @@ function layout({ root, path, title, description, body, jsonld, crumbs, og, ogFi
     .filter(Boolean).map(({ '@context': _, ...node }) => node);
   jsonld = graph.length ? { '@context': 'https://schema.org', '@graph': graph } : null;
   return `<!doctype html>
-<html lang="en" data-theme="dark"${ADWALL ? ' data-adwall' : ''}>
+<html lang="${lang}" data-theme="dark"${ADWALL ? ' data-adwall' : ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -311,7 +314,8 @@ function layout({ root, path, title, description, body, jsonld, crumbs, og, ogFi
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:locale" content="en_US">
+<meta property="og:locale" content="${locale}">
+${alternates ? alternates.map(([hl, p]) => `<link rel="alternate" hreflang="${hl}" href="${SITE_URL}/${p}">`).join('\n') : ''}
 <meta property="og:image" content="${ogImage}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -628,6 +632,7 @@ const aaFor = Object.fromEntries(models.map((m) => {
   const best = (f, lo) => hits.map((a) => a[f]).filter((v) => v != null).sort((a, b) => (lo ? a - b : b - a))[0] ?? null;
   return [m.id, { intel: best('intel'), code: best('code'), math: best('math'), speed: best('speed'), price: best('price', true) }];
 }));
+const LOCAL = models.filter((m) => m.openWeights && snap.local?.[m.id]?.total);
 const hasAA = Object.values(aaFor).filter((a) => a?.intel != null).length >= 5;
 
 function lbChart(view, rows, root) {
@@ -1906,14 +1911,38 @@ function myFeedPage() {
 }
 
 // Plain-language guide to how AI works, with examples from the live model catalog (scripts/learn.mjs).
-function learnPage() {
+const LEARN_ALTS = [...LEARN_LANGS.map(([k]) => [k, learnPath(k)]), ['x-default', 'learn/']];
+function learnPage(lang = 'en') {
+  const T = TRANSLATIONS[lang];
+  const root = lang === 'en' ? '../' : '../../';
+  const path = learnPath(lang);
+  const body = learnBody({ models, root, esc, modelPath, generatedAt: snap.generatedAt, local: snap.local || {}, lang, bench: snap.benchmarks?.scores ? { scores: snap.benchmarks.scores, list: BENCHMARKS, key: benchKey, source: BENCH_SOURCE } : null });
+  if (T) {
+    return layout({
+      root, path, active: 'learn', lang, locale: T.locale, alternates: LEARN_ALTS, title: `${T.ui.title} | ${SITE_NAME}`,
+      og: { kicker: T.ui.eyebrow, title: T.ui.h1.join(' '), sub: T.ui.ogSub },
+      description: T.ui.description, body, crumbs: [['Learn', 'learn/'], [T.name, path]],
+      jsonld: { '@context': 'https://schema.org', '@type': 'Article', inLanguage: lang, headline: T.ui.h1.join(' '), author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url }, dateModified: snap.generatedAt, url: `${SITE_URL}/${path}` },
+    });
+  }
+  return layout({
+    root, path: 'learn/', active: 'learn', alternates: LEARN_ALTS.length > 2 ? LEARN_ALTS : null, title: `How AI Works: Tokens, Context, Agents, MCP & RAG | ${SITE_NAME}`,
+    og: { kicker: 'Learn', title: 'How AI actually works', sub: 'Tokens, context, agents, MCP & more' },
+    description: 'A plain-language, interactive guide to how AI models work: tokens, context windows, system prompts, cache hits, agents and tool calling, MCP, UTCP, embeddings and RAG, hallucinations, training, mixture of experts, quantization, running models at home and more — with real prices, hands-on demos, technical deep dives and narrated audio in five languages.',
+    body,
+    jsonld: { '@context': 'https://schema.org', '@type': 'Article', headline: 'How AI actually works', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url }, dateModified: snap.generatedAt, url: `${SITE_URL}/learn/` },
+  });
+}
+
+// Run open models at home: hardware calculator + setup guide (scripts/local.mjs, src/local.js).
+function localPage() {
   const root = '../';
   return layout({
-    root, path: 'learn/', active: 'learn', title: `How AI Works: Tokens, Context, Agents, MCP & RAG | ${SITE_NAME}`,
-    og: { kicker: 'Learn', title: 'How AI actually works', sub: 'Tokens, context, agents, MCP & more' },
-    description: 'A plain-language, interactive guide to how AI models work: tokens, context windows, system prompts, cache hits, agents and tool calling, MCP, UTCP, embeddings and RAG, hallucinations, training, mixture of experts, quantization and more — with real prices, hands-on demos and narrated audio.',
-    body: learnBody({ models, root, esc, modelPath, generatedAt: snap.generatedAt, bench: snap.benchmarks?.scores ? { scores: snap.benchmarks.scores, list: BENCHMARKS, key: benchKey, source: BENCH_SOURCE } : null }),
-    jsonld: { '@context': 'https://schema.org', '@type': 'Article', headline: 'How AI actually works', author: { '@type': 'Person', name: AUTHOR.name, url: AUTHOR.url }, dateModified: snap.generatedAt, url: `${SITE_URL}/learn/` },
+    root, path: 'local/', active: 'local', title: `Run AI Locally: What Can Your PC Run? Calculator & Setup | ${SITE_NAME}`,
+    og: { kicker: 'Run AI at home', title: 'What can your computer run?', sub: `${LOCAL.length} open models, sized for your hardware` },
+    description: `Check which of ${LOCAL.length} open-weight AI models your GPU, Mac or PC can run, at what quantization and speed — with memory math, tweaks, upgrade advice and copy-paste setup for Ollama, llama.cpp, LM Studio, MLX and vLLM.`,
+    body: localBody({ models, local: snap.local || {}, root, esc, modelPath, intel: (m) => aaFor[m.id]?.intel ?? null }),
+    jsonld: { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Run AI at home — local model calculator', applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, url: `${SITE_URL}/local/` },
   });
 }
 
@@ -2842,7 +2871,8 @@ await out('compare/index.html', comparePage());
 if (models.length) await out('models/index.html', modelsPage());
 for (const type of Object.keys(ECO)) if (ECO[type].list.length) await out(`${ECO[type].path}index.html`, ecoPage(type));
 for (const [p, pg] of ECO_PAGES) await out(`${p}index.html`, pg.render());
-if (models.length) await out('learn/index.html', learnPage());
+if (models.length) for (const [lang] of LEARN_LANGS) await out(`${learnPath(lang)}index.html`, learnPage(lang));
+if (LOCAL.length) await out('local/index.html', localPage());
 for (const l of labs) await out(`${labPath(l[0].labId)}index.html`, labPage(l));
 for (const m of models) await out(`${modelPath(m)}index.html`, modelPage(m));
 for (const t of tools) await out(`tools/${t.id}/index.html`, toolPage(t));
@@ -2903,6 +2933,7 @@ await out('search.json', JSON.stringify({ generatedAt: snap.generatedAt, items: 
   ...Object.values(ECO).filter((c) => c.list.length).map((c) => ({ t: 'page', n: c.eyebrow, s: c.lede.slice(0, 90) + '…', u: c.path, k: c.path === 'mcp/' ? 'mcp servers' : 'skills claude' })),
   { t: 'page', n: 'RSS feed', s: 'Subscribe to every update', u: 'feed.xml', k: 'rss atom subscribe' },
   ...tools.map((t) => ({ t: 'tool', n: t.name, s: `${t.vendor} · ${CATEGORIES[t.category]?.short || t.category}${t.latestRelease?.version ? ` · ${t.latestRelease.version}` : ''}`, u: `tools/${t.id}/`, k: `${t.blurb || t.description || ''} ${t.discovered ? 'trending' : ''}`.toLowerCase(), d: t.latest?.date, ...srTool(t) })),
+  ...(LOCAL.length ? [{ t: 'page', n: 'Run AI at home', s: 'Which open models your computer can run', u: 'local/', k: 'local ollama llama.cpp lm studio mlx gpu vram calculator hardware offline self-host' }, ...LOCAL_SECTIONS.map(([id, title]) => ({ t: 'learn', n: title, s: 'Run AI at home', u: `local/#${id}`, k: id }))] : []),
   ...(models.length ? LEARN_SECTIONS.map(([id, title], i) => ({ t: 'learn', n: title, s: `Chapter ${String(i + 1).padStart(2, '0')}`, u: `learn/#${id}`, k: id })) : []),
   { t: 'page', n: 'Companies', s: `${companies.length} AI labs and tool makers`, u: 'companies/', k: 'companies vendors labs makers directory' },
   ...companies.map((c) => ({ t: 'company', n: c.name, s: coCounts(c), u: coPath(c), k: `${c.tools.map((t) => t.name).join(' ')} ${c.info.parent || ''}`.toLowerCase(), d: c.last, c: c.color, i: srIcon(c.iconId) })),
@@ -2920,7 +2951,8 @@ await out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 ${RESETS.length ? `<url><loc>${SITE_URL}/resets/</loc><lastmod>${RESETS_ALL[0].date}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n` : ''}<url><loc>${SITE_URL}/privacy/</loc><lastmod>${new Date(PRIVACY_UPDATED + ' UTC').toISOString()}</lastmod><changefreq>yearly</changefreq><priority>0.2</priority></url>
 <url><loc>${SITE_URL}/contact/</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 <url><loc>${SITE_URL}/my-feed/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
-${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${models.length ? `<url><loc>${SITE_URL}/learn/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+${models.length ? `<url><loc>${SITE_URL}/models/</loc><lastmod>${models[0].date}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n` : ''}${labs.map((l) => `<url><loc>${SITE_URL}/${labPath(l[0].labId)}</loc><lastmod>${l[0].date}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>\n`).join('')}${models.map((m) => `<url><loc>${SITE_URL}/${modelPath(m)}</loc><lastmod>${snap.benchmarks?.fetchedAt || m.date}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('')}${LOCAL.length ? `<url><loc>${SITE_URL}/local/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+` : ''}${models.length ? LEARN_LANGS.filter(([k]) => k !== 'en').map(([k]) => `<url><loc>${SITE_URL}/${learnPath(k)}</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n`).join('') : ''}${models.length ? `<url><loc>${SITE_URL}/learn/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 ` : ''}${Object.values(ECO).filter((c) => c.list.length).map((c) => `<url><loc>${SITE_URL}/${c.path}</loc><lastmod>${eco.fetchedAt || snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>\n`).join('')}<url><loc>${SITE_URL}/compare/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
 <url><loc>${SITE_URL}/tools/</loc><lastmod>${snap.generatedAt}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
 ${Object.keys(TOOL_TOPICS).filter((category) => tools.some((t) => t.category === category)).map((category) => `<url><loc>${SITE_URL}/${topicPath(category)}</loc><lastmod>${tools.filter((t) => t.category === category).reduce((last, t) => t.lastActive > last ? t.lastActive : last, '1970-01-01T00:00:00Z')}</lastmod></url>`).join('\n')}
