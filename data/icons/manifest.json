@@ -664,7 +664,7 @@
   },
   "gh-udhaykumarbala-cleanyourtv-app": {
    "logo": null,
-   "checked": 1793885034169,
+   "checked": 1793842120994,
    "file": null,
    "mono": false,
    "src": null
@@ -755,6 +755,14 @@
    "file": null,
    "mono": false,
    "src": null
+  },
+  "gh-jetbrains-thinkrail": {
+   "logo": null,
+   "checked": 1793984060615,
+   "file": "gh-jetbrains-thinkrail.svg",
+   "mono": false,
+   "src": "https://thinkrail.ai/favicon.svg",
+   "tone": null
   }
  }
 }
