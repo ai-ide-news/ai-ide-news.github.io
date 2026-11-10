@@ -2124,6 +2124,23 @@ main:has(> .ed-hero), body:has(.ed-hero) { overflow-x: clip; }
 .rs-explain { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 32px; }
 .rs-explain h2 { margin: 0 0 4px; font-size: 16px; }
 .rs-explain p { margin: 0; color: var(--ink-2); }
+.ds-clock { padding: 24px; border: 1px solid var(--line-2); border-top: 3px solid #4d6bfe; border-radius: 8px; }
+.ds-clock h2 { display: flex; align-items: center; gap: 10px; }
+.ds-clock .section-head { flex-wrap: wrap; gap: 12px; }
+.ds-status { margin: 20px 0 8px; font-weight: 600; color: var(--ink); }
+.ds-clock[data-period="off"] .ds-status { color: var(--green, #36a66a); }
+.ds-countdown { margin: 0; font: 600 clamp(30px, 6vw, 56px)/1.2 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.ds-next { margin: 8px 0; color: var(--ink-2); }
+.ds-table-scroll { overflow-x: auto; margin: 24px 0 16px; }
+.ds-rates { width: 100%; border-collapse: collapse; text-align: left; font-variant-numeric: tabular-nums; }
+.ds-rates caption { text-align: left; padding-bottom: 12px; color: var(--ink-2); font-size: 13px; }
+.ds-rates th, .ds-rates td { padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ds-rates th:first-child { padding-left: 0; }
+.ds-rates thead th { font: 12px var(--mono); color: var(--ink-3); }
+.ds-rates tbody th { font-size: 14px; }
+.ds-rates tbody th span { display: block; margin-top: 3px; font-size: 12px; color: var(--ink-2); font-weight: 400; }
+.ds-rates td:last-child { font-weight: 600; color: var(--accent-ink); }
+.ds-schedule { font-size: 14px; color: var(--ink-2); }
 .rs-chips { margin: 0 0 12px; }
 .rs-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line-2); }
 .rs-list > li { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 4px 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }

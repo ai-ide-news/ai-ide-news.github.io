@@ -21,6 +21,7 @@ import { readDetails, detailKey } from './eco-details.mjs';
 import { TOOL_TOPICS, topicPath, toolDescription } from './seo.mjs';
 import { adsenseClient, adsTxt } from './adsense.mjs';
 import { RESET_SOURCES, resetStats } from './resets.mjs';
+import { DEEPSEEK_PRICING } from '../src/deepseek-clock.js';
 
 const ROOT = new URL('../', import.meta.url);
 const DIST = new URL('dist/', ROOT);
@@ -1318,9 +1319,10 @@ const resetLink = (e, label) => (e.url ? `<a href="${esc(e.url)}" target="_blank
 function resetCard(p, root) {
   const { stats, stats: { last, lastRegular } } = p;
   const days = Math.floor(Math.max(0, NOW - Date.parse(last.date)) / DAY);
-  const t = byId[p.toolId];
+  const t = byId[p.toolId] || (p.key === 'glm' ? LAB_ICONS.find((l) => l.id === 'lab-z-ai') : null);
+  const href = byId[p.toolId] ? `${root}tools/${t.id}/` : 'https://z.ai/subscribe';
   return `<article class="rs-card" style="--c:${t?.color || 'var(--accent)'}">
-  <h2>${t ? `<a href="${root}tools/${t.id}/">${icon(t, root, 'sm')}${esc(p.name)}</a>` : esc(p.name)}</h2>
+  <h2>${t ? `<a href="${href}">${icon(t, root, 'sm')}${esc(p.name)}</a>` : esc(p.name)}</h2>
   <p class="rs-days" data-since="${esc(last.date)}"><b>${days}</b> <span>${days === 1 ? 'day' : 'days'} since the last reset</span></p>
   <p class="rs-last">${resetLink(last, `${resetKind(last)} reset on ${fmtDate(last.date)}`)}${last.banked && lastRegular ? `<br>Last regular reset: ${resetLink(lastRegular, fmtDate(lastRegular.date))}` : ''}</p>
   <dl class="stats rs-stats">
@@ -1345,6 +1347,28 @@ function resetRow(e) {
 </li>`;
 }
 
+function deepseekPricingClock(root) {
+  const lab = LAB_ICONS.find((l) => l.id === 'lab-deepseek');
+  return `<section class="wrap section" aria-labelledby="deepseek-heading">
+  <article class="ds-clock" id="deepseek-clock">
+    <div class="section-head"><div><p class="eyebrow">API pricing</p><h2 id="deepseek-heading">${icon(lab, root, 'sm')}DeepSeek pricing clock</h2></div><a href="${DEEPSEEK_PRICING.source}" target="_blank" rel="noopener">Official rates ↗</a></div>
+    <p class="ds-status" data-ds-status role="status">Off-peak rates are 50% lower</p>
+    <p class="ds-countdown" data-ds-countdown aria-label="Time until the next pricing change">—</p>
+    <p class="ds-next" data-ds-next>Enable JavaScript for live pricing status and a countdown.</p>
+    <p class="muted small" data-ds-zone>Schedule shown in UTC until your time zone is detected.</p>
+    <div class="ds-table-scroll"><table class="ds-rates">
+      <caption>USD per 1 million tokens · direct DeepSeek API</caption>
+      <thead><tr><th scope="col">Model / tokens</th><th scope="col">Off-peak</th><th scope="col">Peak</th><th scope="col">Current</th></tr></thead>
+      <tbody>${DEEPSEEK_PRICING.models.map((m) => ['Input · cached', 'Input · uncached', 'Output'].map((label, i) => `<tr><th scope="row">${esc(m.name)}<span>${label}</span></th><td>$${m.off[i]}</td><td>$${m.peak[i]}</td><td data-model="${m.id}" data-ds-rate="${i}">—</td></tr>`).join('')).join('')}</tbody>
+    </table></div>
+    <p class="ds-schedule">Peak: 01:00–04:00 and 06:00–10:00 UTC on weekdays. Other hours, weekends and Chinese public holidays are off-peak, including make-up working weekends.</p>
+    <p class="muted small" data-ds-local></p>
+    <p class="muted small">Rates checked ${DEEPSEEK_PRICING.checked}. Holiday calendar covers 2026–2027. Your API provider may charge different rates.</p>
+  </article>
+  <script type="module" src="${root}assets/deepseek-clock.js?v=${ASSET_V}"></script>
+</section>`;
+}
+
 function resetsPage() {
   const root = '../';
   const bankedCount = RESETS_ALL.filter((e) => e.banked).length;
@@ -1357,6 +1381,7 @@ function resetsPage() {
   <p class="lede">Track Codex, Claude Code, Google Antigravity and GLM Coding Plan usage refills after incidents, launches and milestones. See how long it has been since the last one, and every reset on record.</p>
 </section>
 <section class="wrap section"><div class="rs-cards">${RESETS.map((p) => resetCard(p, root)).join('')}</div></section>
+${deepseekPricingClock(root)}
 ${banner()}
 <section class="wrap section rs-explain">
   <div><h2>Regular reset</h2><p>Your usage counters are cleared for you. There's nothing to do except check your limits.</p></div>

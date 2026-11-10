@@ -19,6 +19,8 @@ A live tracker of the latest releases, patches, changelogs and community discuss
 | [Codex Resets](https://codex-resets.com/), [claude-resets.com](https://claude-resets.com/), [AGY Resets](https://www.agyresets.com/) and [resets.io](https://www.resets.io/labs/zai/) APIs | `/resets/` page: Codex, Claude Code, Antigravity and confirmed GLM Coding Plan resets and grants, with source credit. GLM account-specific off-peak reset cards are explained separately using [ZCode documentation](https://zcode.z.ai/en/docs/usage-stats) (`scripts/resets.mjs`) |
 | OpenCode Data (`opencode.ai/data/index.json`) | Real-world model usage on the OpenCode tool page: tokens, daily users, retention, session cost, cache ratio, market share by lab, countries |
 
+The `/resets/` page also includes a DeepSeek direct-API pricing clock with local-time windows, a live countdown and cached/uncached rates. Rates and the China holiday calendar are maintained in `src/deepseek-clock.js`; update them when DeepSeek pricing or annual holiday schedules change.
+
 ### Trending auto-discovery
 
 On every refresh, `scripts/discover.mjs` searches GitHub for repos in the niche (coding-agent / AI-IDE topics and descriptions), filters out skill packs, guides, MCP servers, proxies and other companion utilities, and keeps only tools that shipped a stable GitHub Release in the last 60 days. Their release notes become their changelog on the site, and a daily star history ranks them by star velocity. Tune it via `DISCOVERY` in `scripts/sources.mjs` (`allow` / `deny` lists, star threshold).
