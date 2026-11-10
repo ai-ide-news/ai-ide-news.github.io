@@ -217,7 +217,7 @@ function navGroups(root, active) {
       trending.length && ['Trending', `${root}#trending`, 'Rising on GitHub', ''],
       news.length && ['News', `${root}news/`, 'Only the important stories', 'news'],
       ['Community', `${root}#discussions`, 'Hacker News threads', ''],
-      RESETS.length && ['Limit resets', `${root}resets/`, 'Codex and Claude Code refills', 'resets'],
+      RESETS.length && ['Limit resets', `${root}resets/`, 'Codex, Claude, Antigravity and GLM refills', 'resets'],
       ['My feed', `${root}my-feed/`, 'Your own pick of sources', 'myfeed'],
     ]],
     ['Tools', 'Pick your setup', [
@@ -1304,7 +1304,7 @@ function contactPage() {
   return layout({ root, path: 'contact/', title: `Contact | ${SITE_NAME}`, description: `How to reach the publisher of ${SITE_NAME}: email ${CONTACT_EMAIL}.`, body });
 }
 
-// Codex and Claude Code limit resets: how long since the last one, and every one on record.
+// Coding-plan limit resets: how long since the last one, and every one on record.
 const RESETS = Object.entries(RESET_SOURCES)
   .map(([key, src]) => ({ key, ...src, events: snap.resets?.[key] || [], stats: resetStats(snap.resets?.[key] || [], NOW) }))
   .filter((p) => p.events.length);
@@ -1353,14 +1353,18 @@ function resetsPage() {
   const body = `
 <section class="wrap hero hero-sm">
   <p class="eyebrow">Usage limits</p>
-  <h1>Codex &amp; Claude Code <em>limit resets</em></h1>
-  <p class="lede">OpenAI and Anthropic sometimes refill usage limits ahead of schedule, usually after an incident, a launch or a milestone. See how long it has been since the last one, and every reset on record.</p>
+  <h1>AI coding plan <em>limit resets</em></h1>
+  <p class="lede">Track Codex, Claude Code, Google Antigravity and GLM Coding Plan usage refills after incidents, launches and milestones. See how long it has been since the last one, and every reset on record.</p>
 </section>
 <section class="wrap section"><div class="rs-cards">${RESETS.map((p) => resetCard(p, root)).join('')}</div></section>
 ${banner()}
 <section class="wrap section rs-explain">
   <div><h2>Regular reset</h2><p>Your usage counters are cleared for you. There's nothing to do except check your limits.</p></div>
   <div><h2>Banked reset</h2><p>A saved credit you apply yourself when you want it. Your limits don't refill until you apply it, and it can expire.</p></div>
+</section>
+<section class="wrap section rs-explain">
+  <div><h2>Antigravity model quotas</h2><p>Google's announcements apply to the model pools and plans named in each entry. An Antigravity reset does not reset the Gemini app or Gemini API quota.</p></div>
+  <div><h2>GLM reset cards in ZCode</h2><p>Sign in to ZCode with your GLM Coding Plan and open Usage Statistics → Coding Plan to see available 5-hour or weekly reset cards. Eligible accounts can receive off-peak cards; redeem them before they expire. Availability and thresholds vary by account and time. Personal cards are not counted in the public history below. <a href="https://zcode.z.ai/en/docs/usage-stats" target="_blank" rel="noopener">Official reset-card instructions ↗</a></p></div>
 </section>
 <section class="wrap section">
   <div class="section-head"><div><p class="eyebrow">History</p><h2>Every announced reset</h2></div></div>
@@ -1376,10 +1380,10 @@ ${banner()}
   const lastLine = RESETS.map((p) => `${p.name} ${fmtDate(p.stats.last.date)}`).join(', ');
   return layout({
     root, path: 'resets/', active: 'resets',
-    title: `Codex & Claude Code Limit Resets: Tracker & History | ${SITE_NAME}`,
-    description: `When Codex and Claude Code usage limits were last reset (${lastLine}), with days since, average gaps and every announcement.`,
-    og: { kicker: 'Limit resets', title: 'Codex & Claude Code limit resets', sub: 'Days since the last reset, and every one on record', stats: RESETS.map((p) => [`${p.name} resets`, String(p.stats.count)]) },
-    jsonld: { '@type': 'ItemList', name: 'Codex and Claude Code limit resets', itemListElement: RESETS_ALL.filter((e) => e.url).slice(0, 30).map((e, i) => ({ '@type': 'ListItem', position: i + 1, name: `${e.product.name} limit reset, ${fmtDate(e.date)}`, url: e.url })) },
+    title: `Codex, Claude, Antigravity & GLM Limit Resets | ${SITE_NAME}`,
+    description: `When Codex, Claude Code, Antigravity and GLM usage limits were last reset (${lastLine}), with days since, average gaps and every announcement.`,
+    og: { kicker: 'Limit resets', title: 'AI coding plan limit resets', sub: 'Days since the last reset, and every one on record', stats: RESETS.map((p) => [`${p.name} resets`, String(p.stats.count)]) },
+    jsonld: { '@type': 'ItemList', name: 'Codex, Claude Code, Antigravity and GLM limit resets', itemListElement: RESETS_ALL.filter((e) => e.url).slice(0, 30).map((e, i) => ({ '@type': 'ListItem', position: i + 1, name: `${e.product.name} limit reset, ${fmtDate(e.date)}`, url: e.url })) },
     body,
   });
 }
@@ -2924,7 +2928,7 @@ await out('search.json', JSON.stringify({ generatedAt: snap.generatedAt, items: 
   ...Object.entries(TOOL_TOPICS).filter(([category]) => tools.some((t) => t.category === category)).map(([category, topic]) => ({ t: 'page', n: topic.title, s: topic.description, u: topicPath(category), k: 'coding tools release notes changelog latest versions' })),
   { t: 'page', n: 'Compare plans & pricing', s: 'Free tiers, seats and budgets side by side', u: 'compare/', k: 'pricing plans cost free budget seats' },
   ...(news.length ? [{ t: 'page', n: 'News', s: 'Only the important stories', u: 'news/', k: 'headlines stories' }] : []),
-  ...(RESETS.length ? [{ t: 'page', n: 'Limit resets', s: 'Days since the last Codex and Claude Code reset', u: 'resets/', k: 'usage rate limits reset refill banked weekly codex claude code' }] : []),
+  ...(RESETS.length ? [{ t: 'page', n: 'Limit resets', s: 'Days since the last Codex, Claude Code, Antigravity and GLM reset', u: 'resets/', k: 'usage rate limits reset refill banked weekly codex claude code antigravity gemini glm zcode' }] : []),
   { t: 'page', n: 'My feed', s: 'Follow any source: RSS, YouTube, Reddit, Instagram…', u: 'my-feed/', k: 'custom personal follow subscribe rss instagram youtube reddit bluesky mastodon' },
   ...(models.length ? [
     { t: 'page', n: 'Models', s: `${models.length} models, benchmarks, leaderboard, showdown`, u: 'models/', k: 'llm benchmarks leaderboard showdown pricing context' },

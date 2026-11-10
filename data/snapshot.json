@@ -234951,7 +234951,7 @@
   ]
  },
  "resets": {
-  "fetchedAt": "2026-11-10T11:35:37.902Z",
+  "fetchedAt": "2026-11-10T12:52:51.122Z",
   "codex": [
    {
     "id": "2117035794678546764",
@@ -235564,6 +235564,130 @@
     "text": "Fixed a bug where subscription rate limits weren't adjusted for long-context requests on Opus 4.7, then reset 5-hour and weekly limits.",
     "url": "https://x.com/ClaudeDevs/status/2044868953206612154",
     "scope": "all"
+   }
+  ],
+  "antigravity": [
+   {
+    "id": "2118855362518675720",
+    "date": "2026-11-06T23:57:39.000Z",
+    "banked": false,
+    "text": "Resetting everyone’s Gemini and Argon quota on Antigravity. Lots of updates this week so want to make sure everyone can build for the weekend. Lots more to come next week!",
+    "url": "https://x.com/_mohansolo/status/2118855362518675720",
+    "scope": "All plans · argon · gemini"
+   },
+   {
+    "id": "2111220356178751860",
+    "date": "2026-10-16T22:18:52.000Z",
+    "banked": false,
+    "text": "Lots of excitement for Argon and Gemini this week on Antigravity. Resetting Argon and Gemini model quotas for everyone. Keep building through the weekend!",
+    "url": "https://x.com/_mohansolo/status/2111220356178751860",
+    "scope": "All plans · argon · gemini"
+   },
+   {
+    "id": "2100088051934601229",
+    "date": "2026-09-16T05:03:03.000Z",
+    "banked": false,
+    "text": "Fixed, rolled out quota resets for everyone",
+    "url": "https://x.com/_mohansolo/status/2100088051934601229",
+    "scope": "All plans · gemini"
+   },
+   {
+    "id": "2095568203799806235",
+    "date": "2026-09-03T17:42:48.000Z",
+    "banked": false,
+    "text": "We’re resetting Gemini quotas on Antigravity. TPUs are melting with 3.8 Flash usage but we want you all to keep building!",
+    "url": "https://x.com/_mohansolo/status/2095568203799806235",
+    "scope": "gemini"
+   },
+   {
+    "id": "2079636156589994347",
+    "date": "2026-07-21T18:34:32.000Z",
+    "banked": false,
+    "text": "Gemini 3.6 Flash is out on Antigravity! We just reset everyone's weekly quotas, enjoy building.",
+    "url": "https://x.com/_mohansolo/status/2079636156589994347",
+    "scope": "All plans"
+   },
+   {
+    "id": "2068054113104069058",
+    "date": "2026-06-19T19:31:37.000Z",
+    "banked": false,
+    "text": "We’ve root caused and mitigated the high rates of output text looping in Gemini 3.5 Flash. The new model export is rolled out. We’ve reset everyone’s weekly Gemini quotas so that you can give it a try in Antigravity asap!",
+    "url": "https://x.com/_mohansolo/status/2068054113104069058",
+    "scope": "All plans · gemini"
+   },
+   {
+    "id": "2065159034869830019",
+    "date": "2026-06-11T19:47:37.000Z",
+    "banked": false,
+    "text": "We’ve heard your feedback and are launching a clearer, more detailed model quota usage dashboard. This can be found in the settings pane in the latest Antigravity 2.0 release. We are also resetting everyone’s weekly Gemini quotas (rolling out) - keep building! This dashboard wil…",
+    "url": "https://x.com/_anshulr/status/2065159034869830019",
+    "scope": "All plans · gemini"
+   },
+   {
+    "id": "2061960989143441735",
+    "date": "2026-06-02T23:59:43.000Z",
+    "banked": false,
+    "text": "We’ve rolled out a new version of Gemini 3.5 Flash in Antigravity that boasts much less and has higher endurance on harder tasks. Thanks for all of the feedback on the model. Keep it coming, we will act quickly across the stack to make the experience even better. We’ve also gone…",
+    "url": "https://x.com/_mohansolo/status/2061960989143441735",
+    "scope": "All plans · gemini"
+   },
+   {
+    "id": "2058740603563966758",
+    "date": "2026-05-25T02:43:04.000Z",
+    "banked": false,
+    "text": "We heard concerns that Antigravity consumes many tokens for simple tasks now. So, we're adding Gemini 3.5 Flash (Low) as a way to optimize token usage for these tasks. In our internal testing, it generates around 45% fewer tokens than Gemini 3.5 Flash (Medium) and generally outp…",
+    "url": "https://x.com/_mohansolo/status/2058740603563966758",
+    "scope": "All plans"
+   },
+   {
+    "id": "2057910616153882949",
+    "date": "2026-05-22T19:44:59.000Z",
+    "banked": false,
+    "text": "Thanks for all of the Antigravity feedback over the last couple of days, especially around the IDE. Our intention was never to remove the IDE support for developers, and we should have been clearer with that in the product from the beginning. We’ve made it clearer in 2.0 on how…",
+    "url": "https://x.com/_mohansolo/status/2057910616153882949",
+    "scope": "All plans · gemini"
+   },
+   {
+    "id": "2057656550286885284",
+    "date": "2026-05-22T02:55:25.000Z",
+    "banked": false,
+    "text": "Yesterday, we 3x’d limits on Antigravity and are seeing you build so much more. One thing we heard was people are worried about hitting their weekly limits after a couple work sessions. To give you more runway, we’re 3x’ing the weekly Gemini quotas AGAIN on all paid plans. We’ve…",
+    "url": "https://x.com/_mohansolo/status/2057656550286885284",
+    "scope": "Paid plans · gemini"
+   },
+   {
+    "id": "2057331857755422922",
+    "date": "2026-05-21T05:25:12.000Z",
+    "banked": false,
+    "text": "An update: we’re 3xing the rate limits for Gemini models across all paid tiers in Antigravity and resetting everyone’s Gemini quota for the week. We understand some people hit their rate limits quickly and wanted to respond fast. Lots more to come and enjoy building!",
+    "url": "https://x.com/_mohansolo/status/2057331857755422922",
+    "scope": "All plans · gemini"
+   }
+  ],
+  "glm": [
+   {
+    "id": "zai-2026-09-01-anniversary-reset-card",
+    "date": "2026-09-01T12:49:29.000Z",
+    "banked": true,
+    "text": "Banked Reset Card for every GLM Coding Plan subscriber for its first anniversary, refilling 5-hour and weekly quota.",
+    "url": "https://x.com/Zai_org/status/2094769612730532172",
+    "scope": "Every current subscriber (personal and team)"
+   },
+   {
+    "id": "zai-2026-08-14-glm-5-3-launch-reset",
+    "date": "2026-08-14T06:50:20.000Z",
+    "banked": false,
+    "text": "GLM Coding Plan 5-hour and weekly usage reset for everyone with the GLM-5.3 launch.",
+    "url": "https://x.com/zcode_ai/status/2088156248286147065",
+    "scope": "Every Coding Plan user"
+   },
+   {
+    "id": "zai-2026-08-11-zcode-1m-users-reset",
+    "date": "2026-08-11T04:58:00.000Z",
+    "banked": false,
+    "text": "GLM Coding Plan limits reset for everyone to celebrate ZCode passing 1 million users.",
+    "url": "https://x.com/Zai_org/status/2087040814677725262",
+    "scope": "All GLM Coding Plan users"
    }
   ]
  },

@@ -13,7 +13,7 @@ import { fetchBenchmarks } from './benchmarks.mjs';
 import { fetchAA } from './aa.mjs';
 import { fetchOpenCode } from './opencode.mjs';
 import { fetchEcosystem } from './ecosystem.mjs';
-import { fetchResets } from './resets.mjs';
+import { fetchResets, resetsChanged } from './resets.mjs';
 import { fetchDetails } from './eco-details.mjs';
 import { fetchLocal } from './local-models.mjs';
 
@@ -505,8 +505,8 @@ async function main() {
     report.push(`✓ OpenCode Data          ${opencode.leaderboard.pastWeek.length} models, updated ${opencode.updatedAt}`);
   } catch (e) { report.push(`⚠ OpenCode Data: ${e.message} (kept previous)`); }
 
-  // Codex and Claude Code limit resets. The watcher runs a quick fetch every minute, so quick runs read these
-  // two small community APIs only every fifth minute; a new reset then deploys like a new release.
+  // Public coding-plan limit resets. The watcher runs a quick fetch every minute, so quick runs read these
+  // community APIs only every fifth minute; a new reset then deploys like a new release.
   let resets = prev.resets || null;
   if (!QUICK || !resets || Math.floor(NOW / 60e3) % 5 === 0) resets = await fetchResets(get, resets || {}, NOW, report);
 
@@ -556,7 +556,7 @@ async function main() {
   // Did anything actually ship? (Ignores HN vote counts, which move constantly.)
   const fingerprint = (t) => Object.values(t || {}).flatMap((e) => e.items.map((i) => `${i.id}|${i.version || ''}|${i.title}`)).sort().join('\n');
   const ids = (list) => (list || []).map((d) => d.id).sort().join();
-  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered) || ids(news) !== ids(prev.news) || ids(models) !== ids(prev.models) || ids(ecosystem?.skills) !== ids(prev.ecosystem?.skills) || ids(ecosystem?.mcp) !== ids(prev.ecosystem?.mcp) || ids(resets?.codex) !== ids(prev.resets?.codex) || ids(resets?.['claude-code']) !== ids(prev.resets?.['claude-code']) || providersFresh !== providersAt;
+  const changed = fingerprint(tools) !== fingerprint(prev.tools) || ids(discovered) !== ids(prev.discovered) || ids(news) !== ids(prev.news) || ids(models) !== ids(prev.models) || ids(ecosystem?.skills) !== ids(prev.ecosystem?.skills) || ids(ecosystem?.mcp) !== ids(prev.ecosystem?.mcp) || resetsChanged(resets, prev.resets) || providersFresh !== providersAt;
   const newIds = new Set(Object.values(prev.tools || {}).flatMap((e) => e.items.map((i) => i.id)));
   const oldModels = new Set((prev.models || []).map((m) => m.id));
   const fresh = [...Object.values(tools).flatMap((e) => e.items).filter((i) => !newIds.has(i.id)), ...(prev.models ? models.filter((m) => !oldModels.has(m.id)).map((m) => ({ title: `New model: ${m.name}` })) : [])];

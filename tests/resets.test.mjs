@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeCodex, normalizeClaude, fetchResets, resetStats, RESET_SOURCES } from '../scripts/resets.mjs';
+import { normalizeCodex, normalizeClaude, normalizeAntigravity, normalizeGlm, resetsChanged, fetchResets, resetStats, RESET_SOURCES } from '../scripts/resets.mjs';
 
 const codex = { events: [
   { tweet_id: '1', tweet_url: 'https://x.com/thsottiaux/status/1', text: 'older', announced_at: '2026-10-01T00:00:00.000Z', reset_type: 'regular' },
@@ -46,4 +46,59 @@ test('one failed or empty source keeps its previous events', async () => {
   assert.deepEqual(out['claude-code'], [{ id: 'old' }]);
   assert.equal(out.fetchedAt, '2026-11-05T00:00:00.000Z');
   assert.ok(report.some((line) => line.startsWith('⚠ Claude Code resets')));
+});
+
+test('Antigravity keeps model and plan scope and sanitizes announcements', () => {
+  const events = normalizeAntigravity({ data: [
+    { id: 'reset', announced_at: '2026-11-06T23:57:39Z', text: 'Reset https://t.co/abc', plans: ['paid'], models: ['gemini', 'argon'], source: { url: 'javascript:bad' } },
+    { id: 'bad', announced_at: 'invalid' },
+  ] });
+  assert.equal(events.length, 1);
+  assert.equal(events[0].scope, 'Paid plans · gemini · argon');
+  assert.equal(events[0].banked, false);
+  assert.equal(events[0].text, 'Reset');
+  assert.equal(events[0].url, null);
+});
+
+test('GLM counts confirmed completed resets and grants, excluding policies and reports', () => {
+  const base = { provider: 'zai', product: 'glm-coding-plan', confidence: 'confirmed', lifecycle: 'completed', type: 'global_reset', announced_at: '2026-08-11T04:17:00Z', effective_at: '2026-08-11T04:58:00Z', sources: [
+    { kind: 'staff_post', claim: 'announces', url: 'https://x.com/announcement' },
+    { kind: 'official', claim: 'confirms_completion', url: 'https://x.com/confirmed' },
+  ] };
+  const events = normalizeGlm({ events: [
+    { ...base, id: 'reset' },
+    { ...base, id: 'grant', type: 'banked_grant', expires_at: '2026-10-01T00:00:00Z' },
+    { ...base, id: 'reported', confidence: 'reported' },
+    { ...base, id: 'policy', type: 'policy_change' },
+    { ...base, id: 'future', lifecycle: 'announced' },
+    { ...base, id: 'other', product: 'other' },
+    { ...base, id: 'month', time_precision: 'month' },
+  ] });
+  assert.deepEqual(events.map((e) => e.id), ['reset', 'grant']);
+  assert.equal(events[0].date, base.effective_at.replace('Z', '.000Z'));
+  assert.equal(events[0].url, 'https://x.com/confirmed');
+  assert.equal(events[1].banked, true);
+  assert.equal(events[1].usableUntil, '2026-10-01T00:00:00.000Z');
+});
+
+test('new providers and corrections trigger refresh, timestamps alone do not', () => {
+  assert.equal(resetsChanged({ antigravity: [{ id: 'new' }] }, {}), true);
+  assert.equal(resetsChanged({ glm: [{ id: 'same', banked: true }] }, { glm: [{ id: 'same', banked: false }] }), true);
+  assert.equal(resetsChanged({ fetchedAt: 'new' }, { fetchedAt: 'old' }), false);
+});
+
+test('Antigravity fetch follows cursors and keeps previous data on pagination failure', async () => {
+  const calls = [];
+  const get = async (url) => {
+    calls.push(url);
+    if (!url.startsWith(RESET_SOURCES.antigravity.api)) throw new Error('offline');
+    return { data: [{ id: url.includes('cursor=') ? 'older' : 'newer', announced_at: '2026-11-06T00:00:00Z' }], pagination: { next_cursor: url.includes('cursor=') ? null : 'page 2' } };
+  };
+  const result = await fetchResets(get);
+  assert.equal(result.antigravity.length, 2);
+  assert.ok(calls.some((url) => url.endsWith('&cursor=page%202')));
+  const prev = { antigravity: [{ id: 'saved' }], glm: [{ id: 'glm-saved' }] };
+  const failed = await fetchResets(async () => { throw new Error('offline'); }, prev);
+  assert.deepEqual(failed.antigravity, prev.antigravity);
+  assert.deepEqual(failed.glm, prev.glm);
 });
