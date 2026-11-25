@@ -2,7 +2,7 @@
  "version": 1,
  "items": {
   "Daniela Amodei": {
-   "checked": 1795009887160,
+   "checked": 1795616053742,
    "file": null,
    "kind": null,
    "credit": null,
@@ -16,7 +16,7 @@
    "src": "https://commons.wikimedia.org/wiki/File:Dario_Amodei_at_TechCrunch_Disrupt_2023_02_(cropped).jpg"
   },
   "Sam McCandlish": {
-   "checked": 1795009886807,
+   "checked": 1795616053528,
    "file": null,
    "kind": null,
    "credit": null,
@@ -30,21 +30,21 @@
    "src": "https://commons.wikimedia.org/wiki/File:Jared_Kaplan_(cropped).jpg"
   },
   "Tom Brown": {
-   "checked": 1795009887158,
+   "checked": 1795616053982,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Jack Clark": {
-   "checked": 1795009887624,
+   "checked": 1795616054378,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Ben Mann": {
-   "checked": 1795009887937,
+   "checked": 1795616054411,
    "file": null,
    "kind": null,
    "credit": null,
@@ -58,7 +58,7 @@
    "src": "https://github.com/colah"
   },
   "Menlo Ventures": {
-   "checked": 1795009887624,
+   "checked": 1795616054378,
    "file": null,
    "kind": null,
    "credit": null,
@@ -198,14 +198,14 @@
    "src": "https://commons.wikimedia.org/wiki/File:Vanguard.svg"
   },
   "Igor Babuschkin": {
-   "checked": 1795009887842,
+   "checked": 1795616054611,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Jimmy Ba": {
-   "checked": 1795009888123,
+   "checked": 1795616054618,
    "file": null,
    "kind": null,
    "credit": null,
@@ -226,7 +226,7 @@
    "src": "https://github.com/thegregyang"
   },
   "Valor Equity Partners": {
-   "checked": 1795009888716,
+   "checked": 1795616055523,
    "file": null,
    "kind": null,
    "credit": null,
@@ -247,18 +247,18 @@
    "src": "https://commons.wikimedia.org/wiki/File:Andreessen_Horowitz_new_logo.svg"
   },
   "Kingdom Holding": {
-   "checked": 1795009889721,
+   "checked": 1795616056891,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Liang Wenfeng": {
-   "checked": 1795009889219,
-   "file": null,
-   "kind": null,
-   "credit": null,
-   "src": null
+   "checked": 1795616056227,
+   "file": "liang-wenfeng.png",
+   "kind": "photo",
+   "credit": "中国新闻社 · CC BY 3.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:%E6%A2%81%E6%96%87%E9%8B%92_Liang_WenFeng.png"
   },
   "High-Flyer": {
    "checked": 1792582145138,
@@ -282,21 +282,21 @@
    "src": "https://commons.wikimedia.org/wiki/File:Joseph_Tsai_at_the_2024_New_York_Liberty_Ticker_Tape_Parade_(cropped).jpg"
   },
   "Yang Zhilin": {
-   "checked": 1795009889881,
+   "checked": 1795616056724,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Zhou Xinyu": {
-   "checked": 1795009889999,
+   "checked": 1795616056975,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Wu Yuxin": {
-   "checked": 1795009890094,
+   "checked": 1795616057164,
    "file": null,
    "kind": null,
    "credit": null,
@@ -338,14 +338,14 @@
    "src": "https://www.hongshan.com"
   },
   "Tang Jie": {
-   "checked": 1795009890490,
-   "file": null,
-   "kind": null,
-   "credit": null,
-   "src": null
+   "checked": 1795616057565,
+   "file": "tang-jie.png",
+   "kind": "photo",
+   "credit": "ACM Special Interest Group · CC BY 3.0 (Wikimedia Commons)",
+   "src": "https://commons.wikimedia.org/wiki/File:Jie_Tang_(2024).png"
   },
   "Li Juanzi": {
-   "checked": 1795009890348,
+   "checked": 1795616057350,
    "file": null,
    "kind": null,
    "credit": null,
@@ -359,7 +359,7 @@
    "src": "https://prosperity7vc.com"
   },
   "Tsinghua-affiliated entities": {
-   "checked": 1795009891522,
+   "checked": 1795616060216,
    "file": null,
    "kind": null,
    "credit": null,
@@ -380,7 +380,7 @@
    "src": "https://github.com/glample"
   },
   "Timothée Lacroix": {
-   "checked": 1795009890745,
+   "checked": 1795616057773,
    "file": null,
    "kind": null,
    "credit": null,
@@ -422,7 +422,7 @@
    "src": "https://commons.wikimedia.org/wiki/File:Eduardo_Saverin_CHINICT.JPG"
   },
   "Andrew McCollum": {
-   "checked": 1795009891181,
+   "checked": 1795616058300,
    "file": null,
    "kind": null,
    "credit": null,
@@ -443,21 +443,21 @@
    "src": "https://commons.wikimedia.org/wiki/File:Chris_Hughes_(cropped).jpg"
   },
   "Yan Junjie": {
-   "checked": 1795009891702,
+   "checked": 1795616058777,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Zhou Yucong": {
-   "checked": 1795009891793,
+   "checked": 1795616059031,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Yang Bin": {
-   "checked": 1795009892104,
+   "checked": 1795616059775,
    "file": null,
    "kind": null,
    "credit": null,
@@ -492,7 +492,7 @@
    "src": "https://commons.wikimedia.org/wiki/File:Chris_Malachowsky_(54986972670).jpg"
   },
   "Curtis Priem": {
-   "checked": 1795009892298,
+   "checked": 1795616060152,
    "file": null,
    "kind": null,
    "credit": null,
@@ -527,7 +527,7 @@
    "src": "https://commons.wikimedia.org/wiki/File:Aidan_Gomez_at_%22ALL_IN%22_2025_06.jpg"
   },
   "Ivan Zhang": {
-   "checked": 1795009892322,
+   "checked": 1795616060368,
    "file": null,
    "kind": null,
    "credit": null,
@@ -590,21 +590,21 @@
    "src": "https://commons.wikimedia.org/wiki/File:%E9%9B%B7%E5%86%9B_Lei_Jun_20240425_1.jpg"
   },
   "Lin Bin": {
-   "checked": 1795009892710,
+   "checked": 1795616061180,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "PSP Investments": {
-   "checked": 1795009893315,
+   "checked": 1795616061629,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Liang Rubo": {
-   "checked": 1795009893049,
+   "checked": 1795616061494,
    "file": null,
    "kind": null,
    "credit": null,
@@ -646,28 +646,28 @@
    "src": "https://commons.wikimedia.org/wiki/File:%E9%A9%AC%E5%8C%96%E8%85%BE_Pony_Ma_2019.jpg"
   },
   "Zhang Zhidong": {
-   "checked": 1795009893323,
+   "checked": 1795616061798,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Xu Chenye": {
-   "checked": 1795009893552,
+   "checked": 1795616061831,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Chen Yidan": {
-   "checked": 1795009893765,
+   "checked": 1795616062843,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Zeng Liqing": {
-   "checked": 1795009893775,
+   "checked": 1795616062068,
    "file": null,
    "kind": null,
    "credit": null,
@@ -688,7 +688,7 @@
    "src": "https://www.naspers.com"
   },
   "Jiang Daxin": {
-   "checked": 1795009893988,
+   "checked": 1795616062326,
    "file": null,
    "kind": null,
    "credit": null,
@@ -730,28 +730,28 @@
    "src": "https://github.com/schacon"
   },
   "Michael Truell": {
-   "checked": 1795009894076,
+   "checked": 1795616062644,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Sualeh Asif": {
-   "checked": 1795009894311,
+   "checked": 1795616063032,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Aman Sanger": {
-   "checked": 1795009894909,
+   "checked": 1795616063561,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Arvid Lunnemark": {
-   "checked": 1795009894725,
+   "checked": 1795616063845,
    "file": null,
    "kind": null,
    "credit": null,
@@ -807,7 +807,7 @@
    "src": "https://www.redpoint.com"
   },
   "Steven Hao": {
-   "checked": 1795009894989,
+   "checked": 1795616063785,
    "file": null,
    "kind": null,
    "credit": null,
@@ -821,7 +821,7 @@
    "src": "https://commons.wikimedia.org/wiki/File:Scott_Wu_at_the_2016_ACM-ICPC_World_Finals.jpg"
   },
   "Walden Yan": {
-   "checked": 1795009895193,
+   "checked": 1795616064001,
    "file": null,
    "kind": null,
    "credit": null,
@@ -842,28 +842,28 @@
    "src": "https://www.luxcapital.com"
   },
   "Elad Gil": {
-   "checked": 1795009895113,
+   "checked": 1795616063990,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Valentin Kipiatkov": {
-   "checked": 1795009895407,
+   "checked": 1795616064158,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Sergey Dmitriev": {
-   "checked": 1795009895483,
+   "checked": 1795616064338,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Eugene Belyaev": {
-   "checked": 1795009895648,
+   "checked": 1795616064352,
    "file": null,
    "kind": null,
    "credit": null,
@@ -898,7 +898,7 @@
    "src": "https://github.com/rbren"
   },
   "Igor Ostrovsky": {
-   "checked": 1795009895758,
+   "checked": 1795616064552,
    "file": null,
    "kind": null,
    "credit": null,
@@ -912,14 +912,14 @@
    "src": "https://github.com/xingyaoww"
   },
   "Sutter Hill Ventures": {
-   "checked": 1795009895758,
+   "checked": 1795616064552,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Guy Gur-Ari": {
-   "checked": 1795009895906,
+   "checked": 1795616064557,
    "file": null,
    "kind": null,
    "credit": null,
@@ -940,7 +940,7 @@
    "src": "https://www.innovationendeavors.com"
   },
   "Nate Sesti": {
-   "checked": 1795009895758,
+   "checked": 1795616064552,
    "file": null,
    "kind": null,
    "credit": null,
@@ -961,14 +961,14 @@
    "src": "https://commons.wikimedia.org/wiki/File:Y_Combinator_logo.svg"
   },
   "Sid Sijbrandij": {
-   "checked": 1795009896227,
+   "checked": 1795616065019,
    "file": null,
    "kind": null,
    "credit": null,
    "src": null
   },
   "Scott Breitenother": {
-   "checked": 1795009910246,
+   "checked": 1795616064721,
    "file": null,
    "kind": null,
    "credit": null,
