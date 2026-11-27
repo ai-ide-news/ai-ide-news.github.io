@@ -779,6 +779,14 @@
    "mono": false,
    "src": "github-org-avatar",
    "tone": null
+  },
+  "gh-techjarves-mobile-harness": {
+   "logo": null,
+   "checked": 1795744330576,
+   "file": "gh-techjarves-mobile-harness.svg",
+   "mono": false,
+   "src": "https://raw.githubusercontent.com/techjarves/Mobile-Harness/main/assets/readme/logo.svg",
+   "tone": null
   }
  }
 }
